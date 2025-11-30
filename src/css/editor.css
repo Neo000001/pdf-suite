@@ -75,6 +75,7 @@
 .canvas-inner {
   position: relative;
   display: inline-block;
+  transform-origin: top center;
 }
 
 /* Base PDF canvas */
@@ -100,7 +101,6 @@
 }
 
 /* Text overlay */
-
 .text-layer {
   position: absolute;
   left: 0;
@@ -109,7 +109,6 @@
 }
 
 /* Individual text boxes */
-
 .text-box {
   position: absolute;
   min-width: 60px;
@@ -132,7 +131,6 @@
 }
 
 /* Drop hint */
-
 .drop-hint {
   text-align: center;
   font-size: 0.9rem;
@@ -140,7 +138,6 @@
 }
 
 /* File button */
-
 .file-btn {
   position: relative;
   border-radius: 999px;
@@ -163,7 +160,6 @@
 }
 
 /* Tool buttons */
-
 .tool-btn {
   border-radius: 999px;
   border: 1px solid rgba(148, 163, 184, 0.7);
@@ -180,8 +176,22 @@
   background: var(--accent-soft);
 }
 
-/* Responsive */
+/* Zoom group */
+.zoom-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: 0.5rem;
+}
 
+.zoom-label {
+  font-size: 0.8rem;
+  color: var(--fg-muted);
+  min-width: 40px;
+  text-align: center;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
   .editor-main {
     grid-template-columns: minmax(0, 1fr);
