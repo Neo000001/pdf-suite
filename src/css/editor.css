@@ -77,9 +77,7 @@
   display: inline-block;
 }
 
-/* Canvases */
-
-/* Base PDF page */
+/* Base PDF canvas */
 #pdf-canvas {
   background: #ffffff;
   border-radius: 0.75rem;
@@ -88,21 +86,20 @@
   display: none;
 }
 
-/* Drawing layer on top – must be transparent */
+/* Drawing layer on top – transparent */
 #draw-canvas {
   position: absolute;
   left: 0;
   top: 0;
   max-width: 100%;
   display: none;
-  background: transparent;   /* <<< important */
+  background: transparent;
   border-radius: 0.75rem;
-  box-shadow: none;          /* no extra shadow */
-  pointer-events: none;      /* enabled only when drawing */
+  box-shadow: none;
+  pointer-events: none; /* enabled only when drawing */
 }
 
-
-/* Text layer */
+/* Text overlay */
 
 .text-layer {
   position: absolute;
