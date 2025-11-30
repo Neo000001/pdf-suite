@@ -21,6 +21,10 @@
             <input type="file" id="file-input" accept="application/pdf" />
           </label>
 
+          <button id="add-text-btn" class="btn-ghost btn-small">
+            ✏️ Add Text
+          </button>
+
           <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
             🌙
           </button>
@@ -40,7 +44,11 @@
           <p><strong>Drop a PDF here</strong> or use “Open PDF”.</p>
           <p>Your file stays in your browser – nothing is uploaded.</p>
         </div>
-        <canvas id="pdf-canvas"></canvas>
+
+        <div class="canvas-inner">
+          <canvas id="pdf-canvas"></canvas>
+          <div id="text-layer" class="text-layer"></div>
+        </div>
       </section>
     </main>
 
