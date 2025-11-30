@@ -1,1 +1,49 @@
-<!-- editor -->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF Editor – PDFSuit</title>
+  <link rel="stylesheet" href="../src/css/editor.css">
+</head>
+<body>
+
+<header class="editor-header">
+  <a href="../index.html" class="logo">PDF<span>Suit</span></a>
+
+  <div class="editor-actions">
+    <label class="file-btn">
+      📄 Open PDF
+      <input type="file" id="file-input" accept="application/pdf">
+    </label>
+
+    <button id="add-text-btn">➕ Add Text</button>
+    <button id="save-btn">💾 Export PDF</button>
+
+    <button id="theme-toggle" class="theme-toggle">🌙</button>
+  </div>
+</header>
+
+
+<!-- MAIN WORKSPACE -->
+<div class="editor-layout">
+
+  <!-- Sidebar thumbnails (future) -->
+  <aside class="sidebar">
+    <h3>Pages</h3>
+    <div id="thumbs"></div>
+  </aside>
+
+  <!-- PDF canvas workspace -->
+  <main class="workspace">
+    <canvas id="pdf-canvas"></canvas>
+  </main>
+
+</div>
+
+
+<script src="../src/libs/pdf.min.js"></script> <!-- PDF.js renderer -->
+<script src="../src/js/editor-init.js"></script>
+
+</body>
+</html>
