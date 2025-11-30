@@ -79,8 +79,8 @@
 
 /* Canvases */
 
-#pdf-canvas,
-#draw-canvas {
+/* Base PDF page */
+#pdf-canvas {
   background: #ffffff;
   border-radius: 0.75rem;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
@@ -88,12 +88,19 @@
   display: none;
 }
 
+/* Drawing layer on top – must be transparent */
 #draw-canvas {
   position: absolute;
   left: 0;
   top: 0;
-  pointer-events: none; /* enabled only when drawing */
+  max-width: 100%;
+  display: none;
+  background: transparent;   /* <<< important */
+  border-radius: 0.75rem;
+  box-shadow: none;          /* no extra shadow */
+  pointer-events: none;      /* enabled only when drawing */
 }
+
 
 /* Text layer */
 
