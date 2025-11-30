@@ -21,6 +21,7 @@
             <input type="file" id="file-input" accept="application/pdf" />
           </label>
 
+          <!-- Tools (these use data-tool) -->
           <button class="tool-btn" data-tool="select" id="tool-select">
             🖱 Select
           </button>
@@ -40,11 +41,24 @@
             🩹 Eraser
           </button>
 
+          <!-- History controls (no data-tool) -->
+          <button class="tool-btn" id="undo-btn">↶ Undo</button>
+          <button class="tool-btn" id="redo-btn">↷ Redo</button>
+
+          <!-- Delete selected text box -->
+          <button class="tool-btn" id="delete-btn">🗑 Delete</button>
+
+          <!-- Save -->
           <button id="save-btn" class="btn-primary btn-small">
             💾 Save Page as PDF
           </button>
 
-          <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+          <!-- Theme toggle (handled by app.js) -->
+          <button
+            id="theme-toggle"
+            class="theme-toggle"
+            aria-label="Toggle theme"
+          >
             🌙
           </button>
         </div>
@@ -65,8 +79,11 @@
         </div>
 
         <div class="canvas-inner">
+          <!-- Base PDF -->
           <canvas id="pdf-canvas"></canvas>
+          <!-- Drawing layer -->
           <canvas id="draw-canvas"></canvas>
+          <!-- Text overlay -->
           <div id="text-layer" class="text-layer"></div>
         </div>
       </section>
