@@ -1,12 +1,12 @@
-// PDFSuit Editor: PDF viewer + overlay tools (text, draw, rect, erase, history, export)
+// PDFSuit Editor: PDF viewer + overlay tools + zoom + history + export
 
 let pdfDoc = null;
 let currentPage = 1;
-let scale = 1.2;
+let renderScale = 1.2; // internal PDF render scale (quality)
 
 let canvas, ctx;
 let drawCanvas, drawCtx;
-let fileInput, thumbs, dropHint, textLayer, canvasArea;
+let fileInput, thumbs, dropHint, textLayer, canvasArea, canvasInner;
 let currentTool = "select";
 
 let isDrawing = false;
@@ -18,9 +18,19 @@ let draggingBox = null;
 let dragOffsetX = 0;
 let dragOffsetY = 0;
 
+// For rectangle preview (dotted box)
+let rectPreviewImg = null;
+
 // Undo / Redo history
 let history = [];
 let historyIndex = -1;
+
+// View zoom (CSS scale)
+let viewScale = 1;
+const MIN_ZOOM = 0.5;
+const MAX_ZOOM = 2.5;
+const ZOOM_STEP = 0.15;
+let zoomLabel, zoomInBtn, zoomOutBtn, zoomResetBtn;
 
 document.addEventListener("DOMContentLoaded", () => {
   canvas = document.getElementById("pdf-canvas");
@@ -33,12 +43,18 @@ document.addEventListener("DOMContentLoaded", () => {
   dropHint = document.getElementById("drop-hint");
   textLayer = document.getElementById("text-layer");
   canvasArea = document.querySelector(".canvas-area");
+  canvasInner = document.getElementById("canvas-inner");
 
   const toolButtons = document.querySelectorAll(".tool-btn[data-tool]");
   const saveBtn = document.getElementById("save-btn");
   const deleteBtn = document.getElementById("delete-btn");
   const undoBtn = document.getElementById("undo-btn");
   const redoBtn = document.getElementById("redo-btn");
+
+  zoomLabel = document.getElementById("zoom-label");
+  zoomInBtn = document.getElementById("zoom-in-btn");
+  zoomOutBtn = document.getElementById("zoom-out-btn");
+  zoomResetBtn = document.getElementById("zoom-reset-btn");
 
   if (!window.pdfjsLib) {
     console.error("pdfjsLib not found – check PDF.js script tag.");
@@ -103,17 +119,18 @@ document.addEventListener("DOMContentLoaded", () => {
   canvas.addEventListener("click", (e) => {
     if (currentTool !== "text" || !pdfDoc) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    const box = createTextBox(x, y, true);
-    pushHistory(); // new text added
+    const { x, y } = getCanvasCoords(e, canvas);
+    createTextBox(x, y, true);
+    pushHistory();
   });
 
   // Delete key
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Delete" && selectedBox && document.activeElement !== selectedBox) {
+    if (
+      e.key === "Delete" &&
+      selectedBox &&
+      document.activeElement !== selectedBox
+    ) {
       selectedBox.remove();
       selectedBox = null;
       pushHistory();
@@ -137,7 +154,57 @@ document.addEventListener("DOMContentLoaded", () => {
   // Undo / Redo buttons
   undoBtn.addEventListener("click", undo);
   redoBtn.addEventListener("click", redo);
+
+  // Zoom buttons
+  zoomInBtn.addEventListener("click", () => changeZoom(ZOOM_STEP));
+  zoomOutBtn.addEventListener("click", () => changeZoom(-ZOOM_STEP));
+  zoomResetBtn.addEventListener("click", () => fitZoom());
+
+  updateZoomLabel();
+  applyViewScale();
 });
+
+// --------- Helpers: coordinates & zoom ----------
+
+// Convert mouse event into canvas coordinates (respect zoom)
+function getCanvasCoords(e, targetCanvas) {
+  const rect = targetCanvas.getBoundingClientRect();
+  const scaleX = targetCanvas.width / rect.width;
+  const scaleY = targetCanvas.height / rect.height;
+
+  const x = (e.clientX - rect.left) * scaleX;
+  const y = (e.clientY - rect.top) * scaleY;
+  return { x, y };
+}
+
+function applyViewScale() {
+  if (!canvasInner) return;
+  canvasInner.style.transform = `scale(${viewScale})`;
+  updateZoomLabel();
+}
+
+function updateZoomLabel() {
+  if (!zoomLabel) return;
+  zoomLabel.textContent = `${Math.round(viewScale * 100)}%`;
+}
+
+function changeZoom(delta) {
+  viewScale = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, viewScale + delta));
+  applyViewScale();
+}
+
+function fitZoom() {
+  // Simple "fit to width": scale canvas-inner so pdf width fits area width
+  if (!canvas || !canvasArea) return;
+  const areaRect = canvasArea.getBoundingClientRect();
+  if (canvas.width === 0) {
+    viewScale = 1;
+  } else {
+    const target = areaRect.width - 40; // some padding
+    viewScale = Math.min(Math.max(target / canvas.width, MIN_ZOOM), MAX_ZOOM);
+  }
+  applyViewScale();
+}
 
 // ---------- PDF loading / rendering ----------
 
@@ -156,6 +223,7 @@ async function loadPdfFromFile(file) {
         clearOverlays();
         resetHistory();
         pushHistory(); // initial empty state
+        fitZoom();
       });
     })
     .catch((err) => {
@@ -168,7 +236,7 @@ async function renderPage(num) {
   if (!pdfDoc) return;
 
   const page = await pdfDoc.getPage(num);
-  const viewport = page.getViewport({ scale });
+  const viewport = page.getViewport({ scale: renderScale });
 
   canvas.width = viewport.width;
   canvas.height = viewport.height;
@@ -204,6 +272,7 @@ function buildThumbnails() {
         clearOverlays();
         resetHistory();
         pushHistory();
+        fitZoom();
       });
       setActiveThumb(i);
     });
@@ -313,10 +382,10 @@ function stopBoxDrag() {
   draggingBox = null;
   document.removeEventListener("mousemove", onBoxDrag);
   document.removeEventListener("mouseup", stopBoxDrag);
-  pushHistory(); // position changed
+  pushHistory();
 }
 
-// ---------- Drawing tools ----------
+// ---------- Drawing tools (with rect preview) ----------
 
 function onPointerDown(e) {
   if (!pdfDoc) return;
@@ -324,9 +393,9 @@ function onPointerDown(e) {
   if (!["pen", "highlight", "rect", "eraser"].includes(currentTool)) return;
 
   isDrawing = true;
-  const rect = drawCanvas.getBoundingClientRect();
-  drawStartX = e.clientX - rect.left;
-  drawStartY = e.clientY - rect.top;
+  const { x, y } = getCanvasCoords(e, drawCanvas);
+  drawStartX = x;
+  drawStartY = y;
 
   drawCtx.lineCap = "round";
   drawCtx.lineJoin = "round";
@@ -347,6 +416,12 @@ function onPointerDown(e) {
   } else if (currentTool === "rect") {
     drawCtx.globalCompositeOperation = "source-over";
     drawCtx.globalAlpha = 1;
+    rectPreviewImg = drawCtx.getImageData(
+      0,
+      0,
+      drawCanvas.width,
+      drawCanvas.height
+    );
   }
 
   if (
@@ -361,9 +436,8 @@ function onPointerDown(e) {
 
 function onPointerMove(e) {
   if (!isDrawing) return;
-  const rect = drawCanvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
+
+  const { x, y } = getCanvasCoords(e, drawCanvas);
 
   if (
     currentTool === "pen" ||
@@ -372,6 +446,24 @@ function onPointerMove(e) {
   ) {
     drawCtx.lineTo(x, y);
     drawCtx.stroke();
+    return;
+  }
+
+  if (currentTool === "rect") {
+    const w = x - drawStartX;
+    const h = y - drawStartY;
+
+    drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+    if (rectPreviewImg) {
+      drawCtx.putImageData(rectPreviewImg, 0, 0);
+    }
+
+    drawCtx.save();
+    drawCtx.setLineDash([6, 4]);
+    drawCtx.strokeStyle = "#60a5fa";
+    drawCtx.lineWidth = 1;
+    drawCtx.strokeRect(drawStartX, drawStartY, w, h);
+    drawCtx.restore();
   }
 }
 
@@ -380,23 +472,24 @@ function onPointerUp(e) {
   isDrawing = false;
 
   if (currentTool === "rect") {
-    const rect = drawCanvas.getBoundingClientRect();
-    const endX = e.clientX - rect.left;
-    const endY = e.clientY - rect.top;
+    const { x: endX, y: endY } = getCanvasCoords(e, drawCanvas);
 
     const w = endX - drawStartX;
     const h = endY - drawStartY;
 
+    drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+    if (rectPreviewImg) {
+      drawCtx.putImageData(rectPreviewImg, 0, 0);
+    }
     drawCtx.fillStyle = "#ffffff";
     drawCtx.globalAlpha = 1;
     drawCtx.globalCompositeOperation = "source-over";
     drawCtx.fillRect(drawStartX, drawStartY, w, h);
+    rectPreviewImg = null;
   }
 
   drawCtx.globalAlpha = 1;
   drawCtx.globalCompositeOperation = "source-over";
-
-  // any drawing change → push history
   pushHistory();
 }
 
@@ -409,7 +502,6 @@ function resetHistory() {
 
 function pushHistory() {
   if (!drawCanvas || !textLayer) return;
-  // Cut off redo branch
   if (historyIndex < history.length - 1) {
     history = history.slice(0, historyIndex + 1);
   }
@@ -425,7 +517,6 @@ function restoreHistory(index) {
   if (index < 0 || index >= history.length) return;
   const state = history[index];
 
-  // restore drawing
   const img = new Image();
   img.onload = () => {
     drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
@@ -433,9 +524,7 @@ function restoreHistory(index) {
   };
   img.src = state.drawData;
 
-  // restore text
   textLayer.innerHTML = state.textHtml;
-  // reattach handlers to text boxes
   textLayer.querySelectorAll(".text-box").forEach((box) => {
     initTextBox(box);
   });
@@ -480,7 +569,7 @@ async function exportCurrentPageAsPdf() {
   // drawings
   tctx.drawImage(drawCanvas, 0, 0);
 
-  // text boxes (flatten as bitmap text)
+  // text boxes
   document.querySelectorAll(".text-box").forEach((box) => {
     const x = parseFloat(box.style.left) || 0;
     const y = parseFloat(box.style.top) || 0;
@@ -495,7 +584,12 @@ async function exportCurrentPageAsPdf() {
   const pdfDocOut = await PDFLib.PDFDocument.create();
   const page = pdfDocOut.addPage([canvas.width, canvas.height]);
   const pngImage = await pdfDocOut.embedPng(dataUrl);
-  page.drawImage(pngImage, { x: 0, y: 0, width: canvas.width, height: canvas.height });
+  page.drawImage(pngImage, {
+    x: 0,
+    y: 0,
+    width: canvas.width,
+    height: canvas.height,
+  });
 
   const pdfBytes = await pdfDocOut.save();
   downloadBlob(pdfBytes, "edited-page.pdf");
@@ -509,4 +603,4 @@ function downloadBlob(data, name) {
   a.download = name;
   a.click();
   URL.revokeObjectURL(url);
-}
+    }
