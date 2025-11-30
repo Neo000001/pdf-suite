@@ -1,1 +1,120 @@
-/* editor css */
+/* Editor layout */
+
+.editor-main {
+  max-width: 1120px;
+  margin: 1.5rem auto;
+  padding: 0 1.25rem 1.5rem;
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.sidebar {
+  background: var(--bg-alt);
+  border-radius: 1rem;
+  border: 1px solid var(--border-subtle);
+  padding: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.sidebar h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+}
+
+.thumbs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.thumb-btn {
+  width: 100%;
+  text-align: left;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: transparent;
+  color: var(--fg-muted);
+  padding: 0.35rem 0.55rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.thumb-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.canvas-area {
+  position: relative;
+  background: var(--bg-alt);
+  border-radius: 1rem;
+  border: 1px solid var(--border-subtle);
+  padding: 0.75rem;
+  min-height: 60vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow: auto;
+}
+
+.canvas-area.dragging {
+  border-style: dashed;
+  border-color: var(--accent);
+}
+
+#pdf-canvas {
+  display: none;
+  background: #ffffff;
+  border-radius: 0.75rem;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  max-width: 100%;
+}
+
+.drop-hint {
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--fg-muted);
+}
+
+/* File button in header */
+
+.file-btn {
+  position: relative;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  padding: 0.35rem 0.9rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--fg-muted);
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.file-btn input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Responsive */
+
+@media (max-width: 768px) {
+  .editor-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sidebar {
+    order: 2;
+  }
+
+  .canvas-area {
+    order: 1;
+    min-height: 50vh;
+  }
+}
