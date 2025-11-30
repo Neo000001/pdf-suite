@@ -1,49 +1,59 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PDF Editor – PDFSuit</title>
-  <link rel="stylesheet" href="../src/css/editor.css">
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <title>PDF Editor – PDFSuit</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<header class="editor-header">
-  <a href="../index.html" class="logo">PDF<span>Suit</span></a>
+    <!-- Reuse main styles + editor-specific styles -->
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/editor.css" />
+  </head>
+  <body>
+    <!-- HEADER -->
+    <header class="site-header">
+      <div class="header-inner">
+        <a href="../index.html" class="logo">PDF<span>Suit</span></a>
 
-  <div class="editor-actions">
-    <label class="file-btn">
-      📄 Open PDF
-      <input type="file" id="file-input" accept="application/pdf">
-    </label>
+        <div class="header-actions">
+          <label class="file-btn">
+            📄 Open PDF
+            <input type="file" id="file-input" accept="application/pdf" />
+          </label>
 
-    <button id="add-text-btn">➕ Add Text</button>
-    <button id="save-btn">💾 Export PDF</button>
+          <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+            🌙
+          </button>
+        </div>
+      </div>
+    </header>
 
-    <button id="theme-toggle" class="theme-toggle">🌙</button>
-  </div>
-</header>
+    <!-- EDITOR LAYOUT -->
+    <main class="editor-main">
+      <aside class="sidebar">
+        <h3>Pages</h3>
+        <div id="thumbs" class="thumbs"></div>
+      </aside>
 
+      <section class="canvas-area">
+        <div id="drop-hint" class="drop-hint">
+          <p><strong>Drop a PDF here</strong> or use “Open PDF”.</p>
+          <p>Your file stays in your browser – nothing is uploaded.</p>
+        </div>
+        <canvas id="pdf-canvas"></canvas>
+      </section>
+    </main>
 
-<!-- MAIN WORKSPACE -->
-<div class="editor-layout">
+    <!-- Scripts -->
+    <script src="../src/js/app.js" defer></script>
 
-  <!-- Sidebar thumbnails (future) -->
-  <aside class="sidebar">
-    <h3>Pages</h3>
-    <div id="thumbs"></div>
-  </aside>
+    <!-- PDF.js from CDN -->
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"
+      defer
+    ></script>
 
-  <!-- PDF canvas workspace -->
-  <main class="workspace">
-    <canvas id="pdf-canvas"></canvas>
-  </main>
-
-</div>
-
-
-<script src="../src/libs/pdf.min.js"></script> <!-- PDF.js renderer -->
-<script src="../src/js/editor-init.js"></script>
-
-</body>
+    <!-- Our editor logic -->
+    <script src="../src/js/editor-init.js" defer></script>
+  </body>
 </html>
