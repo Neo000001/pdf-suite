@@ -8,6 +8,21 @@
   grid-template-columns: 60px minmax(0, 1fr);
   gap: 0.75rem;
 }
+/* Brush size area in top bar */
+.brush-size {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--fg-muted);
+}
+
+.brush-size input[type="range"] {
+  width: 70px;
+}
+
+/* remove bottom undo/redo (if styles exist they're harmless) */
+
 
 /* Left toolbar */
 
