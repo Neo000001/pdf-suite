@@ -1,22 +1,15 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
   <head>
-    <head>
-  <meta charset="UTF-8" />
-  <title>PDFSuit Editor – Edit PDF Text, Highlight & Sign Online</title>
-  <meta
-    name="description"
-    content="Use the PDFSuit Editor to edit PDF text, add highlights, signatures and shapes, all in your browser with no upload and no watermark."
-  />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  ...
-</head>
-
     <meta charset="UTF-8" />
-    <title>PDF Editor – PDFSuit</title>
+    <title>PDFSuit Editor – Edit, Highlight & Sign PDFs Online</title>
+    <meta
+      name="description"
+      content="Use the PDFSuit Editor to view and annotate PDFs in your browser. Add text, highlights, drawings and signatures, then save as a new PDF – no upload needed."
+    />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <!-- Main + Editor CSS -->
+    <!-- Styles -->
     <link rel="stylesheet" href="../src/css/base.css" />
     <link rel="stylesheet" href="../src/css/editor.css" />
   </head>
@@ -26,53 +19,13 @@
       <div class="header-inner">
         <a href="../index.html" class="logo">PDF<span>Suit</span></a>
 
-        <div class="editor-toolbar">
-          <label class="file-btn">
-            📄 Open PDF
-            <input type="file" id="file-input" accept="application/pdf" />
-          </label>
+        <nav class="nav-links">
+          <a href="../index.html#tools">Tools</a>
+          <a href="../index.html#how-it-works">How it works</a>
+          <a href="../index.html#about">About</a>
+        </nav>
 
-          <!-- Tools (use data-tool) -->
-          <button class="tool-btn" data-tool="select" id="tool-select">
-            🖱 Select
-          </button>
-          <button class="tool-btn" data-tool="text" id="tool-text">
-            ✏️ Text
-          </button>
-          <button class="tool-btn" data-tool="rect" id="tool-rect">
-            ▭ Rect
-          </button>
-          <button class="tool-btn" data-tool="pen" id="tool-pen">
-            🖊 Pen
-          </button>
-          <button class="tool-btn" data-tool="highlight" id="tool-highlight">
-            🟨 Highlight
-          </button>
-          <button class="tool-btn" data-tool="eraser" id="tool-eraser">
-            🩹 Eraser
-          </button>
-
-          <!-- Zoom controls -->
-          <div class="zoom-group">
-            <button class="tool-btn" id="zoom-out-btn">−</button>
-            <span id="zoom-label" class="zoom-label">100%</span>
-            <button class="tool-btn" id="zoom-in-btn">+</button>
-            <button class="tool-btn" id="zoom-reset-btn">Fit</button>
-          </div>
-
-          <!-- History -->
-          <button class="tool-btn" id="undo-btn">↶ Undo</button>
-          <button class="tool-btn" id="redo-btn">↷ Redo</button>
-
-          <!-- Delete selected text box -->
-          <button class="tool-btn" id="delete-btn">🗑 Delete</button>
-
-          <!-- Save -->
-          <button id="save-btn" class="btn-primary btn-small">
-            💾 Save Page as PDF
-          </button>
-
-          <!-- Theme toggle -->
+        <div class="header-actions">
           <button
             id="theme-toggle"
             class="theme-toggle"
@@ -80,44 +33,212 @@
           >
             🌙
           </button>
+          <button id="save-btn" class="btn-primary btn-small">
+            💾 Save Page as PDF
+          </button>
         </div>
       </div>
     </header>
 
-    <!-- EDITOR LAYOUT -->
-    <main class="editor-main">
-      <aside class="sidebar">
-        <h3>Pages</h3>
-        <div id="thumbs" class="thumbs"></div>
+    <!-- EDITOR SHELL -->
+    <main class="editor-shell">
+      <!-- LEFT TOOLBAR -->
+      <aside class="tool-sidebar">
+        <button class="tool-icon-btn" data-tool="hand" title="Hand / Pan">
+          🖐
+        </button>
+        <button
+          class="tool-icon-btn"
+          data-tool="select"
+          title="Select / Move"
+          id="tool-select"
+        >
+          🖱
+        </button>
+        <button class="tool-icon-btn" data-tool="text" title="Add Text">
+          ✏
+        </button>
+        <button
+          class="tool-icon-btn"
+          data-tool="edit-text"
+          title="Edit existing PDF text"
+        >
+          ✎
+        </button>
+        <button class="tool-icon-btn" data-tool="highlight" title="Highlight">
+          🟨
+        </button>
+        <button class="tool-icon-btn" data-tool="pen" title="Pen / Pencil">
+          🖊
+        </button>
+        <button class="tool-icon-btn" data-tool="rect" title="White Rect / Cover">
+          ▭
+        </button>
+        <button class="tool-icon-btn" data-tool="eraser" title="Eraser">
+          🩹
+        </button>
+        <button class="tool-icon-btn" data-tool="signature" title="Signature">
+          ✒
+        </button>
+
+        <div class="tool-sidebar-bottom">
+          <button id="undo-btn" class="tool-icon-btn" title="Undo">↶</button>
+          <button id="redo-btn" class="tool-icon-btn" title="Redo">↷</button>
+        </div>
       </aside>
 
-      <section class="canvas-area">
-        <div id="drop-hint" class="drop-hint">
-          <p><strong>Drop a PDF here</strong> or use “Open PDF”.</p>
-          <p>Your file stays in your browser – nothing is uploaded.</p>
+      <!-- EDITOR PANEL (pages + canvas) -->
+      <section class="editor-panel">
+        <!-- TOP FORMAT BAR -->
+        <div class="format-bar">
+          <div class="format-left">
+            <label class="file-btn">
+              📄 Open PDF
+              <input type="file" id="file-input" accept="application/pdf" />
+            </label>
+
+            <div class="page-indicator">
+              <span id="page-label">Page 0 / 0</span>
+            </div>
+          </div>
+
+          <div class="format-center">
+            <!-- Text formatting (for future use when text box selected) -->
+            <select id="font-size" class="format-select">
+              <option value="10">10</option>
+              <option value="12" selected>12</option>
+              <option value="14">14</option>
+              <option value="16">16</option>
+              <option value="18">18</option>
+            </select>
+            <button class="format-btn" id="bold-btn">B</button>
+            <button class="format-btn" id="italic-btn">I</button>
+
+            <!-- Highlight mode toggle -->
+            <div class="highlight-mode">
+              <span>Highlight:</span>
+              <button
+                class="format-btn format-btn-small active"
+                id="hl-mode-box"
+                data-mode="box"
+              >
+                Box
+              </button>
+              <button
+                class="format-btn format-btn-small"
+                id="hl-mode-brush"
+                data-mode="brush"
+              >
+                Brush
+              </button>
+            </div>
+          </div>
+
+          <div class="format-right">
+            <div class="zoom-group">
+              <button class="format-btn" id="zoom-out-btn">−</button>
+              <span id="zoom-label" class="zoom-label">100%</span>
+              <button class="format-btn" id="zoom-in-btn">+</button>
+              <button class="format-btn" id="zoom-reset-btn">Fit</button>
+            </div>
+          </div>
         </div>
 
-        <div class="canvas-inner" id="canvas-inner">
-          <!-- Base PDF -->
-          <canvas id="pdf-canvas"></canvas>
-          <!-- Drawing layer -->
-          <canvas id="draw-canvas"></canvas>
-          <!-- Text overlay -->
-          <div id="text-layer" class="text-layer"></div>
+        <!-- MAIN EDITOR AREA -->
+        <div class="editor-main">
+          <!-- Pages list -->
+          <aside class="page-sidebar">
+            <h3>Pages</h3>
+            <div id="thumbs" class="thumbs"></div>
+          </aside>
+
+          <!-- Canvas area -->
+          <section class="canvas-wrapper">
+            <div id="drop-hint" class="drop-hint">
+              <p><strong>Drop a PDF here</strong> or use “Open PDF”.</p>
+              <p>Your file stays in your browser – nothing is uploaded.</p>
+            </div>
+
+            <div class="canvas-inner" id="canvas-inner">
+              <canvas id="pdf-canvas"></canvas>
+              <canvas id="draw-canvas"></canvas>
+              <div id="text-layer" class="text-layer"></div>
+            </div>
+          </section>
         </div>
       </section>
     </main>
 
-    <!-- Main app (theme etc.) -->
+    <!-- SIGNATURE MODAL (skeleton, draw tab works; others can be finished later) -->
+    <div id="signature-modal" class="sig-modal hidden">
+      <div class="sig-modal-content">
+        <div class="sig-modal-header">
+          <h2>Add Signature</h2>
+          <button id="sig-close-btn" class="sig-close-btn">✕</button>
+        </div>
+
+        <div class="sig-tabs">
+          <button class="sig-tab active" data-tab="draw">Draw</button>
+          <button class="sig-tab" data-tab="upload">Upload</button>
+          <button class="sig-tab" data-tab="type">Type</button>
+        </div>
+
+        <div class="sig-tab-body" data-tab-body="draw">
+          <p>Draw your signature below:</p>
+          <canvas id="sig-draw-canvas" class="sig-draw-canvas"></canvas>
+          <div class="sig-actions">
+            <button id="sig-clear-btn" class="format-btn">Clear</button>
+            <button id="sig-save-btn" class="btn-primary btn-small">
+              Add to page
+            </button>
+          </div>
+        </div>
+
+        <div class="sig-tab-body hidden" data-tab-body="upload">
+          <p>Upload a signature image (PNG/JPG):</p>
+          <input type="file" id="sig-upload-input" accept="image/*" />
+          <p class="small-note">
+            After upload, click “Add to page” and then place it where you want.
+          </p>
+          <div class="sig-actions">
+            <button id="sig-upload-save-btn" class="btn-primary btn-small">
+              Add to page
+            </button>
+          </div>
+        </div>
+
+        <div class="sig-tab-body hidden" data-tab-body="type">
+          <p>Type your name and choose a style:</p>
+          <input
+            type="text"
+            id="sig-type-input"
+            placeholder="Abhilash R"
+            class="sig-type-input"
+          />
+          <select id="sig-font-select" class="format-select">
+            <option value="'Segoe Script', cursive">Segoe Script</option>
+            <option value="'Pacifico', cursive">Pacifico</option>
+            <option value="'Great Vibes', cursive">Great Vibes</option>
+          </select>
+          <div class="sig-actions">
+            <button id="sig-type-save-btn" class="btn-primary btn-small">
+              Add to page
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCRIPTS -->
     <script src="../src/js/app.js" defer></script>
 
-    <!-- PDF.js (viewer engine) -->
+    <!-- PDF.js -->
     <script
       src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"
       defer
     ></script>
 
-    <!-- pdf-lib (for export) -->
+    <!-- pdf-lib for export -->
     <script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
 
     <!-- Editor logic -->
