@@ -9,12 +9,10 @@
     />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <!-- Styles -->
     <link rel="stylesheet" href="../src/css/base.css" />
     <link rel="stylesheet" href="../src/css/editor.css" />
   </head>
   <body>
-    <!-- HEADER -->
     <header class="site-header">
       <div class="header-inner">
         <a href="../index.html" class="logo">PDF<span>Suit</span></a>
@@ -40,24 +38,18 @@
       </div>
     </header>
 
-    <!-- EDITOR SHELL -->
     <main class="editor-shell">
       <!-- LEFT TOOLBAR -->
       <aside class="tool-sidebar">
-        <button class="tool-icon-btn" data-tool="hand" title="Hand / Pan">
-          🖐
-        </button>
+        <button class="tool-icon-btn" data-tool="hand" title="Hand / Pan">🖐</button>
         <button
-          class="tool-icon-btn"
+          class="tool-icon-btn active"
           data-tool="select"
           title="Select / Move"
-          id="tool-select"
         >
           🖱
         </button>
-        <button class="tool-icon-btn" data-tool="text" title="Add Text">
-          ✏
-        </button>
+        <button class="tool-icon-btn" data-tool="text" title="Add Text">✏</button>
         <button
           class="tool-icon-btn"
           data-tool="edit-text"
@@ -80,16 +72,11 @@
         <button class="tool-icon-btn" data-tool="signature" title="Signature">
           ✒
         </button>
-
-        <div class="tool-sidebar-bottom">
-          <button id="undo-btn" class="tool-icon-btn" title="Undo">↶</button>
-          <button id="redo-btn" class="tool-icon-btn" title="Redo">↷</button>
-        </div>
       </aside>
 
-      <!-- EDITOR PANEL (pages + canvas) -->
+      <!-- RIGHT SIDE: toolbar + canvas -->
       <section class="editor-panel">
-        <!-- TOP FORMAT BAR -->
+        <!-- TOP BAR -->
         <div class="format-bar">
           <div class="format-left">
             <label class="file-btn">
@@ -103,7 +90,7 @@
           </div>
 
           <div class="format-center">
-            <!-- Text formatting (for future use when text box selected) -->
+            <!-- Text formatting -->
             <select id="font-size" class="format-select">
               <option value="10">10</option>
               <option value="12" selected>12</option>
@@ -132,9 +119,24 @@
                 Brush
               </button>
             </div>
+
+            <!-- Brush size -->
+            <div class="brush-size">
+              <span>Brush size:</span>
+              <input
+                type="range"
+                id="brush-size"
+                min="2"
+                max="12"
+                value="4"
+              />
+            </div>
           </div>
 
           <div class="format-right">
+            <button class="format-btn" id="undo-btn">↶ Undo</button>
+            <button class="format-btn" id="redo-btn">↷ Redo</button>
+
             <div class="zoom-group">
               <button class="format-btn" id="zoom-out-btn">−</button>
               <span id="zoom-label" class="zoom-label">100%</span>
@@ -144,15 +146,13 @@
           </div>
         </div>
 
-        <!-- MAIN EDITOR AREA -->
+        <!-- MAIN EDITOR -->
         <div class="editor-main">
-          <!-- Pages list -->
           <aside class="page-sidebar">
             <h3>Pages</h3>
             <div id="thumbs" class="thumbs"></div>
           </aside>
 
-          <!-- Canvas area -->
           <section class="canvas-wrapper">
             <div id="drop-hint" class="drop-hint">
               <p><strong>Drop a PDF here</strong> or use “Open PDF”.</p>
@@ -169,7 +169,7 @@
       </section>
     </main>
 
-    <!-- SIGNATURE MODAL (skeleton, draw tab works; others can be finished later) -->
+    <!-- SIGNATURE MODAL (same as before) -->
     <div id="signature-modal" class="sig-modal hidden">
       <div class="sig-modal-content">
         <div class="sig-modal-header">
@@ -229,19 +229,12 @@
       </div>
     </div>
 
-    <!-- SCRIPTS -->
     <script src="../src/js/app.js" defer></script>
-
-    <!-- PDF.js -->
     <script
       src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"
       defer
     ></script>
-
-    <!-- pdf-lib for export -->
     <script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
-
-    <!-- Editor logic -->
     <script src="../src/js/editor-init.js" defer></script>
   </body>
 </html>
