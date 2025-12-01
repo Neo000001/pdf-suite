@@ -1,32 +1,188 @@
-/* Layout */
+/* Editor shell layout */
 
-.editor-main {
+.editor-shell {
   max-width: 1120px;
   margin: 1.5rem auto;
   padding: 0 1.25rem 1.5rem;
   display: grid;
-  grid-template-columns: 200px minmax(0, 1fr);
-  gap: 1rem;
+  grid-template-columns: 60px minmax(0, 1fr);
+  gap: 0.75rem;
 }
 
-.editor-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
+/* Left toolbar */
 
-.sidebar {
+.tool-sidebar {
   background: var(--bg-alt);
   border-radius: 1rem;
   border: 1px solid var(--border-subtle);
+  padding: 0.5rem 0.3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.tool-icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: transparent;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fg-muted);
+}
+
+.tool-icon-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.tool-sidebar-bottom {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* Editor panel */
+
+.editor-panel {
+  background: var(--bg-alt);
+  border-radius: 1rem;
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Format / top bar */
+
+.format-bar {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border-subtle);
+  display: grid;
+  grid-template-columns: 1fr 1.2fr auto;
+  align-items: center;
+  column-gap: 0.5rem;
+}
+
+.format-left,
+.format-center,
+.format-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.page-indicator {
+  font-size: 0.8rem;
+  color: var(--fg-muted);
+}
+
+/* File button */
+
+.file-btn {
+  position: relative;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  padding: 0.3rem 0.9rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--fg-muted);
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.file-btn input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Format buttons */
+
+.format-btn {
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: transparent;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: var(--fg-muted);
+}
+
+.format-btn-small {
+  padding-inline: 0.45rem;
+  font-size: 0.75rem;
+}
+
+.format-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.format-select {
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: transparent;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.8rem;
+  color: var(--fg-muted);
+}
+
+.highlight-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--fg-muted);
+}
+
+/* Zoom */
+
+.zoom-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.zoom-label {
+  font-size: 0.8rem;
+  min-width: 40px;
+  text-align: center;
+  color: var(--fg-muted);
+}
+
+/* Editor main area */
+
+.editor-main {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  gap: 0.75rem;
   padding: 0.75rem;
+}
+
+/* Page sidebar */
+
+.page-sidebar {
+  border-radius: 0.9rem;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg);
+  padding: 0.5rem;
   font-size: 0.85rem;
 }
 
-.sidebar h3 {
+.page-sidebar h3 {
   margin: 0 0 0.5rem;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .thumbs {
@@ -54,11 +210,12 @@
   color: var(--accent);
 }
 
-.canvas-area {
-  position: relative;
-  background: var(--bg-alt);
-  border-radius: 1rem;
+/* Canvas area */
+
+.canvas-wrapper {
+  border-radius: 0.9rem;
   border: 1px solid var(--border-subtle);
+  background: var(--bg);
   padding: 0.75rem;
   min-height: 60vh;
   display: flex;
@@ -67,7 +224,7 @@
   overflow: auto;
 }
 
-.canvas-area.dragging {
+.canvas-wrapper.dragging {
   border-style: dashed;
   border-color: var(--accent);
 }
@@ -79,6 +236,7 @@
 }
 
 /* Base PDF canvas */
+
 #pdf-canvas {
   background: #ffffff;
   border-radius: 0.75rem;
@@ -87,7 +245,8 @@
   display: none;
 }
 
-/* Drawing layer on top – transparent */
+/* Drawing layer */
+
 #draw-canvas {
   position: absolute;
   left: 0;
@@ -96,11 +255,11 @@
   display: none;
   background: transparent;
   border-radius: 0.75rem;
-  box-shadow: none;
-  pointer-events: none; /* enabled only when drawing */
+  pointer-events: none;
 }
 
-/* Text overlay */
+/* Text / overlay layer */
+
 .text-layer {
   position: absolute;
   left: 0;
@@ -108,8 +267,10 @@
   pointer-events: none;
 }
 
-/* Individual text boxes */
-.text-box {
+/* Text boxes + overlay objects */
+
+.text-box,
+.overlay-object {
   position: absolute;
   min-width: 60px;
   min-height: 20px;
@@ -117,92 +278,141 @@
   font-size: 13px;
   line-height: 1.3;
   color: #111827;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
   border-radius: 4px;
   border: 1px solid rgba(148, 163, 184, 0.8);
   outline: none;
-  cursor: text;
+  cursor: move;
   pointer-events: auto;
 }
 
-.text-box.selected {
+.text-box {
+  cursor: text;
+}
+
+.text-box.selected,
+.overlay-object.selected {
   border-color: var(--accent);
   box-shadow: 0 0 0 1px var(--accent-soft);
 }
 
 /* Drop hint */
+
 .drop-hint {
   text-align: center;
   font-size: 0.9rem;
   color: var(--fg-muted);
 }
 
-/* File button */
-.file-btn {
-  position: relative;
-  border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.7);
-  padding: 0.35rem 0.9rem;
-  font-size: 0.85rem;
-  cursor: pointer;
-  color: var(--fg-muted);
-  background: transparent;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-}
+/* Signature modal */
 
-.file-btn input[type="file"] {
-  position: absolute;
+.sig-modal {
+  position: fixed;
   inset: 0;
-  opacity: 0;
-  cursor: pointer;
+  background: rgba(15, 23, 42, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 40;
 }
 
-/* Tool buttons */
-.tool-btn {
+.sig-modal.hidden {
+  display: none;
+}
+
+.sig-modal-content {
+  background: var(--bg);
+  border-radius: 1rem;
+  border: 1px solid var(--border-subtle);
+  padding: 1rem;
+  width: min(420px, 90vw);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+
+.sig-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.sig-close-btn {
   border-radius: 999px;
   border: 1px solid rgba(148, 163, 184, 0.7);
   background: transparent;
-  padding: 0.35rem 0.7rem;
+  padding: 0.2rem 0.6rem;
+  cursor: pointer;
+}
+
+.sig-tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.sig-tab {
+  flex: 1;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: transparent;
+  padding: 0.25rem 0.4rem;
   font-size: 0.8rem;
   cursor: pointer;
+  text-align: center;
   color: var(--fg-muted);
 }
 
-.tool-btn.active {
+.sig-tab.active {
   border-color: var(--accent);
   color: var(--accent);
   background: var(--accent-soft);
 }
 
-/* Zoom group */
-.zoom-group {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  margin-left: 0.5rem;
+.sig-tab-body {
+  font-size: 0.85rem;
 }
 
-.zoom-label {
-  font-size: 0.8rem;
+.sig-draw-canvas {
+  width: 100%;
+  height: 160px;
+  border-radius: 0.75rem;
+  border: 1px dashed var(--border-subtle);
+  margin: 0.5rem 0;
+  background: #ffffff;
+}
+
+.sig-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.sig-type-input {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-subtle);
+  padding: 0.35rem 0.6rem;
+  margin: 0.4rem 0;
+}
+
+.small-note {
+  font-size: 0.75rem;
   color: var(--fg-muted);
-  min-width: 40px;
-  text-align: center;
+}
+
+.hidden {
+  display: none;
 }
 
 /* Responsive */
-@media (max-width: 768px) {
+
+@media (max-width: 900px) {
+  .editor-shell {
+    grid-template-columns: 50px minmax(0, 1fr);
+  }
+
   .editor-main {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .sidebar {
-    order: 2;
-  }
-
-  .canvas-area {
-    order: 1;
-    min-height: 50vh;
+    grid-template-columns: 120px minmax(0, 1fr);
   }
 }
