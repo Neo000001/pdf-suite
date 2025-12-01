@@ -1,192 +1,119 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
-  <head>
-    <meta charset="UTF-8" />
-    <title>PDFSuit Editor – Free Online PDF Tools</title>
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1"
-    />
-    <link rel="stylesheet" href="../src/css/editor.css" />
-    <!-- PDF.js -->
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"
-      defer
-    ></script>
-    <!-- PDFLib for export -->
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"
-      defer
-    ></script>
-    <!-- Our editor JS -->
-    <script src="../src/js/editor-init.js" defer></script>
-  </head>
-  <body>
-    <header class="editor-header">
-      <div class="editor-header-left">
-        <a href="../index.html" class="logo-small">PDF<span>Suit</span></a>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PDFSuit Editor</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <button id="open-btn" class="btn-primary" onclick="document.getElementById('file-input').click()">
-          Open PDF
-        </button>
-        <input
-          type="file"
-          id="file-input"
-          accept="application/pdf"
-          style="display: none"
-        />
+<link rel="stylesheet" href="../src/css/base.css">
 
-        <span id="page-label" class="page-label">Page 1 / 1</span>
-      </div>
+<!-- PDF.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 
-      <div class="editor-header-center">
+<!-- PDF-LIB for export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+
+</head>
+<body>
+
+<header class="editor-top">
+    <a href="../index.html" class="logo">PDF<span>Suit</span></a>
+
+    <div class="top-controls">
         <select id="font-size">
-          <option>10</option>
-          <option selected>12</option>
-          <option>14</option>
-          <option>16</option>
-          <option>18</option>
-          <option>20</option>
+            <option>10</option><option>12</option><option>14</option>
+            <option>18</option><option>22</option><option>28</option>
         </select>
-        <button id="bold-btn" class="format-btn">B</button>
-        <button id="italic-btn" class="format-btn">I</button>
-
-        <span class="separator"></span>
+        <button id="bold-btn" class="tbtn">B</button>
+        <button id="italic-btn" class="tbtn">I</button>
 
         <span>Highlight:</span>
-        <button id="hl-mode-box" class="format-btn active">Box</button>
-        <button id="hl-mode-brush" class="format-btn">Brush</button>
+        <button id="hl-mode-box" class="tbtn active">Box</button>
+        <button id="hl-mode-brush" class="tbtn">Brush</button>
 
-        <span class="separator"></span>
-        <label class="brush-label">
-          Brush size
-          <input id="brush-size" type="range" min="2" max="14" value="4" />
-        </label>
-      </div>
+        <span>Brush size</span>
+        <input id="brush-size" type="range" min="2" max="20" value="4">
 
-      <div class="editor-header-right">
-        <button class="format-btn" id="undo-btn">↶ Undo</button>
-        <button class="format-btn" id="redo-btn">↷ Redo</button>
-        <button class="format-btn" id="delete-btn">🗑 Delete</button>
+        <button id="undo-btn">⟳ Undo</button>
+        <button id="redo-btn">⟲ Redo</button>
+        <button id="delete-btn">🗑 Delete</button>
 
-        <div class="zoom-group">
-          <button id="zoom-out-btn" class="format-btn">−</button>
-          <span id="zoom-label">100%</span>
-          <button id="zoom-in-btn" class="format-btn">+</button>
-          <button id="zoom-reset-btn" class="format-btn">Fit</button>
-        </div>
+        <button id="zoom-out-btn">-</button>
+        <span id="zoom-label">100%</span>
+        <button id="zoom-in-btn">+</button>
+        <button id="zoom-reset-btn">Fit</button>
 
-        <button id="save-btn" class="btn-primary btn-save">
-          Save Page as PDF
-        </button>
-      </div>
-    </header>
+        <button id="save-btn" class="saveBtn">💾 Save Page as PDF</button>
+    </div>
+</header>
 
-    <main class="editor-main">
-      <!-- LEFT TOOLS -->
-      <aside class="tool-sidebar">
-        <button class="tool-icon-btn active" data-tool="select" title="Select">
-          🖱
-        </button>
-        <button class="tool-icon-btn" data-tool="hand" title="Move / Pan">
-          ✋
-        </button>
-        <button class="tool-icon-btn" data-tool="text" title="Add text">
-          T+
-        </button>
-        <button class="tool-icon-btn" data-tool="edit-text" title="Edit text (white-out + new)">
-          ✎
-        </button>
-        <button class="tool-icon-btn" data-tool="pen" title="Pen">
-          🖊
-        </button>
-        <button class="tool-icon-btn" data-tool="highlight" title="Highlight">
-          🖍
-        </button>
-        <button class="tool-icon-btn" data-tool="rect" title="White box">
-          ▭
-        </button>
-        <button class="tool-icon-btn" data-tool="eraser" title="Eraser">
-          ⌫
-        </button>
-        <button class="tool-icon-btn" data-tool="signature" title="Signature">
-          ✒
-        </button>
-      </aside>
 
-      <!-- PAGE SIDEBAR (future multi-page) -->
-      <aside class="page-sidebar">
-        <h3>Pages</h3>
-        <div id="page-list" class="page-list">
-          <div class="page-list-item active">Page 1</div>
-        </div>
-        <p class="help-text">
-          Drop a PDF here or use “Open PDF”. Your file stays in your browser –
-          nothing is uploaded.
-        </p>
-      </aside>
+<!-- ========== TOOLBAR LEFT ========== -->
+<aside class="sidebar">
+    <button class="tool-icon-btn" data-tool="select">🔘</button>
+    <button class="tool-icon-btn" data-tool="hand">✋</button>
+    <button class="tool-icon-btn" data-tool="text">T+</button>
+    <button class="tool-icon-btn" data-tool="edit-text">✎</button>
+    <button class="tool-icon-btn" data-tool="pen">🖊</button>
+    <button class="tool-icon-btn" data-tool="highlight">🟨</button>
+    <button class="tool-icon-btn" data-tool="eraser">🧽</button>
+    <button class="tool-icon-btn" data-tool="rect">▭</button>
+    <button class="tool-icon-btn" data-tool="signature">✒</button>
+    <input type="file" id="file-input" accept="application/pdf">
+</aside>
 
-      <!-- CANVAS AREA -->
-      <section class="canvas-wrapper">
-        <div id="canvas-inner" class="canvas-inner">
-          <canvas id="pdf-canvas"></canvas>
-          <canvas id="draw-canvas"></canvas>
-          <div id="overlay-layer" class="overlay-layer"></div>
-        </div>
-      </section>
-    </main>
 
-    <!-- SIGNATURE MODAL -->
-    <div id="signature-modal" class="sig-modal hidden">
-      <div class="sig-modal-backdrop"></div>
-      <div class="sig-modal-content">
-        <div class="sig-modal-header">
-          <h2>Add Signature</h2>
-          <button id="sig-close-btn" class="sig-close-btn">✕</button>
-        </div>
+<!-- ========== MAIN EDITOR CANVAS ========== -->
+<div class="canvas-wrapper" id="canvas-area">
+    <div id="canvas-inner">
+        <canvas id="pdf-canvas"></canvas>
+        <canvas id="draw-canvas"></canvas>
+        <div id="overlay-layer"></div>
+    </div>
+</div>
+
+
+<!-- ========== SIGNATURE MODAL ========== -->
+<div id="signature-modal" class="modal hidden">
+    <div class="modal-body">
+
+        <h2>Add Signature</h2>
 
         <div class="sig-tabs">
-          <button class="sig-tab active" data-tab="draw">Draw</button>
-          <button class="sig-tab" data-tab="upload">Upload</button>
-          <button class="sig-tab" data-tab="type">Type</button>
+            <button class="sig-tab active" data-tab="draw">Draw</button>
+            <button class="sig-tab" data-tab="upload">Upload</button>
+            <button class="sig-tab" data-tab="type">Type</button>
         </div>
 
+        <!-- DRAW -->
         <div class="sig-tab-body" data-tab-body="draw">
-          <p>Draw your signature below:</p>
-          <div class="sig-draw-wrapper">
             <canvas id="sig-draw-canvas"></canvas>
-          </div>
+            <button id="sig-clear-btn">Clear</button>
+            <button id="sig-save-btn">Add</button>
         </div>
 
+        <!-- UPLOAD -->
         <div class="sig-tab-body hidden" data-tab-body="upload">
-          <p>Upload a PNG/JPG signature image:</p>
-          <input type="file" id="sig-upload-input" accept="image/*" />
+            <input type="file" id="sig-upload-input" accept="image/*">
+            <button id="sig-upload-save-btn">Add</button>
         </div>
 
+        <!-- TYPE -->
         <div class="sig-tab-body hidden" data-tab-body="type">
-          <p>Type your name:</p>
-          <input id="sig-type-input" type="text" placeholder="Your name" />
-          <label>
-            Font:
+            <input id="sig-type-input" placeholder="Your Name">
             <select id="sig-font-select">
-              <option value="'Segoe Script', cursive">Script 1</option>
-              <option value="'Pacifico', cursive">Script 2</option>
-              <option value="'Great Vibes', cursive">Script 3</option>
+                <option value="'Great Vibes',cursive">Great Vibes</option>
+                <option value="'Pacifico',cursive">Pacifico</option>
+                <option value="'Dancing Script',cursive">Dancing Script</option>
             </select>
-          </label>
+            <button id="sig-type-save-btn">Add</button>
         </div>
 
-        <div class="sig-modal-footer">
-          <button id="sig-clear-btn" class="sig-secondary">Clear</button>
-          <button id="sig-save-btn" class="sig-primary">Add to page</button>
-          <button id="sig-upload-save-btn" class="sig-primary hidden">
-            Add image
-          </button>
-          <button id="sig-type-save-btn" class="sig-primary hidden">
-            Add text
-          </button>
-        </div>
-      </div>
+        <button id="sig-close-btn" class="close-btn">✖</button>
     </div>
-  </body>
+</div>
+
+<script src="../src/js/editor-init.js"></script>
+
+</body>
 </html>
