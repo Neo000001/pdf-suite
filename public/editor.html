@@ -2,10 +2,10 @@
 <html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
-    <title>PDFSuit Editor – Edit, Highlight & Sign PDFs Online</title>
+    <title>PDFSuit Editor – Free Online PDF Editor</title>
     <meta
       name="description"
-      content="Use the PDFSuit Editor to view and annotate PDFs in your browser. Add text, highlights, drawings and signatures, then save as a new PDF – no upload needed."
+      content="Edit PDFs in your browser with PDFSuit: add text, highlights, signatures and more. Your files never leave your device."
     />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="../src/css/editor.css" />
   </head>
   <body>
+    <!-- HEADER -->
     <header class="site-header">
       <div class="header-inner">
         <a href="../index.html" class="logo">PDF<span>Suit</span></a>
@@ -38,10 +39,10 @@
       </div>
     </header>
 
+    <!-- EDITOR LAYOUT -->
     <main class="editor-shell">
       <!-- LEFT TOOLBAR -->
       <aside class="tool-sidebar">
-        <button class="tool-icon-btn" data-tool="hand" title="Hand / Pan">🖐</button>
         <button
           class="tool-icon-btn active"
           data-tool="select"
@@ -49,7 +50,12 @@
         >
           🖱
         </button>
-        <button class="tool-icon-btn" data-tool="text" title="Add Text">✏</button>
+        <button class="tool-icon-btn" data-tool="hand" title="Hand / Pan">
+          🖐
+        </button>
+        <button class="tool-icon-btn" data-tool="text" title="Add Text">
+          ✏
+        </button>
         <button
           class="tool-icon-btn"
           data-tool="edit-text"
@@ -60,10 +66,14 @@
         <button class="tool-icon-btn" data-tool="highlight" title="Highlight">
           🟨
         </button>
-        <button class="tool-icon-btn" data-tool="pen" title="Pen / Pencil">
+        <button class="tool-icon-btn" data-tool="pen" title="Pen / Draw">
           🖊
         </button>
-        <button class="tool-icon-btn" data-tool="rect" title="White Rect / Cover">
+        <button
+          class="tool-icon-btn"
+          data-tool="rect"
+          title="White rectangle / cover text"
+        >
           ▭
         </button>
         <button class="tool-icon-btn" data-tool="eraser" title="Eraser">
@@ -74,7 +84,7 @@
         </button>
       </aside>
 
-      <!-- RIGHT SIDE: toolbar + canvas -->
+      <!-- RIGHT PANEL: TOOLBARS + CANVAS -->
       <section class="editor-panel">
         <!-- TOP BAR -->
         <div class="format-bar">
@@ -97,11 +107,12 @@
               <option value="14">14</option>
               <option value="16">16</option>
               <option value="18">18</option>
+              <option value="22">22</option>
             </select>
             <button class="format-btn" id="bold-btn">B</button>
             <button class="format-btn" id="italic-btn">I</button>
 
-            <!-- Highlight mode toggle -->
+            <!-- Highlight mode -->
             <div class="highlight-mode">
               <span>Highlight:</span>
               <button
@@ -146,13 +157,15 @@
           </div>
         </div>
 
-        <!-- MAIN EDITOR -->
+        <!-- MAIN EDITOR AREA -->
         <div class="editor-main">
+          <!-- PAGES LIST -->
           <aside class="page-sidebar">
             <h3>Pages</h3>
             <div id="thumbs" class="thumbs"></div>
           </aside>
 
+          <!-- CANVAS WRAP -->
           <section class="canvas-wrapper">
             <div id="drop-hint" class="drop-hint">
               <p><strong>Drop a PDF here</strong> or use “Open PDF”.</p>
@@ -162,14 +175,15 @@
             <div class="canvas-inner" id="canvas-inner">
               <canvas id="pdf-canvas"></canvas>
               <canvas id="draw-canvas"></canvas>
-              <div id="text-layer" class="text-layer"></div>
+              <!-- hit layer for edit-text + text boxes/signatures -->
+              <div id="overlay-layer" class="overlay-layer"></div>
             </div>
           </section>
         </div>
       </section>
     </main>
 
-    <!-- SIGNATURE MODAL (same as before) -->
+    <!-- SIGNATURE MODAL -->
     <div id="signature-modal" class="sig-modal hidden">
       <div class="sig-modal-content">
         <div class="sig-modal-header">
@@ -229,6 +243,7 @@
       </div>
     </div>
 
+    <!-- SCRIPTS -->
     <script src="../src/js/app.js" defer></script>
     <script
       src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"
