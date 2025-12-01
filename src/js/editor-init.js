@@ -1,48 +1,60 @@
-// PDFSuit Editor core
-// - PDF.js rendering
-// - overlay drawing & text
-// - zoom
-// - highlight box/brush
-// - basic signature (draw + upload + type -> overlay image/text)
-// NOTE: "edit-text" tool is stubbed for now (real inline edit coming later)
+// PDFSuit Editor – full logic
+// - PDF.js render
+// - simple multi-page support
+// - zoom + pan
+// - pen / highlight (box + brush)
+// - text boxes + font formatting
+// - signatures (draw, upload, type)
+// - experimental Edit Text: click existing PDF text, white it out, and re-type
 
 let pdfDoc = null;
 let currentPage = 1;
-let renderScale = 1.2;
+let renderScale = 1.4; // base render scale
 
 let canvas, ctx;
 let drawCanvas, drawCtx;
-let fileInput, thumbs, dropHint, textLayer, canvasArea, canvasInner;
-let pageLabel;
+let overlayLayer;
+let canvasInner, canvasArea;
+let dropHint, thumbs, pageLabel;
 
 let currentTool = "select";
 let highlightMode = "box"; // 'box' or 'brush'
+let brushSize = 4;
+
+let currentFontSize = 12;
+let currentBold = false;
+let currentItalic = false;
+
+let selectedOverlay = null;
+let draggingOverlay = null;
+let dragOffsetX = 0;
+let dragOffsetY = 0;
 
 let isDrawing = false;
 let drawStartX = 0;
 let drawStartY = 0;
-
-let selectedBox = null;
-let draggingBox = null;
-let dragOffsetX = 0;
-let dragOffsetY = 0;
-
 let rectPreviewImg = null;
 
-// Undo / redo
+// zoom & pan
+let viewScale = 1;
+const MIN_ZOOM = 0.4;
+const MAX_ZOOM = 3;
+
+let isPanning = false;
+let panStartX = 0,
+  panStartY = 0,
+  panScrollLeft = 0,
+  panScrollTop = 0;
+
+// undo / redo
 let history = [];
 let historyIndex = -1;
 
-// Zoom
-let viewScale = 1;
-const MIN_ZOOM = 0.5;
-const MAX_ZOOM = 2.5;
-const ZOOM_STEP = 0.15;
-let zoomLabel;
+// edit-text hit data
+let currentTextHits = [];
 
-// Signature modal pieces
-let sigModal;
-let sigDrawCanvas, sigDrawCtx;
+// signature
+let sigModal, sigDrawCanvas, sigDrawCtx;
 let sigIsDrawing = false;
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -50,16 +62,16 @@ document.addEventListener("DOMContentLoaded", () => {
   ctx = canvas.getContext("2d");
   drawCanvas = document.getElementById("draw-canvas");
   drawCtx = drawCanvas.getContext("2d");
+  overlayLayer = document.getElementById("overlay-layer");
 
-  fileInput = document.getElementById("file-input");
-  thumbs = document.getElementById("thumbs");
-  dropHint = document.getElementById("drop-hint");
-  textLayer = document.getElementById("text-layer");
-  canvasArea = document.querySelector(".canvas-wrapper");
   canvasInner = document.getElementById("canvas-inner");
+  canvasArea = document.querySelector(".canvas-wrapper");
+  dropHint = document.getElementById("drop-hint");
+  thumbs = document.getElementById("thumbs");
   pageLabel = document.getElementById("page-label");
 
-  const toolButtons = document.querySelectorAll(".tool-icon-btn[data-tool]");
+  const fileInput = document.getElementById("file-input");
+  const toolButtons = document.querySelectorAll(".tool-icon-btn");
   const undoBtn = document.getElementById("undo-btn");
   const redoBtn = document.getElementById("redo-btn");
   const saveBtn = document.getElementById("save-btn");
@@ -67,29 +79,30 @@ document.addEventListener("DOMContentLoaded", () => {
   const zoomInBtn = document.getElementById("zoom-in-btn");
   const zoomOutBtn = document.getElementById("zoom-out-btn");
   const zoomResetBtn = document.getElementById("zoom-reset-btn");
-  zoomLabel = document.getElementById("zoom-label");
+  const zoomLabel = document.getElementById("zoom-label");
 
-  // Highlight mode buttons
+  const fontSizeSelect = document.getElementById("font-size");
+  const boldBtn = document.getElementById("bold-btn");
+  const italicBtn = document.getElementById("italic-btn");
+  const brushSizeInput = document.getElementById("brush-size");
+
   const hlBoxBtn = document.getElementById("hl-mode-box");
   const hlBrushBtn = document.getElementById("hl-mode-brush");
 
-  // Signature modal refs
+  // signature modal refs
   sigModal = document.getElementById("signature-modal");
   sigDrawCanvas = document.getElementById("sig-draw-canvas");
   sigDrawCtx = sigDrawCanvas.getContext("2d");
 
-  // Resize signature canvas
-  resizeSignatureCanvas();
-
   // PDF.js worker
   if (!window.pdfjsLib) {
-    console.error("pdfjsLib not found.");
+    alert("PDF engine failed to load.");
     return;
   }
   pdfjsLib.GlobalWorkerOptions.workerSrc =
     "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
 
-  // File input
+  // --- File open ---
   fileInput.addEventListener("change", (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -100,7 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadPdfFromFile(file);
   });
 
-  // Drag & drop
+  // drag & drop for pdf
   ["dragenter", "dragover"].forEach((ev) => {
     canvasArea.addEventListener(ev, (e) => {
       e.preventDefault();
@@ -125,7 +138,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadPdfFromFile(file);
   });
 
-  // Tools
+  // --- Tools ---
   toolButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
       const tool = btn.dataset.tool;
@@ -134,60 +147,143 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
       if (tool === "edit-text") {
-        alert(
-          "Inline text editing is coming soon. For now, use 'Add Text' + white rectangle to replace text."
-        );
-        return;
+        setTool("edit-text");
+      } else {
+        setTool(tool);
       }
-      setTool(tool);
       toolButtons.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
     });
   });
-  // default tool
-  const selectBtn = document.querySelector('.tool-icon-btn[data-tool="select"]');
-  if (selectBtn) selectBtn.classList.add("active");
-  currentTool = "select";
 
-  // Draw canvas events
-  drawCanvas.addEventListener("mousedown", onPointerDown);
-  drawCanvas.addEventListener("mousemove", onPointerMove);
-  drawCanvas.addEventListener("mouseup", onPointerUp);
-  drawCanvas.addEventListener("mouseleave", onPointerUp);
+  // drawing events
+  drawCanvas.addEventListener("mousedown", onDrawDown);
+  drawCanvas.addEventListener("mousemove", onDrawMove);
+  drawCanvas.addEventListener("mouseup", onDrawUp);
+  drawCanvas.addEventListener("mouseleave", onDrawUp);
 
-  // Add text box on main canvas click
+  // add text box on click
   canvas.addEventListener("click", (e) => {
     if (currentTool !== "text" || !pdfDoc) return;
     const { x, y } = getCanvasCoords(e, canvas);
-    createTextBox(x, y, true);
+    const box = createTextBox(x, y);
+    focusTextBox(box);
     pushHistory();
   });
 
-  // Delete key
+  // overlay click for edit-text / select
+  overlayLayer.addEventListener("mousedown", (e) => {
+    const target = e.target;
+
+    // click on hit for edit-text
+    if (
+      currentTool === "edit-text" &&
+      target.classList.contains("pdf-hit") &&
+      pdfDoc
+    ) {
+      e.stopPropagation();
+      startEditExistingText(target);
+      return;
+    }
+
+    // click on overlay object / text box for select & drag
+    if (
+      target.classList.contains("text-box") ||
+      target.classList.contains("overlay-object")
+    ) {
+      e.stopPropagation();
+      if (currentTool === "select") {
+        selectOverlay(target);
+        startDragOverlay(target, e);
+      }
+    }
+  });
+
+  // global mouseup for overlay drag
+  document.addEventListener("mouseup", stopDragOverlay);
+  document.addEventListener("mousemove", onOverlayDragMove);
+
+  // delete key
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Delete" && selectedBox) {
-      selectedBox.remove();
-      selectedBox = null;
+    if (e.key === "Delete" && selectedOverlay) {
+      selectedOverlay.remove();
+      selectedOverlay = null;
       pushHistory();
     }
   });
 
-  // Undo / redo
+  // undo / redo / save
   undoBtn.addEventListener("click", undo);
   redoBtn.addEventListener("click", redo);
-
-  // Save
   saveBtn.addEventListener("click", exportCurrentPageAsPdf);
 
-  // Zoom buttons
-  zoomInBtn.addEventListener("click", () => changeZoom(ZOOM_STEP));
-  zoomOutBtn.addEventListener("click", () => changeZoom(-ZOOM_STEP));
-  zoomResetBtn.addEventListener("click", () => fitZoom());
+  // zoom
+  zoomInBtn.addEventListener("click", () => changeZoom(0.15));
+  zoomOutBtn.addEventListener("click", () => changeZoom(-0.15));
+  zoomResetBtn.addEventListener("click", () => {
+    fitZoom();
+  });
 
-  updateZoomLabel();
-  applyViewScale();
+  function updateZoomLabel() {
+    if (zoomLabel) zoomLabel.textContent = `${Math.round(viewScale * 100)}%`;
+  }
+  window.updateZoomLabel = updateZoomLabel;
 
-  // Highlight mode toggle
+  // pan / hand tool
+  canvasArea.addEventListener("mousedown", (ev) => {
+    if (currentTool !== "hand") return;
+    isPanning = true;
+    panStartX = ev.clientX;
+    panStartY = ev.clientY;
+    panScrollLeft = canvasArea.scrollLeft;
+    panScrollTop = canvasArea.scrollTop;
+    canvasArea.style.cursor = "grabbing";
+  });
+  document.addEventListener("mousemove", (ev) => {
+    if (!isPanning) return;
+    const dx = ev.clientX - panStartX;
+    const dy = ev.clientY - panStartY;
+    canvasArea.scrollLeft = panScrollLeft - dx;
+    canvasArea.scrollTop = panScrollTop - dy;
+  });
+  document.addEventListener("mouseup", () => {
+    if (isPanning) {
+      isPanning = false;
+      canvasArea.style.cursor = "";
+    }
+  });
+
+  // font controls
+  fontSizeSelect.addEventListener("change", () => {
+    currentFontSize = parseInt(fontSizeSelect.value, 10) || 12;
+    if (selectedOverlay && selectedOverlay.classList.contains("text-box")) {
+      selectedOverlay.style.fontSize = currentFontSize + "px";
+      pushHistory();
+    }
+  });
+  boldBtn.addEventListener("click", () => {
+    currentBold = !currentBold;
+    boldBtn.classList.toggle("active", currentBold);
+    if (selectedOverlay && selectedOverlay.classList.contains("text-box")) {
+      selectedOverlay.style.fontWeight = currentBold ? "700" : "400";
+      pushHistory();
+    }
+  });
+  italicBtn.addEventListener("click", () => {
+    currentItalic = !currentItalic;
+    italicBtn.classList.toggle("active", currentItalic);
+    if (selectedOverlay && selectedOverlay.classList.contains("text-box")) {
+      selectedOverlay.style.fontStyle = currentItalic ? "italic" : "normal";
+      pushHistory();
+    }
+  });
+
+  // brush size
+  brushSizeInput.addEventListener("input", () => {
+    brushSize = parseInt(brushSizeInput.value, 10) || 4;
+  });
+
+  // highlight mode
   hlBoxBtn.addEventListener("click", () => {
     highlightMode = "box";
     hlBoxBtn.classList.add("active");
@@ -199,7 +295,8 @@ document.addEventListener("DOMContentLoaded", () => {
     hlBoxBtn.classList.remove("active");
   });
 
-  // Signature drawing canvas events
+  // signature draw canvas
+  resizeSignatureCanvas();
   sigDrawCanvas.addEventListener("mousedown", (e) => {
     sigIsDrawing = true;
     const { x, y } = getLocalCoords(e, sigDrawCanvas);
@@ -215,14 +312,10 @@ document.addEventListener("DOMContentLoaded", () => {
     sigDrawCtx.lineCap = "round";
     sigDrawCtx.stroke();
   });
-  sigDrawCanvas.addEventListener("mouseup", () => {
-    sigIsDrawing = false;
-  });
-  sigDrawCanvas.addEventListener("mouseleave", () => {
-    sigIsDrawing = false;
-  });
+  sigDrawCanvas.addEventListener("mouseup", () => (sigIsDrawing = false));
+  sigDrawCanvas.addEventListener("mouseleave", () => (sigIsDrawing = false));
 
-  // Signature modal buttons
+  // signature modal controls
   const sigClearBtn = document.getElementById("sig-clear-btn");
   const sigSaveBtn = document.getElementById("sig-save-btn");
   const sigCloseBtn = document.getElementById("sig-close-btn");
@@ -230,34 +323,30 @@ document.addEventListener("DOMContentLoaded", () => {
   const sigBodies = document.querySelectorAll(".sig-tab-body");
   const sigUploadInput = document.getElementById("sig-upload-input");
   const sigUploadSaveBtn = document.getElementById("sig-upload-save-btn");
-  const sigTypeSaveBtn = document.getElementById("sig-type-save-btn");
   const sigTypeInput = document.getElementById("sig-type-input");
   const sigFontSelect = document.getElementById("sig-font-select");
+  const sigTypeSaveBtn = document.getElementById("sig-type-save-btn");
 
   sigClearBtn.addEventListener("click", () => {
     sigDrawCtx.clearRect(0, 0, sigDrawCanvas.width, sigDrawCanvas.height);
   });
-
   sigSaveBtn.addEventListener("click", () => {
     const imgUrl = sigDrawCanvas.toDataURL("image/png");
     addImageOverlay(imgUrl);
     closeSignatureModal();
     pushHistory();
   });
-
-  sigCloseBtn.addEventListener("click", () => {
-    closeSignatureModal();
-  });
+  sigCloseBtn.addEventListener("click", closeSignatureModal);
 
   sigTabs.forEach((tab) => {
     tab.addEventListener("click", () => {
-      const tabName = tab.dataset.tab;
+      const name = tab.dataset.tab;
       sigTabs.forEach((t) => t.classList.remove("active"));
       tab.classList.add("active");
       sigBodies.forEach((body) => {
         body.classList.toggle(
           "hidden",
-          body.getAttribute("data-tab-body") !== tabName
+          body.getAttribute("data-tab-body") !== name
         );
       });
     });
@@ -281,86 +370,27 @@ document.addEventListener("DOMContentLoaded", () => {
   sigTypeSaveBtn.addEventListener("click", () => {
     const text = sigTypeInput.value.trim();
     if (!text) {
-      alert("Type a name.");
+      alert("Type your name.");
       return;
     }
-    const fontFamily = sigFontSelect.value || "'Segoe Script', cursive";
-    addTypedSignature(text, fontFamily);
+    const font = sigFontSelect.value || "'Segoe Script', cursive";
+    addTypedSignature(text, font);
     closeSignatureModal();
     pushHistory();
   });
 
-  window.addEventListener("resize", () => {
-    resizeSignatureCanvas();
-  });
+  window.addEventListener("resize", resizeSignatureCanvas);
+
+  // init zoom label
+  updateZoom();
 });
 
-// ---------- Utility: coordinates ----------
-
-function getCanvasCoords(e, targetCanvas) {
-  const rect = targetCanvas.getBoundingClientRect();
-  const scaleX = targetCanvas.width / rect.width;
-  const scaleY = targetCanvas.height / rect.height;
-  const x = (e.clientX - rect.left) * scaleX;
-  const y = (e.clientY - rect.top) * scaleY;
-  return { x, y };
+function updateZoom() {
+  const zoomLabel = document.getElementById("zoom-label");
+  if (zoomLabel) zoomLabel.textContent = `${Math.round(viewScale * 100)}%`;
 }
 
-function getLocalCoords(e, element) {
-  const rect = element.getBoundingClientRect();
-  return {
-    x: e.clientX - rect.left,
-    y: e.clientY - rect.top,
-  };
-}
-
-// ---------- Zoom ----------
-
-function applyViewScale() {
-  if (!canvasInner || !canvasArea) return;
-
-  const area = canvasArea;
-  const inner = canvasInner;
-
-  const prevWidth = inner.offsetWidth || 1;
-  const prevCenter =
-    area.scrollLeft + area.clientWidth / 2;
-  const prevCenterRatio = prevCenter / prevWidth;
-
-  inner.style.transform = `scale(${viewScale})`;
-  updateZoomLabel();
-
-  requestAnimationFrame(() => {
-    const newWidth = inner.offsetWidth || 1;
-    const newCenter = prevCenterRatio * newWidth;
-    const newScrollLeft = Math.max(0, newCenter - area.clientWidth / 2);
-    area.scrollLeft = newScrollLeft;
-  });
-}
-
-function updateZoomLabel() {
-  if (!zoomLabel) return;
-  zoomLabel.textContent = `${Math.round(viewScale * 100)}%`;
-}
-
-function changeZoom(delta) {
-  viewScale = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, viewScale + delta));
-  applyViewScale();
-}
-
-function fitZoom() {
-  if (!canvas || !canvasArea) return;
-  const areaRect = canvasArea.getBoundingClientRect();
-  if (canvas.width === 0) {
-    viewScale = 1;
-  } else {
-    const target = areaRect.width - 40;
-    viewScale = Math.min(Math.max(target / canvas.width, MIN_ZOOM), MAX_ZOOM);
-  }
-  applyViewScale();
-}
-
-// ---------- PDF loading / rendering ----------
+/* ---------------- PDF LOADING & RENDER ---------------- */
 
 async function loadPdfFromFile(file) {
   const arrayBuffer = await file.arrayBuffer();
@@ -368,20 +398,19 @@ async function loadPdfFromFile(file) {
 
   pdfjsLib
     .getDocument({ data: uint8Array })
-    .promise.then((doc) => {
+    .promise.then(async (doc) => {
       pdfDoc = doc;
       currentPage = 1;
       buildThumbnails();
-      renderPage(currentPage).then(() => {
-        if (dropHint) dropHint.style.display = "none";
-        clearOverlays();
-        resetHistory();
-        pushHistory();
-        fitZoom();
-      });
+      await renderPage(currentPage);
+      if (dropHint) dropHint.style.display = "none";
+      clearOverlays();
+      resetHistory();
+      pushHistory();
+      fitZoom();
     })
     .catch((err) => {
-      console.error("Error loading PDF:", err);
+      console.error(err);
       alert("Could not open this PDF.");
     });
 }
@@ -396,14 +425,11 @@ async function renderPage(num) {
   canvas.height = viewport.height;
   drawCanvas.width = viewport.width;
   drawCanvas.height = viewport.height;
+  overlayLayer.style.width = canvas.width + "px";
+  overlayLayer.style.height = canvas.height + "px";
 
   canvas.style.display = "block";
   drawCanvas.style.display = "block";
-
-  if (textLayer) {
-    textLayer.style.width = canvas.width + "px";
-    textLayer.style.height = canvas.height + "px";
-  }
 
   const renderContext = {
     canvasContext: ctx,
@@ -411,7 +437,11 @@ async function renderPage(num) {
   };
   await page.render(renderContext).promise;
 
+  // build hit boxes for edit-text
+  await buildTextHits(page, viewport);
+
   updatePageLabel();
+  applyViewScale();
 }
 
 function updatePageLabel() {
@@ -422,19 +452,17 @@ function updatePageLabel() {
 function buildThumbnails() {
   if (!pdfDoc || !thumbs) return;
   thumbs.innerHTML = "";
-
   for (let i = 1; i <= pdfDoc.numPages; i++) {
     const btn = document.createElement("button");
     btn.className = "thumb-btn";
     btn.textContent = `Page ${i}`;
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", async () => {
       currentPage = i;
-      renderPage(currentPage).then(() => {
-        clearOverlays();
-        resetHistory();
-        pushHistory();
-        fitZoom();
-      });
+      await renderPage(currentPage);
+      clearOverlays();
+      resetHistory();
+      pushHistory();
+      fitZoom();
       setActiveThumb(i);
     });
     thumbs.appendChild(btn);
@@ -448,7 +476,43 @@ function setActiveThumb(n) {
   });
 }
 
-// ---------- Tools ----------
+/* ---------------- ZOOM & PAN ---------------- */
+
+function applyViewScale() {
+  if (!canvas || !canvasInner || !canvasArea) return;
+
+  const scaledW = Math.round(canvas.width * viewScale);
+  const scaledH = Math.round(canvas.height * viewScale);
+
+  canvasInner.style.transformOrigin = "top left";
+  canvasInner.style.transform = `scale(${viewScale})`;
+  canvasInner.style.width = scaledW + "px";
+  canvasInner.style.height = scaledH + "px";
+
+  updateZoom();
+}
+
+function changeZoom(delta) {
+  viewScale = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, viewScale + delta));
+  applyViewScale();
+}
+
+function fitZoom() {
+  if (!canvas || !canvasArea) return;
+  const bounds = canvasArea.getBoundingClientRect();
+  const targetW = bounds.width - 80;
+  if (canvas.width === 0) {
+    viewScale = 1;
+  } else {
+    viewScale = Math.max(
+      MIN_ZOOM,
+      Math.min(MAX_ZOOM, targetW / canvas.width)
+    );
+  }
+  applyViewScale();
+}
+
+/* ---------------- TOOLS ---------------- */
 
 function setTool(tool) {
   currentTool = tool;
@@ -456,11 +520,12 @@ function setTool(tool) {
   const drawTools = ["pen", "highlight", "rect", "eraser"];
   drawCanvas.style.pointerEvents = drawTools.includes(tool) ? "auto" : "none";
 
-  if (tool === "text") {
-    canvas.style.cursor = "text";
-  } else if (tool === "hand") {
+  if (tool === "hand") {
     canvas.style.cursor = "grab";
     canvasArea.style.cursor = "grab";
+  } else if (tool === "text" || tool === "edit-text") {
+    canvas.style.cursor = "text";
+    canvasArea.style.cursor = "default";
   } else if (tool === "select") {
     canvas.style.cursor = "default";
     canvasArea.style.cursor = "default";
@@ -468,120 +533,122 @@ function setTool(tool) {
     canvas.style.cursor = "crosshair";
     canvasArea.style.cursor = "default";
   }
-}
 
-// ---------- Text boxes & overlay objects ----------
+  // hit boxes interactive only for edit-text
+  overlayLayer
+    .querySelectorAll(".pdf-hit")
+    .forEach((h) => (h.style.pointerEvents = tool === "edit-text" ? "auto" : "none"));
+}
 
 function clearOverlays() {
-  if (textLayer) textLayer.innerHTML = "";
-  if (drawCtx && drawCanvas) {
-    drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
-  }
-  selectedBox = null;
+  overlayLayer.innerHTML = "";
+  selectedOverlay = null;
+  currentTextHits = [];
 }
 
-function initOverlayDrag(div) {
-  div.addEventListener("mousedown", (e) => {
-    if (currentTool === "select") {
-      e.stopPropagation();
-      selectBox(div);
+/* ---------------- TEXT BOXES & OVERLAYS ---------------- */
 
-      draggingBox = div;
-      const rect = div.getBoundingClientRect();
-      const parentRect = textLayer.getBoundingClientRect();
-      dragOffsetX = e.clientX - rect.left;
-      dragOffsetY = e.clientY - rect.top;
-
-      document.addEventListener("mousemove", onBoxDrag);
-      document.addEventListener("mouseup", stopBoxDrag);
-    }
-  });
-}
-
-function createTextBox(x, y, focusOnCreate = false) {
-  if (!textLayer) return null;
-
+function createTextBox(x, y, width = 120, height = 24) {
   const div = document.createElement("div");
   div.className = "text-box";
   div.contentEditable = "true";
   div.style.left = x + "px";
   div.style.top = y + "px";
+  div.style.fontSize = currentFontSize + "px";
+  div.style.fontWeight = currentBold ? "700" : "400";
+  div.style.fontStyle = currentItalic ? "italic" : "normal";
   div.textContent = "Edit text…";
 
+  overlayLayer.appendChild(div);
   initOverlayDrag(div);
-  textLayer.appendChild(div);
-
-  if (focusOnCreate) {
-    selectBox(div);
-    div.focus();
-    const range = document.createRange();
-    range.selectNodeContents(div);
-    const sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
-  }
-
   return div;
 }
 
-function selectBox(div) {
-  if (selectedBox) selectedBox.classList.remove("selected");
-  selectedBox = div;
-  div.classList.add("selected");
+function selectOverlay(el) {
+  if (selectedOverlay) selectedOverlay.classList.remove("selected");
+  selectedOverlay = el;
+  if (el) el.classList.add("selected");
 }
 
-function onBoxDrag(e) {
-  if (!draggingBox) return;
-  const parentRect = textLayer.getBoundingClientRect();
+function focusTextBox(box) {
+  selectOverlay(box);
+  box.focus();
+  const range = document.createRange();
+  range.selectNodeContents(box);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
+function initOverlayDrag(el) {
+  el.addEventListener("mousedown", (e) => {
+    if (currentTool !== "select") return;
+    e.stopPropagation();
+    startDragOverlay(el, e);
+  });
+}
+
+function startDragOverlay(el, e) {
+  draggingOverlay = el;
+  selectOverlay(el);
+  const parentRect = overlayLayer.getBoundingClientRect();
+  const rect = el.getBoundingClientRect();
+  dragOffsetX = e.clientX - rect.left;
+  dragOffsetY = e.clientY - rect.top;
+
+  document.body.style.userSelect = "none";
+}
+
+function onOverlayDragMove(e) {
+  if (!draggingOverlay) return;
+  const parentRect = overlayLayer.getBoundingClientRect();
   const x = e.clientX - parentRect.left - dragOffsetX;
   const y = e.clientY - parentRect.top - dragOffsetY;
-  draggingBox.style.left = x + "px";
-  draggingBox.style.top = y + "px";
+  draggingOverlay.style.left = x + "px";
+  draggingOverlay.style.top = y + "px";
 }
 
-function stopBoxDrag() {
-  if (!draggingBox) return;
-  draggingBox = null;
-  document.removeEventListener("mousemove", onBoxDrag);
-  document.removeEventListener("mouseup", stopBoxDrag);
+function stopDragOverlay() {
+  if (!draggingOverlay) return;
+  draggingOverlay = null;
+  document.body.style.userSelect = "";
   pushHistory();
 }
 
-// Add image overlay (used for drawn or uploaded signatures)
 function addImageOverlay(dataUrl) {
-  if (!textLayer) return;
+  const wrapper = document.createElement("div");
+  wrapper.className = "overlay-object";
+  wrapper.style.left = "40px";
+  wrapper.style.top = "40px";
+  wrapper.style.background = "transparent";
+
   const img = document.createElement("img");
   img.src = dataUrl;
-  img.className = "overlay-object";
-  img.style.left = "40px";
-  img.style.top = "40px";
   img.style.width = "160px";
   img.style.height = "auto";
+  wrapper.appendChild(img);
 
-  initOverlayDrag(img);
-  textLayer.appendChild(img);
+  overlayLayer.appendChild(wrapper);
+  initOverlayDrag(wrapper);
 }
 
-// Typed signature
 function addTypedSignature(text, fontFamily) {
-  if (!textLayer) return;
   const div = document.createElement("div");
   div.className = "overlay-object";
   div.style.left = "40px";
   div.style.top = "40px";
-  div.style.fontFamily = fontFamily;
-  div.style.fontSize = "22px";
   div.style.background = "transparent";
   div.style.border = "none";
+  div.style.fontFamily = fontFamily;
+  div.style.fontSize = "22px";
   div.textContent = text;
-
+  overlayLayer.appendChild(div);
   initOverlayDrag(div);
-  textLayer.appendChild(div);
 }
 
-// ---------- Drawing tools (pen, highlight, rect, eraser) ----------
+/* ---------------- DRAWING TOOLS ---------------- */
 
-function onPointerDown(e) {
+function onDrawDown(e) {
   if (!pdfDoc) return;
   if (!["pen", "highlight", "rect", "eraser"].includes(currentTool)) return;
 
@@ -595,7 +662,7 @@ function onPointerDown(e) {
 
   if (currentTool === "pen") {
     drawCtx.strokeStyle = "#111827";
-    drawCtx.lineWidth = 2;
+    drawCtx.lineWidth = brushSize;
     drawCtx.globalAlpha = 1;
     drawCtx.globalCompositeOperation = "source-over";
     drawCtx.beginPath();
@@ -603,13 +670,12 @@ function onPointerDown(e) {
   } else if (currentTool === "highlight") {
     if (highlightMode === "brush") {
       drawCtx.strokeStyle = "#fde047";
-      drawCtx.lineWidth = 4;
+      drawCtx.lineWidth = brushSize * 1.6;
       drawCtx.globalAlpha = 0.25;
       drawCtx.globalCompositeOperation = "source-over";
       drawCtx.beginPath();
       drawCtx.moveTo(drawStartX, drawStartY);
     } else {
-      // box mode: store preview
       drawCtx.globalCompositeOperation = "source-over";
       drawCtx.globalAlpha = 1;
       rectPreviewImg = drawCtx.getImageData(
@@ -621,7 +687,8 @@ function onPointerDown(e) {
     }
   } else if (currentTool === "eraser") {
     drawCtx.globalCompositeOperation = "destination-out";
-    drawCtx.lineWidth = 14;
+    drawCtx.globalAlpha = 1;
+    drawCtx.lineWidth = brushSize * 3;
     drawCtx.beginPath();
     drawCtx.moveTo(drawStartX, drawStartY);
   } else if (currentTool === "rect") {
@@ -636,7 +703,7 @@ function onPointerDown(e) {
   }
 }
 
-function onPointerMove(e) {
+function onDrawMove(e) {
   if (!isDrawing) return;
   const { x, y } = getCanvasCoords(e, drawCanvas);
 
@@ -655,9 +722,7 @@ function onPointerMove(e) {
     const h = y - drawStartY;
 
     drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
-    if (rectPreviewImg) {
-      drawCtx.putImageData(rectPreviewImg, 0, 0);
-    }
+    if (rectPreviewImg) drawCtx.putImageData(rectPreviewImg, 0, 0);
 
     if (currentTool === "rect") {
       drawCtx.save();
@@ -668,14 +733,16 @@ function onPointerMove(e) {
       drawCtx.restore();
     } else if (currentTool === "highlight" && highlightMode === "box") {
       drawCtx.save();
-      drawCtx.fillStyle = "rgba(253, 224, 71, 0.25)"; // soft yellow
-      drawCtx.fillRect(drawStartX, drawStartY, w, h);
+      const height = Math.max(12, Math.min(Math.abs(h), 22));
+      const top = h >= 0 ? drawStartY : drawStartY - height;
+      drawCtx.fillStyle = "rgba(253,224,71,0.25)";
+      drawCtx.fillRect(drawStartX, top, w, height);
       drawCtx.restore();
     }
   }
 }
 
-function onPointerUp(e) {
+function onDrawUp(e) {
   if (!isDrawing) return;
   isDrawing = false;
 
@@ -685,9 +752,7 @@ function onPointerUp(e) {
     const h = endY - drawStartY;
 
     drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
-    if (rectPreviewImg) {
-      drawCtx.putImageData(rectPreviewImg, 0, 0);
-    }
+    if (rectPreviewImg) drawCtx.putImageData(rectPreviewImg, 0, 0);
 
     if (currentTool === "rect") {
       drawCtx.fillStyle = "#ffffff";
@@ -695,10 +760,12 @@ function onPointerUp(e) {
       drawCtx.globalCompositeOperation = "source-over";
       drawCtx.fillRect(drawStartX, drawStartY, w, h);
     } else if (currentTool === "highlight" && highlightMode === "box") {
-      drawCtx.fillStyle = "rgba(253, 224, 71, 0.25)";
+      const height = Math.max(12, Math.min(Math.abs(h), 22));
+      const top = h >= 0 ? drawStartY : drawStartY - height;
+      drawCtx.fillStyle = "rgba(253,224,71,0.25)";
       drawCtx.globalAlpha = 1;
       drawCtx.globalCompositeOperation = "source-over";
-      drawCtx.fillRect(drawStartX, drawStartY, w, h);
+      drawCtx.fillRect(drawStartX, top, w, height);
     }
     rectPreviewImg = null;
   }
@@ -708,7 +775,7 @@ function onPointerUp(e) {
   pushHistory();
 }
 
-// ---------- History ----------
+/* ---------------- HISTORY ---------------- */
 
 function resetHistory() {
   history = [];
@@ -716,13 +783,13 @@ function resetHistory() {
 }
 
 function pushHistory() {
-  if (!drawCanvas || !textLayer) return;
+  if (!drawCanvas || !overlayLayer) return;
   if (historyIndex < history.length - 1) {
     history = history.slice(0, historyIndex + 1);
   }
   const state = {
     drawData: drawCanvas.toDataURL(),
-    textHtml: textLayer.innerHTML,
+    overlayHtml: overlayLayer.innerHTML,
   };
   history.push(state);
   historyIndex = history.length - 1;
@@ -739,12 +806,11 @@ function restoreHistory(index) {
   };
   img.src = state.drawData;
 
-  textLayer.innerHTML = state.textHtml;
-  textLayer.querySelectorAll(".text-box, .overlay-object").forEach((box) => {
-    initOverlayDrag(box);
-  });
-
-  selectedBox = null;
+  overlayLayer.innerHTML = state.overlayHtml;
+  overlayLayer
+    .querySelectorAll(".text-box, .overlay-object")
+    .forEach((el) => initOverlayDrag(el));
+  selectOverlay(null);
 }
 
 function undo() {
@@ -761,7 +827,72 @@ function redo() {
   }
 }
 
-// ---------- Export current page as PDF ----------
+/* ---------------- EDIT TEXT (PDF) ---------------- */
+
+async function buildTextHits(page, viewport) {
+  currentTextHits = [];
+  overlayLayer.querySelectorAll(".pdf-hit").forEach((n) => n.remove());
+
+  const textContent = await page.getTextContent();
+  const style = textContent.styles || {};
+
+  textContent.items.forEach((item) => {
+    const tx = pdfjsLib.Util.transform(
+      pdfjsLib.Util.transform(viewport.transform, item.transform),
+      [1, 0, 0, -1, 0, 0]
+    );
+    const x = tx[4];
+    const y = tx[5];
+    const fontHeight = Math.sqrt(tx[0] * tx[0] + tx[1] * tx[1]);
+    const width = item.width * viewport.scale;
+    const height = fontHeight;
+
+    const top = y - height;
+
+    const hit = document.createElement("div");
+    hit.className = "pdf-hit";
+    hit.style.left = x + "px";
+    hit.style.top = top + "px";
+    hit.style.width = width + "px";
+    hit.style.height = height + "px";
+    hit.title = "Click to edit text";
+    hit.dataset.x = x;
+    hit.dataset.y = top;
+    hit.dataset.w = width;
+    hit.dataset.h = height;
+    hit.dataset.text = item.str;
+
+    overlayLayer.appendChild(hit);
+    currentTextHits.push(hit);
+  });
+
+  // pointer-events only when edit-text tool
+  overlayLayer
+    .querySelectorAll(".pdf-hit")
+    .forEach((h) => (h.style.pointerEvents = currentTool === "edit-text" ? "auto" : "none"));
+}
+
+function startEditExistingText(hitEl) {
+  const x = parseFloat(hitEl.dataset.x);
+  const y = parseFloat(hitEl.dataset.y);
+  const w = parseFloat(hitEl.dataset.w);
+  const h = parseFloat(hitEl.dataset.h);
+  const originalText = hitEl.dataset.text || "";
+
+  // white out the original text area on draw layer
+  drawCtx.fillStyle = "#ffffff";
+  drawCtx.globalAlpha = 1;
+  drawCtx.globalCompositeOperation = "source-over";
+  drawCtx.fillRect(x, y, w, h);
+
+  // create overlay text box over it
+  const box = createTextBox(x, y, w, h);
+  box.textContent = originalText || "Edit text…";
+  focusTextBox(box);
+  pushHistory();
+}
+
+/* ---------------- EXPORT ---------------- */
 
 async function exportCurrentPageAsPdf() {
   if (!pdfDoc) {
@@ -769,7 +900,7 @@ async function exportCurrentPageAsPdf() {
     return;
   }
   if (!window.PDFLib) {
-    alert("Export library (pdf-lib) not loaded.");
+    alert("PDF export engine missing.");
     return;
   }
 
@@ -778,39 +909,44 @@ async function exportCurrentPageAsPdf() {
   tempCanvas.height = canvas.height;
   const tctx = tempCanvas.getContext("2d");
 
-  // base
+  // base pdf
   tctx.drawImage(canvas, 0, 0);
-  // drawings
+  // drawings (highlight/pen/rect)
   tctx.drawImage(drawCanvas, 0, 0);
 
-  // text + overlay objects
-  document
-    .querySelectorAll(".text-layer .text-box, .text-layer .overlay-object")
+  // overlays
+  overlayLayer
+    .querySelectorAll(".text-box, .overlay-object")
     .forEach((node) => {
       const x = parseFloat(node.style.left) || 0;
       const y = parseFloat(node.style.top) || 0;
 
-      if (node.tagName.toLowerCase() === "img") {
-        // signature image
-        const img = new Image();
-        img.src = node.src;
-        const w = node.offsetWidth;
-        const h = node.offsetHeight;
-        tctx.drawImage(img, x, y, w, h);
-      } else {
-        // text
+      if (node.classList.contains("overlay-object")) {
+        const img = node.querySelector("img");
+        if (img) {
+          const w = img.offsetWidth;
+          const h = img.offsetHeight;
+          tctx.drawImage(img, x, y, w, h);
+        } else {
+          const style = window.getComputedStyle(node);
+          const font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+          const color = style.color || "#111827";
+          tctx.font = font;
+          tctx.fillStyle = color;
+          tctx.fillText(node.innerText, x, y + parseInt(style.fontSize, 10));
+        }
+      } else if (node.classList.contains("text-box")) {
         const style = window.getComputedStyle(node);
-        const font = style.font || "13px system-ui, sans-serif";
+        const font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
         const color = style.color || "#111827";
         tctx.font = font;
         tctx.fillStyle = color;
-        const text = node.innerText;
-        tctx.fillText(text, x, y + 14);
+        const fontSize = parseInt(style.fontSize, 10) || 13;
+        tctx.fillText(node.innerText, x, y + fontSize);
       }
     });
 
   const dataUrl = tempCanvas.toDataURL("image/png");
-
   const pdfDocOut = await PDFLib.PDFDocument.create();
   const page = pdfDocOut.addPage([canvas.width, canvas.height]);
   const pngImage = await pdfDocOut.embedPng(dataUrl);
@@ -835,7 +971,7 @@ function downloadBlob(data, name) {
   URL.revokeObjectURL(url);
 }
 
-// ---------- Signature modal helpers ----------
+/* ---------------- SIGNATURE MODAL HELPERS ---------------- */
 
 function openSignatureModal() {
   if (!sigModal) return;
@@ -854,4 +990,23 @@ function resizeSignatureCanvas() {
   sigDrawCanvas.width = width;
   sigDrawCanvas.height = 160;
   sigDrawCtx.clearRect(0, 0, sigDrawCanvas.width, sigDrawCanvas.height);
+}
+
+/* ---------------- UTILS ---------------- */
+
+function getCanvasCoords(e, targetCanvas) {
+  const rect = targetCanvas.getBoundingClientRect();
+  const scaleX = targetCanvas.width / rect.width;
+  const scaleY = targetCanvas.height / rect.height;
+  const x = (e.clientX - rect.left) * scaleX;
+  const y = (e.clientY - rect.top) * scaleY;
+  return { x, y };
+}
+
+function getLocalCoords(e, element) {
+  const rect = element.getBoundingClientRect();
+  return {
+    x: e.clientX - rect.left,
+    y: e.clientY - rect.top,
+  };
 }
