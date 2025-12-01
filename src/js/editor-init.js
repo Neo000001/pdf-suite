@@ -337,6 +337,16 @@ document.addEventListener("DOMContentLoaded", () => {
           body.getAttribute("data-tab-body") !== name
         );
       });
+
+      // footer buttons visibility
+      const isDraw = name === "draw";
+      const isUpload = name === "upload";
+      const isType = name === "type";
+      if (sigSaveBtn) sigSaveBtn.classList.toggle("hidden", !isDraw);
+      if (sigUploadSaveBtn)
+        sigUploadSaveBtn.classList.toggle("hidden", !isUpload);
+      if (sigTypeSaveBtn)
+        sigTypeSaveBtn.classList.toggle("hidden", !isType);
     });
   });
 
