@@ -1,3 +1,46 @@
+const fileInput = document.getElementById("file-input");
+const pdfCanvas = document.getElementById("pdf-canvas");
+const drawCanvas = document.getElementById("draw-canvas");
+const ctx = pdfCanvas.getContext("2d");
+
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+
+let pdfDoc = null;
+let currentScale = 1;
+
+fileInput.addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file || file.type !== "application/pdf") return;
+
+  const fileReader = new FileReader();
+  fileReader.onload = async function () {
+    const typedArray = new Uint8Array(this.result);
+
+    pdfDoc = await pdfjsLib.getDocument(typedArray).promise;
+    renderPage(1);
+  };
+  fileReader.readAsArrayBuffer(file);
+});
+
+async function renderPage(pageNum) {
+  const page = await pdfDoc.getPage(pageNum);
+  const viewport = page.getViewport({ scale: currentScale });
+
+  pdfCanvas.width = viewport.width;
+  pdfCanvas.height = viewport.height;
+
+  drawCanvas.width = viewport.width;
+  drawCanvas.height = viewport.height;
+
+  await page.render({
+    canvasContext: ctx,
+    viewport,
+  }).promise;
+
+  document.body.classList.add("pdf-loaded");
+}
+
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
 
