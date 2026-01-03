@@ -1,76 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <title>PDFSuit Editor</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<link rel="stylesheet" href="../src/css/editor.css">
+<link rel="stylesheet" href="../src/css/base.css" />
+<link rel="stylesheet" href="../src/css/editor.css" />
 
+<!-- PDF.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+
+<!-- PDF-LIB -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 </head>
 
 <body>
 
-<!-- TOP BAR -->
-<header class="topbar">
-  <div class="logo">PDF<span>Suit</span></div>
+<!-- ================= TOP BAR ================= -->
+<header class="editor-top">
+  <div class="left">
+    <span class="logo">PDF<span>Suit</span></span>
+  </div>
 
   <div class="controls">
     <select id="font-size">
-      <option>10</option><option selected>12</option><option>14</option>
-      <option>18</option><option>22</option>
+      <option>10</option>
+      <option selected>12</option>
+      <option>14</option>
+      <option>18</option>
+      <option>24</option>
     </select>
 
     <button id="bold-btn">B</button>
     <button id="italic-btn">I</button>
 
+    <span>Highlight</span>
     <button id="hl-mode-box" class="active">Box</button>
     <button id="hl-mode-brush">Brush</button>
-    <input id="brush-size" type="range" min="2" max="20" value="4">
 
-    <button id="undo-btn">⟲</button>
-    <button id="redo-btn">⟳</button>
+    <input id="brush-size" type="range" min="2" max="20" value="4" />
+
+    <button id="undo-btn">↺</button>
+    <button id="redo-btn">↻</button>
     <button id="delete-btn">🗑</button>
 
-    <button id="zoom-out-btn">−</button>
+    <button id="zoom-out-btn">-</button>
     <span id="zoom-label">100%</span>
     <button id="zoom-in-btn">+</button>
     <button id="zoom-reset-btn">Fit</button>
 
-    <button id="save-btn">Save</button>
+    <button id="save-btn" class="save">Save</button>
   </div>
 </header>
 
-<!-- LEFT TOOLS -->
-<aside class="sidebar">
-  <button class="tool-icon-btn active" data-tool="select">◯</button>
-  <button class="tool-icon-btn" data-tool="hand">✋</button>
-  <button class="tool-icon-btn" data-tool="text">T+</button>
-  <button class="tool-icon-btn" data-tool="edit-text">✎</button>
-  <button class="tool-icon-btn" data-tool="pen">✏</button>
-  <button class="tool-icon-btn" data-tool="highlight">🟨</button>
-  <button class="tool-icon-btn" data-tool="eraser">🧽</button>
-  <button class="tool-icon-btn" data-tool="rect">▭</button>
-  <button class="tool-icon-btn" data-tool="signature">✒</button>
+<!-- ================= MAIN ================= -->
+<div class="editor-body">
 
-  <input type="file" id="file-input" accept="application/pdf">
-</aside>
+  <!-- LEFT TOOLBAR -->
+  <aside class="sidebar">
+    <button class="tool-icon-btn active" data-tool="select">◯</button>
+    <button class="tool-icon-btn" data-tool="hand">✋</button>
+    <button class="tool-icon-btn" data-tool="text">T+</button>
+    <button class="tool-icon-btn" data-tool="edit-text">✎</button>
+    <button class="tool-icon-btn" data-tool="pen">🖊</button>
+    <button class="tool-icon-btn" data-tool="highlight">🟨</button>
+    <button class="tool-icon-btn" data-tool="eraser">🧽</button>
+    <button class="tool-icon-btn" data-tool="rect">▭</button>
+    <button class="tool-icon-btn" data-tool="signature">✒</button>
 
-<!-- EDITOR -->
-<div class="editor">
-  <div class="canvas-wrapper">
+    <!-- PDF OPEN -->
+    <label class="pdf-open">
+      Open PDF
+      <input type="file" id="file-input" accept="application/pdf" hidden />
+    </label>
+  </aside>
+
+  <!-- CANVAS AREA -->
+  <main class="canvas-wrapper">
     <div id="canvas-inner">
       <canvas id="pdf-canvas"></canvas>
       <canvas id="draw-canvas"></canvas>
       <div id="overlay-layer"></div>
     </div>
-  </div>
+  </main>
+
 </div>
 
-<!-- Signature modal stays same -->
-<div id="signature-modal" class="hidden"></div>
+<!-- ================= SIGNATURE MODAL ================= -->
+<div id="signature-modal" class="modal hidden">
+  <div class="modal-body">
+    <h3>Add Signature</h3>
+
+    <div class="sig-tabs">
+      <button class="sig-tab active" data-tab="draw">Draw</button>
+      <button class="sig-tab" data-tab="upload">Upload</button>
+      <button class="sig-tab" data-tab="type">Type</button>
+    </div>
+
+    <div class="sig-tab-body" data-tab-body="draw">
+      <canvas id="sig-draw-canvas"></canvas>
+      <button id="sig-clear-btn">Clear</button>
+      <button id="sig-save-btn">Add</button>
+    </div>
+
+    <div class="sig-tab-body hidden" data-tab-body="upload">
+      <input type="file" id="sig-upload-input" accept="image/*" />
+      <button id="sig-upload-save-btn">Add</button>
+    </div>
+
+    <div class="sig-tab-body hidden" data-tab-body="type">
+      <input id="sig-type-input" placeholder="Your Name" />
+      <select id="sig-font-select">
+        <option value="'Great Vibes', cursive">Great Vibes</option>
+        <option value="'Pacifico', cursive">Pacifico</option>
+      </select>
+      <button id="sig-type-save-btn">Add</button>
+    </div>
+
+    <button id="sig-close-btn" class="close">✕</button>
+  </div>
+</div>
 
 <script src="../src/js/editor-init.js"></script>
 </body>
