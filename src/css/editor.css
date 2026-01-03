@@ -1,4 +1,4 @@
-/* Reset-ish */
+/* ================= RESET ================= */
 *,
 *::before,
 *::after {
@@ -12,76 +12,44 @@ body {
   height: 100%;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
-  color: #111827;
   background: #f3f4f6;
+  color: #111827;
+  overflow: hidden;
 }
 
-body {
-  display: flex;
-  flex-direction: column;
-}
+/* ================= TOP BAR ================= */
 
-/* Header */
-
-.editor-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.6rem 1.2rem;
+.editor-top {
+  height: 56px;
   background: #ffffff;
   border-bottom: 1px solid #e5e7eb;
-  position: sticky;
-  top: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  gap: 14px;
   z-index: 40;
 }
 
-.editor-header-left,
-.editor-header-center,
-.editor-header-right {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* Logo */
-
-.logo-small {
+.editor-top .logo {
   font-weight: 700;
-  font-size: 1rem;
   text-decoration: none;
   color: #111827;
-  margin-right: 0.75rem;
 }
 
-.logo-small span {
+.editor-top .logo span {
   color: #2563eb;
 }
 
+.top-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 /* Buttons */
-
-.btn-primary {
-  border: none;
-  border-radius: 999px;
-  padding: 0.35rem 0.9rem;
-  background: #2563eb;
-  color: #ffffff;
-  font-size: 0.85rem;
-  cursor: pointer;
-  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.3);
-}
-
-.btn-primary:hover {
-  background: #1d4ed8;
-}
-
-.btn-save {
-  padding-inline: 1.1rem;
-}
-
-/* Small “format” buttons */
-
-.format-btn {
+.tbtn,
+.editor-top button {
   border-radius: 999px;
   border: 1px solid #d1d5db;
   background: #f9fafb;
@@ -90,161 +58,106 @@ body {
   cursor: pointer;
 }
 
-.format-btn.active {
+.tbtn.active {
   background: #2563eb;
-  border-color: #2563eb;
   color: #ffffff;
+  border-color: #2563eb;
 }
 
-/* Header controls */
+.saveBtn {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+}
 
+/* Inputs */
 #font-size {
   border-radius: 999px;
   border: 1px solid #d1d5db;
   padding: 0.15rem 0.4rem;
   font-size: 0.8rem;
-  background: #ffffff;
-}
-
-.separator {
-  width: 1px;
-  height: 20px;
-  background: #e5e7eb;
-  margin-inline: 0.4rem;
-}
-
-.brush-label {
-  font-size: 0.8rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
 }
 
 #brush-size {
   accent-color: #2563eb;
 }
 
-/* Zoom group */
-
-.zoom-group {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
 #zoom-label {
-  min-width: 38px;
+  min-width: 42px;
   text-align: center;
   font-size: 0.8rem;
 }
 
-/* Main layout */
+/* ================= LEFT TOOLBAR ================= */
 
-.editor-main {
-  flex: 1;
-  display: grid;
-  grid-template-columns: auto 210px minmax(0, 1fr);
-  column-gap: 0.75rem;
-  padding: 0.75rem 1rem 1rem;
-}
-
-/* Left tool bar */
-
-.tool-sidebar {
-  width: 64px;
+.sidebar {
+  position: fixed;
+  top: 56px;
+  left: 0;
+  width: 56px;
+  bottom: 0;
+  background: #0f172a;
+  border-right: 1px solid #1e293b;
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
   align-items: center;
-  padding-top: 0.25rem;
+  padding-top: 8px;
+  gap: 8px;
+  z-index: 20;
 }
 
 .tool-icon-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: #1e293b;
+  color: #ffffff;
+  border: none;
   cursor: pointer;
   font-size: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 .tool-icon-btn.active {
   background: #2563eb;
-  color: #ffffff;
-  border-color: #2563eb;
 }
 
-/* Page sidebar */
+/* ================= CANVAS AREA ================= */
 
-.page-sidebar {
-  background: #ffffff;
-  border-radius: 1rem;
-  padding: 0.75rem 0.9rem;
-  border: 1px solid #e5e7eb;
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  font-size: 0.85rem;
+.editor-main {
+  position: fixed;
+  top: 56px;
+  left: 56px;
+  right: 0;
+  bottom: 0;
 }
-
-.page-sidebar h3 {
-  margin: 0 0 0.25rem;
-  font-size: 0.9rem;
-}
-
-.page-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
-.page-list-item {
-  padding: 0.3rem 0.4rem;
-  border-radius: 0.5rem;
-  border: 1px solid #e5e7eb;
-  background: #f9fafb;
-  font-size: 0.8rem;
-}
-
-.page-list-item.active {
-  border-color: #2563eb;
-  background: #eff6ff;
-}
-
-.help-text {
-  margin: 0.35rem 0 0;
-  font-size: 0.78rem;
-  color: #6b7280;
-}
-
-/* Canvas area */
 
 .canvas-wrapper {
+  width: 100%;
+  height: 100%;
   background: #e5e7eb;
-  border-radius: 1rem;
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
   overflow: auto;
-  position: relative;
+  cursor: grab;
 }
 
-.canvas-inner {
+.canvas-wrapper:active {
+  cursor: grabbing;
+}
+
+#canvas-inner {
   position: relative;
-  margin: 0 auto;
+  margin: 40px auto;
   transform-origin: top left;
+  display: inline-block;
 }
 
+/* Canvas stacking */
 #pdf-canvas,
 #draw-canvas {
-  display: none; /* shown once PDF loads */
   position: absolute;
   top: 0;
   left: 0;
+  display: block;
+  background: #ffffff;
 }
 
 #pdf-canvas {
@@ -255,14 +168,15 @@ body {
   z-index: 2;
 }
 
-.overlay-layer {
+#overlay-layer {
   position: absolute;
   top: 0;
   left: 0;
   z-index: 3;
+  pointer-events: auto;
 }
 
-/* Text boxes / overlays */
+/* ================= OVERLAYS ================= */
 
 .text-box {
   position: absolute;
@@ -272,95 +186,70 @@ body {
   min-width: 40px;
   min-height: 18px;
   font-size: 12px;
-  color: #111827;
   outline: none;
   cursor: text;
+  pointer-events: auto;
+}
+
+.overlay-object {
+  position: absolute;
+  pointer-events: auto;
 }
 
 .text-box.selected,
 .overlay-object.selected {
   outline: 2px solid #2563eb;
-  outline-offset: 1px;
-}
-
-.overlay-object {
-  position: absolute;
-  background: transparent;
 }
 
 /* Resize handle */
-
 .resize-handle {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #2563eb;
+  cursor: nwse-resize;
   pointer-events: auto;
 }
 
-/* Signature modal */
+/* ================= SIGNATURE MODAL ================= */
 
-.sig-modal {
+#signature-modal {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  background: rgba(0, 0, 0, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 100;
 }
 
-.sig-modal.hidden {
+#signature-modal.hidden {
   display: none;
 }
 
-.sig-modal-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.4);
-}
-
-.sig-modal-content {
-  position: relative;
+.modal-body {
   background: #ffffff;
-  border-radius: 1rem;
-  padding: 1rem 1.25rem 0.9rem;
+  border-radius: 12px;
+  padding: 16px;
   width: 420px;
   max-width: 95vw;
-  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.35);
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  font-size: 0.85rem;
-}
-
-.sig-modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.sig-modal-header h2 {
-  margin: 0;
-  font-size: 1.1rem;
-}
-
-.sig-close-btn {
-  border-radius: 999px;
-  border: 1px solid #e5e7eb;
-  width: 28px;
-  height: 28px;
-  background: #f9fafb;
-  cursor: pointer;
 }
 
 .sig-tabs {
   display: flex;
-  gap: 0.4rem;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 
 .sig-tab {
   flex: 1;
   border-radius: 999px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #d1d5db;
   background: #f9fafb;
-  padding: 0.25rem 0.4rem;
+  padding: 4px;
   cursor: pointer;
   font-size: 0.8rem;
 }
@@ -368,78 +257,28 @@ body {
 .sig-tab.active {
   background: #2563eb;
   color: #ffffff;
-  border-color: #2563eb;
-}
-
-.sig-tab-body {
-  margin-top: 0.25rem;
 }
 
 .sig-tab-body.hidden {
   display: none;
 }
 
-.sig-draw-wrapper {
-  margin-top: 0.4rem;
-  padding: 0.35rem;
-  border-radius: 0.75rem;
-  border: 1px dashed #cbd5e1;
-  background: #f9fafb;
-}
-
 #sig-draw-canvas {
   width: 100%;
   height: 140px;
+  border: 1px dashed #cbd5e1;
   background: #ffffff;
-  border-radius: 0.5rem;
 }
 
-/* Signature footer buttons */
-
-.sig-modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.4rem;
-  margin-top: 0.5rem;
+.close-btn {
+  margin-top: 8px;
 }
 
-.sig-primary,
-.sig-secondary {
-  border-radius: 999px;
-  padding: 0.3rem 0.8rem;
-  font-size: 0.8rem;
-  border: 1px solid transparent;
-  cursor: pointer;
-}
+/* ================= MOBILE ================= */
 
-.sig-primary {
-  background: #2563eb;
-  color: #ffffff;
-  border-color: #2563eb;
-}
-
-.sig-secondary {
-  background: #f3f4f6;
-  color: #111827;
-  border-color: #e5e7eb;
-}
-
-.sig-primary.hidden,
-.sig-secondary.hidden {
-  display: none;
-}
-
-/* Small screens */
-
-@media (max-width: 900px) {
-  .editor-main {
-    grid-template-columns: 64px minmax(0, 1fr);
-    grid-template-rows: auto auto;
-    row-gap: 0.75rem;
-  }
-
-  .page-sidebar {
-    grid-column: 1 / -1;
-    order: -1;
+@media (max-width: 768px) {
+  .editor-top {
+    flex-wrap: wrap;
+    height: auto;
   }
 }
