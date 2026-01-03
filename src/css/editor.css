@@ -1,3 +1,7 @@
+* {
+  box-sizing: border-box;
+}
+
 html, body {
   margin: 0;
   height: 100%;
@@ -5,49 +9,29 @@ html, body {
   font-family: system-ui, sans-serif;
 }
 
-.editor-top {
+/* TOP BAR */
+.topbar {
   height: 56px;
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 0 12px;
-  border-bottom: 1px solid #e5e7eb;
   background: #fff;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .logo {
   font-weight: 700;
-  text-decoration: none;
-  color: #111827;
 }
 .logo span { color: #2563eb; }
 
-.top-controls {
+.controls {
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-wrap: wrap;
 }
 
-.tbtn, button {
-  padding: 4px 8px;
-  border-radius: 999px;
-  border: 1px solid #d1d5db;
-  background: #f9fafb;
-  cursor: pointer;
-}
-
-.tbtn.active {
-  background: #2563eb;
-  color: #fff;
-}
-
-.saveBtn {
-  background: #2563eb;
-  color: #fff;
-  border-color: #2563eb;
-}
-
+/* SIDEBAR */
 .sidebar {
   position: fixed;
   top: 56px;
@@ -65,9 +49,9 @@ html, body {
 .tool-icon-btn {
   width: 38px;
   height: 38px;
+  border-radius: 8px;
   background: #1e293b;
   color: #fff;
-  border-radius: 8px;
   border: none;
   cursor: pointer;
 }
@@ -76,28 +60,33 @@ html, body {
   background: #2563eb;
 }
 
-.editor-main {
+/* EDITOR */
+.editor {
   position: fixed;
   top: 56px;
   left: 56px;
   right: 0;
   bottom: 0;
+  background: #e5e7eb;
 }
 
+/* CANVAS */
 .canvas-wrapper {
   width: 100%;
   height: 100%;
   overflow: auto;
-  background: #e5e7eb;
-  cursor: grab;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
 }
 
 #canvas-inner {
   position: relative;
-  margin: 40px auto;
+  margin: 40px;
   transform-origin: top left;
 }
 
+/* IMPORTANT FIX */
 #pdf-canvas,
 #draw-canvas {
   position: absolute;
@@ -111,40 +100,21 @@ html, body {
   position: absolute;
   top: 0;
   left: 0;
-  pointer-events: auto;
 }
 
+/* Overlays */
 .text-box,
 .overlay-object {
   position: absolute;
-  pointer-events: auto;
 }
 
 .resize-handle {
-  position: absolute;
-  right: -6px;
-  bottom: -6px;
   width: 10px;
   height: 10px;
   background: #2563eb;
   border-radius: 50%;
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
   cursor: nwse-resize;
-}
-
-#signature-modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-#signature-modal.hidden { display: none; }
-
-.modal-body {
-  background: #fff;
-  padding: 16px;
-  border-radius: 12px;
-  width: 420px;
 }
