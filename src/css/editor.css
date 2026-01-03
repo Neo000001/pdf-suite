@@ -1,44 +1,26 @@
-/* ================= RESET ================= */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-html,
-body {
+html, body {
   margin: 0;
-  padding: 0;
   height: 100%;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
-  background: #f3f4f6;
-  color: #111827;
   overflow: hidden;
+  font-family: system-ui, sans-serif;
 }
-
-/* ================= TOP BAR ================= */
 
 .editor-top {
   height: 56px;
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
   display: flex;
   align-items: center;
-  padding: 0 14px;
-  gap: 14px;
-  z-index: 40;
+  gap: 12px;
+  padding: 0 12px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fff;
 }
 
-.editor-top .logo {
+.logo {
   font-weight: 700;
   text-decoration: none;
   color: #111827;
 }
-
-.editor-top .logo span {
-  color: #2563eb;
-}
+.logo span { color: #2563eb; }
 
 .top-controls {
   display: flex;
@@ -47,81 +29,52 @@ body {
   flex-wrap: wrap;
 }
 
-/* Buttons */
-.tbtn,
-.editor-top button {
+.tbtn, button {
+  padding: 4px 8px;
   border-radius: 999px;
   border: 1px solid #d1d5db;
   background: #f9fafb;
-  padding: 0.25rem 0.6rem;
-  font-size: 0.8rem;
   cursor: pointer;
 }
 
 .tbtn.active {
   background: #2563eb;
-  color: #ffffff;
-  border-color: #2563eb;
+  color: #fff;
 }
 
 .saveBtn {
   background: #2563eb;
-  color: #ffffff;
+  color: #fff;
   border-color: #2563eb;
 }
-
-/* Inputs */
-#font-size {
-  border-radius: 999px;
-  border: 1px solid #d1d5db;
-  padding: 0.15rem 0.4rem;
-  font-size: 0.8rem;
-}
-
-#brush-size {
-  accent-color: #2563eb;
-}
-
-#zoom-label {
-  min-width: 42px;
-  text-align: center;
-  font-size: 0.8rem;
-}
-
-/* ================= LEFT TOOLBAR ================= */
 
 .sidebar {
   position: fixed;
   top: 56px;
   left: 0;
-  width: 56px;
   bottom: 0;
+  width: 56px;
   background: #0f172a;
-  border-right: 1px solid #1e293b;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 8px;
   gap: 8px;
-  z-index: 20;
+  padding-top: 8px;
 }
 
 .tool-icon-btn {
   width: 38px;
   height: 38px;
-  border-radius: 8px;
   background: #1e293b;
-  color: #ffffff;
+  color: #fff;
+  border-radius: 8px;
   border: none;
   cursor: pointer;
-  font-size: 1rem;
 }
 
 .tool-icon-btn.active {
   background: #2563eb;
 }
-
-/* ================= CANVAS AREA ================= */
 
 .editor-main {
   position: fixed;
@@ -134,151 +87,64 @@ body {
 .canvas-wrapper {
   width: 100%;
   height: 100%;
-  background: #e5e7eb;
   overflow: auto;
+  background: #e5e7eb;
   cursor: grab;
-}
-
-.canvas-wrapper:active {
-  cursor: grabbing;
 }
 
 #canvas-inner {
   position: relative;
   margin: 40px auto;
   transform-origin: top left;
-  display: inline-block;
 }
 
-/* Canvas stacking */
 #pdf-canvas,
 #draw-canvas {
   position: absolute;
   top: 0;
   left: 0;
   display: block;
-  background: #ffffff;
-}
-
-#pdf-canvas {
-  z-index: 1;
-}
-
-#draw-canvas {
-  z-index: 2;
+  background: #fff;
 }
 
 #overlay-layer {
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 3;
   pointer-events: auto;
 }
 
-/* ================= OVERLAYS ================= */
-
-.text-box {
-  position: absolute;
-  background: transparent;
-  border: 1px dashed rgba(148, 163, 184, 0.8);
-  padding: 2px 4px;
-  min-width: 40px;
-  min-height: 18px;
-  font-size: 12px;
-  outline: none;
-  cursor: text;
-  pointer-events: auto;
-}
-
+.text-box,
 .overlay-object {
   position: absolute;
   pointer-events: auto;
 }
 
-.text-box.selected,
-.overlay-object.selected {
-  outline: 2px solid #2563eb;
-}
-
-/* Resize handle */
 .resize-handle {
   position: absolute;
   right: -6px;
   bottom: -6px;
   width: 10px;
   height: 10px;
-  border-radius: 999px;
   background: #2563eb;
+  border-radius: 50%;
   cursor: nwse-resize;
-  pointer-events: auto;
 }
-
-/* ================= SIGNATURE MODAL ================= */
 
 #signature-modal {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0,0,0,.4);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
 }
 
-#signature-modal.hidden {
-  display: none;
-}
+#signature-modal.hidden { display: none; }
 
 .modal-body {
-  background: #ffffff;
-  border-radius: 12px;
+  background: #fff;
   padding: 16px;
+  border-radius: 12px;
   width: 420px;
-  max-width: 95vw;
-}
-
-.sig-tabs {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-
-.sig-tab {
-  flex: 1;
-  border-radius: 999px;
-  border: 1px solid #d1d5db;
-  background: #f9fafb;
-  padding: 4px;
-  cursor: pointer;
-  font-size: 0.8rem;
-}
-
-.sig-tab.active {
-  background: #2563eb;
-  color: #ffffff;
-}
-
-.sig-tab-body.hidden {
-  display: none;
-}
-
-#sig-draw-canvas {
-  width: 100%;
-  height: 140px;
-  border: 1px dashed #cbd5e1;
-  background: #ffffff;
-}
-
-.close-btn {
-  margin-top: 8px;
-}
-
-/* ================= MOBILE ================= */
-
-@media (max-width: 768px) {
-  .editor-top {
-    flex-wrap: wrap;
-    height: auto;
-  }
 }
