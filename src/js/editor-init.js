@@ -40,10 +40,6 @@ async function renderPage(pageNum) {
 
   document.body.classList.add("pdf-loaded");
 }
-
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
-
 // PDFSuit Editor – stable version
 // - Open one PDF
 // - Zoom + hand pan
