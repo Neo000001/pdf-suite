@@ -1,149 +1,108 @@
 * { box-sizing: border-box; }
-body {
+
+html, body {
   margin: 0;
+  height: 100%;
   font-family: system-ui, sans-serif;
   background: #e5e7eb;
 }
 
-/* ================= TOP BAR ================= */
-.editor-top {
-  height: 52px;
-  background: #ffffff;
+/* ===== TOP BAR ===== */
+.topbar {
+  height: 56px;
   display: flex;
   align-items: center;
   padding: 0 12px;
-  gap: 12px;
+  background: #fff;
   border-bottom: 1px solid #d1d5db;
 }
 
 .logo {
   font-weight: 700;
+  margin-right: 16px;
 }
 .logo span { color: #2563eb; }
 
-.controls button,
-.controls select {
-  margin-right: 4px;
+.toolbar button,
+.toolbar select {
+  margin-right: 6px;
 }
 
-/* ================= SIDEBAR ================= */
-.sidebar {
-  position: fixed;
-  top: 52px;
-  left: 0;
-  width: 60px;
-  height: calc(100% - 52px);
+/* ===== LAYOUT ===== */
+.editor-root {
+  display: flex;
+  height: calc(100vh - 56px);
+}
+
+/* LEFT BAR */
+.leftbar {
+  width: 64px;
   background: #0f172a;
-  padding: 8px;
+  padding: 8px 0;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 8px;
 }
 
-.tool-icon-btn {
-  width: 44px;
-  height: 44px;
+.tool-icon-btn,
+.open-btn {
+  width: 42px;
+  height: 42px;
   border-radius: 10px;
   border: none;
-  background: #1e293b;
-  color: #fff;
   cursor: pointer;
 }
 
 .tool-icon-btn.active {
   background: #2563eb;
+  color: #fff;
 }
 
-.sidebar input {
-  margin-top: auto;
-  opacity: 0;
-}
-
-/* ================= CANVAS ================= */
-.canvas-wrapper {
-  margin-left: 60px;
-  margin-top: 52px;
-  height: calc(100vh - 52px);
-  overflow: auto;
+/* WORKSPACE */
+.workspace {
+  flex: 1;
   position: relative;
+  overflow: hidden;
+}
+
+/* EMPTY STATE */
+#empty-state {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 2;
+}
+#empty-state.hidden { display: none; }
+
+/* CANVAS */
+.canvas-wrapper {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  padding: 40px;
 }
 
 #canvas-inner {
   position: relative;
-  margin: 40px auto;
+  margin: 0 auto;
+  transform-origin: top center;
 }
 
-/* Layer order */
-#pdf-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 1;
-}
-
+#pdf-canvas,
 #draw-canvas {
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 2;
+  background: #fff;
 }
 
 #overlay-layer {
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 3;
-}
-
-/* ================= CENTER OPEN PDF ================= */
-#open-pdf-center {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: #e5e7eb;
-  z-index: 10;
-}
-
-#open-pdf-center button {
-  padding: 10px 20px;
-  font-size: 16px;
-  border-radius: 8px;
-  border: none;
-  background: #2563eb;
-  color: white;
-  cursor: pointer;
-}
-
-/* Hide center UI when PDF loads */
-body.pdf-loaded #open-pdf-center {
-  display: none;
-}
-
-/* ================= TEXT BOX ================= */
-.text-box {
-  position: absolute;
-  border: 1px dashed #2563eb;
-  padding: 2px 4px;
-  background: transparent;
-}
-
-/* ================= MODAL ================= */
-.modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.modal.hidden { display: none; }
-
-.modal-body {
-  background: white;
-  padding: 16px;
-  border-radius: 12px;
-  width: 360px;
+  pointer-events: auto;
 }
