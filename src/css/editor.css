@@ -1,86 +1,52 @@
-/* RESET */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-/* BODY */
+* { box-sizing: border-box; }
 body {
+  margin: 0;
   font-family: system-ui, sans-serif;
   background: #e5e7eb;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
 }
 
-/* TOP BAR */
+/* ================= TOP BAR ================= */
 .editor-top {
   height: 52px;
   background: #ffffff;
   display: flex;
   align-items: center;
   padding: 0 12px;
+  gap: 12px;
   border-bottom: 1px solid #d1d5db;
 }
 
-.editor-top .logo {
+.logo {
   font-weight: 700;
-  margin-right: 12px;
 }
-
-.editor-top .logo span {
-  color: #2563eb;
-}
-
-.controls {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
+.logo span { color: #2563eb; }
 
 .controls button,
 .controls select {
-  padding: 4px 8px;
-  font-size: 13px;
+  margin-right: 4px;
 }
 
-.controls button.active {
-  background: #2563eb;
-  color: #fff;
-}
-
-.controls .save {
-  background: #2563eb;
-  color: #fff;
-  border-radius: 6px;
-}
-
-/* MAIN LAYOUT */
-.editor-body {
-  flex: 1;
-  display: flex;
-  overflow: hidden;
-}
-
-/* SIDEBAR */
+/* ================= SIDEBAR ================= */
 .sidebar {
+  position: fixed;
+  top: 52px;
+  left: 0;
   width: 60px;
+  height: calc(100% - 52px);
   background: #0f172a;
+  padding: 8px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 8px 0;
-  gap: 10px;
+  gap: 8px;
 }
 
 .tool-icon-btn {
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   border-radius: 10px;
   border: none;
   background: #1e293b;
-  color: white;
+  color: #fff;
   cursor: pointer;
 }
 
@@ -88,59 +54,83 @@ body {
   background: #2563eb;
 }
 
-.pdf-open {
+.sidebar input {
   margin-top: auto;
-  color: white;
-  font-size: 12px;
-  cursor: pointer;
+  opacity: 0;
 }
 
-/* CANVAS AREA */
+/* ================= CANVAS ================= */
 .canvas-wrapper {
-  flex: 1;
+  margin-left: 60px;
+  margin-top: 52px;
+  height: calc(100vh - 52px);
   overflow: auto;
-  background: #e5e7eb;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  position: relative;
 }
 
 #canvas-inner {
   position: relative;
-  margin: 40px;
+  margin: 40px auto;
 }
 
-/* CANVASES */
-#pdf-canvas,
+/* Layer order */
+#pdf-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
 #draw-canvas {
   position: absolute;
   top: 0;
   left: 0;
-  background: white;
-}
-
-#draw-canvas {
-  pointer-events: none;
+  z-index: 2;
 }
 
 #overlay-layer {
   position: absolute;
   top: 0;
   left: 0;
+  z-index: 3;
 }
 
-/* TEXT BOX */
+/* ================= CENTER OPEN PDF ================= */
+#open-pdf-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #e5e7eb;
+  z-index: 10;
+}
+
+#open-pdf-center button {
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+}
+
+/* Hide center UI when PDF loads */
+body.pdf-loaded #open-pdf-center {
+  display: none;
+}
+
+/* ================= TEXT BOX ================= */
 .text-box {
   position: absolute;
   border: 1px dashed #2563eb;
-  background: transparent;
   padding: 2px 4px;
-  min-width: 40px;
-  min-height: 18px;
-  outline: none;
+  background: transparent;
 }
 
-/* MODAL */
+/* ================= MODAL ================= */
 .modal {
   position: fixed;
   inset: 0;
@@ -149,20 +139,11 @@ body {
   align-items: center;
   justify-content: center;
 }
-
-.modal.hidden {
-  display: none;
-}
+.modal.hidden { display: none; }
 
 .modal-body {
   background: white;
   padding: 16px;
-  border-radius: 10px;
+  border-radius: 12px;
   width: 360px;
-}
-
-#sig-draw-canvas {
-  width: 100%;
-  height: 120px;
-  border: 1px dashed #ccc;
 }
