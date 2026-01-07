@@ -1,163 +1,101 @@
-/* --- Global Reset & Variables --- */
 :root {
-  --topbar-height: 60px;
-  --sidebar-width: 70px;
-  --accent-blue: #3b82f6;
-  --bg-gray: #f9fafb;
-  --border-gray: #e5e7eb;
-}
-
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+    --bg-color: #f3f4f6;
+    --sidebar-width: 64px;
+    --topbar-height: 60px;
+    --accent: #3b82f6;
 }
 
 body, html {
-  height: 100%;
-  font-family: 'Inter', system-ui, sans-serif;
-  overflow: hidden; /* Main window doesn't scroll; workspace does */
+    margin: 0; padding: 0; height: 100%;
+    font-family: sans-serif; overflow: hidden;
 }
 
-/* --- Layout Structure --- */
+/* --- Layout --- */
 .topbar {
-  height: var(--topbar-height);
-  background: #ffffff;
-  border-bottom: 1px solid var(--border-gray);
-  display: flex;
-  align-items: center;
-  padding: 0 20px;
-  gap: 15px;
-  z-index: 100;
+    height: var(--topbar-height);
+    display: flex; align-items: center; padding: 0 20px;
+    background: white; border-bottom: 1px solid #ddd; gap: 15px;
 }
 
-.editor-root {
-  display: flex;
-  height: calc(100vh - var(--topbar-height));
-}
+.logo { font-weight: bold; font-size: 1.2rem; }
+.logo span { color: var(--accent); }
+
+.toolbar { display: flex; align-items: center; gap: 10px; }
+.divider { width: 1px; height: 24px; background: #ddd; margin: 0 5px; }
+
+.editor-root { display: flex; height: calc(100vh - var(--topbar-height)); }
 
 .leftbar {
-  width: var(--sidebar-width);
-  background: #ffffff;
-  border-right: 1px solid var(--border-gray);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 20px;
-  gap: 15px;
+    width: var(--sidebar-width); background: white;
+    border-right: 1px solid #ddd; display: flex;
+    flex-direction: column; align-items: center; padding: 15px 0; gap: 12px;
 }
 
 .workspace {
-  flex: 1;
-  background: var(--bg-gray);
-  overflow: auto; /* This allows the zoomed PDF to scroll */
-  position: relative;
-  display: flex;
-  justify-content: center; /* Centers PDF horizontally */
+    flex: 1; background: var(--bg-color);
+    overflow: auto; position: relative;
 }
 
-/* --- The "Magic" Canvas Stack --- */
+/* --- Canvas Stack --- */
 .canvas-wrapper {
-  padding: 50px;
-  display: inline-block; /* Essential for scrollbars to appear on zoom */
+    padding: 40px; display: flex; justify-content: center;
 }
 
 #canvas-inner {
-  position: relative;
-  background: white;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-  transform-origin: top left; /* Critical for coordinate math */
+    position: relative; box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    background: white; transform-origin: top left;
 }
 
-/* Layer 1: The Original PDF (Static) */
-#pdf-canvas {
-  display: block;
-  z-index: 1;
-}
+#pdf-canvas { display: block; z-index: 1; }
 
-/* Layer 2: Pen, Highlighter, Eraser, Whiteout */
 #draw-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 5;
-  /* Pointer-events: auto/none is toggled in JS by setTool() */
+    position: absolute; top: 0; left: 0;
+    z-index: 5; pointer-events: none; /* Managed by JS */
 }
 
-/* Layer 3: Interactive Text Boxes and Signatures */
 #overlay-layer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 10;
-  pointer-events: none; /* Let clicks pass to draw-canvas unless a box is clicked */
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%; z-index: 10;
+    pointer-events: none; /* Managed by JS */
 }
 
-/* --- UI Component Styling --- */
-.tool-icon-btn {
-  width: 45px;
-  height: 45px;
-  border: 1px solid transparent;
-  background: transparent;
-  border-radius: 8px;
-  font-size: 1.2rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.tool-icon-btn:hover { background: #f3f4f6; }
-.tool-icon-btn.active {
-  background: #eff6ff;
-  color: var(--accent-blue);
-  border-color: var(--accent-blue);
-}
-
-.toolbar select, .toolbar input[type="range"] {
-  padding: 5px;
-  border-radius: 4px;
-  border: 1px solid var(--border-gray);
-}
-
-/* --- Text Box Elements --- */
+/* --- Elements --- */
 .text-box {
-  position: absolute;
-  min-width: 50px;
-  min-height: 20px;
-  padding: 4px;
-  outline: none;
-  cursor: text;
-  pointer-events: auto; /* Overrides parent pointer-events: none */
-  word-wrap: break-word;
-  white-space: pre-wrap;
+    position: absolute; padding: 4px; min-width: 50px;
+    outline: none; cursor: text; pointer-events: auto;
+    word-wrap: break-word; white-space: pre-wrap;
 }
 
 .text-box.selected {
-  outline: 2px dashed var(--accent-blue);
-  background: rgba(59, 130, 246, 0.05);
+    outline: 2px dashed var(--accent);
+    background: rgba(59, 130, 246, 0.05);
 }
 
-/* --- Modal & Other --- */
-.hidden { display: none !important; }
+.tool-icon-btn {
+    width: 42px; height: 42px; border: none; background: none;
+    font-size: 1.2rem; cursor: pointer; border-radius: 8px;
+}
+
+.tool-icon-btn.active {
+    background: #eff6ff; color: var(--accent);
+}
+
+.save {
+    background: var(--accent); color: white;
+    padding: 8px 16px; border: none; border-radius: 6px; font-weight: bold;
+}
+
+#empty-state {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%); text-align: center;
+    z-index: 100;
+}
+
+#empty-state.hidden { display: none; }
 
 #page-controls {
-  position: fixed;
-  bottom: 20px;
-  background: rgba(31, 41, 55, 0.9);
-  color: white;
-  padding: 8px 16px;
-  border-radius: 99px;
-  z-index: 200;
+    position: fixed; bottom: 20px; left: 50%;
+    transform: translateX(-50%); background: #333;
+    color: white; padding: 5px 15px; border-radius: 20px;
+    font-size: 0.8rem; z-index: 50;
 }
-
-#save-btn {
-  background: var(--accent-blue);
-  color: white;
-  padding: 8px 20px;
-  border-radius: 6px;
-  font-weight: 600;
-  border: none;
-}
-
-#save-btn:hover { background: #2563eb; }
