@@ -1,110 +1,92 @@
 * {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-family: system-ui, sans-serif;
 }
 
 body {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: #f1f5f9;
+  margin: 0;
+  background: #e5e7eb;
+  color: #111;
 }
 
-/* HEADER */
-.editor-header {
-  height: 52px;
+/* TOP BAR */
+.topbar {
+  height: 56px;
   background: #0f172a;
   color: #fff;
   display: flex;
   align-items: center;
-  padding: 0 16px;
   justify-content: space-between;
+  padding: 0 16px;
 }
 
-.logo {
-  font-weight: 600;
+.brand {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.brand span {
+  color: #60a5fa;
 }
 
 .beta {
-  background: #2563eb;
-  color: #fff;
+  margin-left: 8px;
   font-size: 11px;
+  background: #2563eb;
   padding: 2px 6px;
   border-radius: 6px;
-  margin-left: 6px;
 }
 
-.toolbar button {
+.tools button {
   margin-left: 6px;
   padding: 6px 10px;
-  border: none;
-  border-radius: 6px;
   cursor: pointer;
 }
 
-/* MAIN */
-.editor-main {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
+/* EMPTY STATE */
+.editor-empty .editor {
+  display: none;
 }
 
-/* OPEN SCREEN */
-.open-screen {
-  position: absolute;
-  inset: 0;
+.empty-state {
+  height: calc(100vh - 56px);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #f1f5f9;
-  z-index: 2;
 }
 
-.open-screen h1 {
-  margin-bottom: 8px;
-}
-
-.open-screen button {
-  margin-top: 12px;
+.empty-state button {
   padding: 10px 18px;
+  margin-top: 12px;
   font-size: 16px;
 }
 
-/* CANVAS */
+/* EDITOR */
+.editor {
+  height: calc(100vh - 56px);
+}
+
 .canvas-wrapper {
-  position: absolute;
-  inset: 0;
+  width: 100%;
+  height: 100%;
   overflow: auto;
-  background: #e5e7eb;
 }
 
 .canvas-inner {
-  display: flex;
-  justify-content: center;
-  padding: 40px 0;
+  position: relative;
+  margin: 40px auto;
+  width: fit-content;
 }
 
 canvas {
-  background: white;
-  box-shadow: 0 10px 30px rgba(0,0,0,.15);
-}
-
-/* STATE CONTROL */
-.editor-empty .canvas-wrapper {
-  display: none;
-}
-
-.editor-empty .open-screen {
-  display: flex;
-}
-
-.editor-loaded .open-screen {
-  display: none;
-}
-
-.editor-loaded .canvas-wrapper {
   display: block;
+  background: white;
+}
+
+#drawCanvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
 }
