@@ -1,41 +1,35 @@
-/* --- Root & Layout Variables --- */
+/* --- Global Reset & Variables --- */
 :root {
   --topbar-height: 60px;
-  --sidebar-width: 64px;
-  --accent-color: #3b82f6;
-  --bg-workspace: #f3f4f6;
-  --border-color: #e5e7eb;
+  --sidebar-width: 70px;
+  --accent-blue: #3b82f6;
+  --bg-gray: #f9fafb;
+  --border-gray: #e5e7eb;
 }
 
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body, html {
-  margin: 0;
-  padding: 0;
   height: 100%;
-  font-family: 'Inter', -apple-system, sans-serif;
-  overflow: hidden;
+  font-family: 'Inter', system-ui, sans-serif;
+  overflow: hidden; /* Main window doesn't scroll; workspace does */
 }
 
 /* --- Layout Structure --- */
 .topbar {
   height: var(--topbar-height);
   background: #ffffff;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-gray);
   display: flex;
   align-items: center;
-  padding: 0 16px;
-  justify-content: space-between;
+  padding: 0 20px;
+  gap: 15px;
   z-index: 100;
 }
-
-.logo { font-weight: 700; font-size: 1.25rem; color: #1f2937; }
-.logo span { color: var(--accent-color); }
-
-.toolbar { display: flex; align-items: center; gap: 10px; }
-.divider { width: 1px; height: 24px; background: var(--border-color); margin: 0 8px; }
 
 .editor-root {
   display: flex;
@@ -45,157 +39,125 @@ body, html {
 .leftbar {
   width: var(--sidebar-width);
   background: #ffffff;
-  border-right: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-gray);
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 16px 0;
-  gap: 16px;
+  padding-top: 20px;
+  gap: 15px;
 }
 
 .workspace {
   flex: 1;
-  background: var(--bg-workspace);
-  overflow: auto; /* Handles scrolling for the canvas */
+  background: var(--bg-gray);
+  overflow: auto; /* This allows the zoomed PDF to scroll */
   position: relative;
   display: flex;
-  flex-direction: column;
+  justify-content: center; /* Centers PDF horizontally */
 }
 
-/* --- Canvas Stack --- */
+/* --- The "Magic" Canvas Stack --- */
 .canvas-wrapper {
   padding: 50px;
-  margin: 0 auto;
+  display: inline-block; /* Essential for scrollbars to appear on zoom */
 }
 
 #canvas-inner {
-  position: relative; /* Anchor for absolute layers */
-  background: #ffffff;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  transform-origin: top left; /* Critical for zoom math */
+  position: relative;
+  background: white;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  transform-origin: top left; /* Critical for coordinate math */
 }
 
+/* Layer 1: The Original PDF (Static) */
 #pdf-canvas {
   display: block;
   z-index: 1;
 }
 
+/* Layer 2: Pen, Highlighter, Eraser, Whiteout */
 #draw-canvas {
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 2;
-  /* Pointer-events managed by JS currentTool */
+  z-index: 5;
+  /* Pointer-events: auto/none is toggled in JS by setTool() */
 }
 
+/* Layer 3: Interactive Text Boxes and Signatures */
 #overlay-layer {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 3;
-  pointer-events: none; /* Let clicks fall to draw-canvas unless selecting text */
+  z-index: 10;
+  pointer-events: none; /* Let clicks pass to draw-canvas unless a box is clicked */
 }
 
-/* --- Interactive Elements --- */
+/* --- UI Component Styling --- */
+.tool-icon-btn {
+  width: 45px;
+  height: 45px;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tool-icon-btn:hover { background: #f3f4f6; }
+.tool-icon-btn.active {
+  background: #eff6ff;
+  color: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+.toolbar select, .toolbar input[type="range"] {
+  padding: 5px;
+  border-radius: 4px;
+  border: 1px solid var(--border-gray);
+}
+
+/* --- Text Box Elements --- */
 .text-box {
   position: absolute;
-  min-width: 40px;
+  min-width: 50px;
   min-height: 20px;
   padding: 4px;
   outline: none;
   cursor: text;
-  pointer-events: auto; /* Overrides layer's 'none' */
+  pointer-events: auto; /* Overrides parent pointer-events: none */
+  word-wrap: break-word;
+  white-space: pre-wrap;
 }
 
-.text-box.selected, .overlay-object.selected {
-  outline: 2px solid var(--accent-color);
+.text-box.selected {
+  outline: 2px dashed var(--accent-blue);
+  background: rgba(59, 130, 246, 0.05);
 }
 
-.resize-handle {
-  position: absolute;
-  right: -4px;
-  bottom: -4px;
-  width: 10px;
-  height: 10px;
-  background: var(--accent-color);
-  border-radius: 50%;
-  cursor: nwse-resize;
-  z-index: 10;
-}
-
-.overlay-object {
-  position: absolute;
-  cursor: move;
-  pointer-events: auto;
-}
-
-/* --- Buttons & Inputs --- */
-button {
-  cursor: pointer;
-  border: 1px solid transparent;
-  background: #ffffff;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-
-button:hover { background: #f9fafb; border-color: var(--border-color); }
-button.active { background: #eff6ff; color: var(--accent-color); border-color: var(--accent-color); }
-
-.tool-icon-btn {
-  width: 42px;
-  height: 42px;
-  font-size: 1.2rem;
-}
-
-button.save {
-  background: var(--accent-color);
-  color: white;
-  padding: 8px 16px;
-  font-weight: 600;
-}
-button.save:hover { background: #2563eb; }
-
-/* --- Modals & Overlays --- */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(2px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background: white;
-  width: 500px;
-  border-radius: 12px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  overflow: hidden;
-}
-
+/* --- Modal & Other --- */
 .hidden { display: none !important; }
-
-#empty-state {
-  text-align: center;
-  margin: auto;
-}
 
 #page-controls {
   position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #1f2937;
+  bottom: 20px;
+  background: rgba(31, 41, 55, 0.9);
   color: white;
-  padding: 6px 16px;
-  border-radius: 999px;
-  font-size: 0.875rem;
-  z-index: 50;
+  padding: 8px 16px;
+  border-radius: 99px;
+  z-index: 200;
 }
+
+#save-btn {
+  background: var(--accent-blue);
+  color: white;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  border: none;
+}
+
+#save-btn:hover { background: #2563eb; }
