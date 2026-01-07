@@ -1,95 +1,70 @@
-* { box-sizing: border-box; }
+/* ===== BETA BADGE ===== */
+.beta-badge {
+  margin-left: 8px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #4338ca;
+  border: 1px solid #c7d2fe;
+}
 
-html, body {
-  margin: 0;
-  height: 100%;
-  font-family: system-ui, sans-serif;
+/* ===== BETA NOTE ===== */
+.editor-beta-note {
+  text-align: center;
+  font-size: 12px;
+  color: #6b7280;
+  background: #f9fafb;
+  padding: 6px 0;
+}
+
+/* ===== CANVAS AREA ===== */
+.canvas-wrapper {
+  position: relative;
+  flex: 1;
   background: #e5e7eb;
+  overflow: auto;
 }
 
-/* ===== TOP BAR ===== */
-.topbar {
-  height: 56px;
-  display: flex;
-  align-items: center;
-  padding: 0 12px;
-  background: #fff;
-  border-bottom: 1px solid #d1d5db;
-}
-
-.logo {
-  font-weight: 700;
-  margin-right: 16px;
-}
-.logo span { color: #2563eb; }
-
-.toolbar button,
-.toolbar select {
-  margin-right: 6px;
-}
-
-/* ===== LAYOUT ===== */
-.editor-root {
-  display: flex;
-  height: calc(100vh - 56px);
-}
-
-/* LEFT BAR */
-.leftbar {
-  width: 64px;
-  background: #0f172a;
-  padding: 8px 0;
+/* ===== OPEN PDF SCREEN ===== */
+#open-pdf-screen {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 10px;
+  background: #f3f4f6;
+  z-index: 10;
 }
 
-.tool-icon-btn,
-.open-btn {
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
+#open-pdf-screen h2 {
+  margin: 0;
+  font-size: 22px;
+}
+
+#open-pdf-screen p {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+#open-pdf-screen button {
+  padding: 10px 22px;
+  font-size: 14px;
+  border-radius: 999px;
   border: none;
+  background: #2563eb;
+  color: white;
   cursor: pointer;
 }
 
-.tool-icon-btn.active {
-  background: #2563eb;
-  color: #fff;
-}
-
-/* WORKSPACE */
-.workspace {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-}
-
-/* EMPTY STATE */
-#empty-state {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 2;
-}
-#empty-state.hidden { display: none; }
-
-/* CANVAS */
-.canvas-wrapper {
-  position: absolute;
-  inset: 0;
-  overflow: auto;
-  padding: 40px;
-}
-
+/* ===== CANVAS STACK ===== */
 #canvas-inner {
   position: relative;
-  margin: 0 auto;
-  transform-origin: top center;
+  margin: 40px auto;
+  transform-origin: top left;
 }
 
 #pdf-canvas,
@@ -97,12 +72,11 @@ html, body {
   position: absolute;
   top: 0;
   left: 0;
-  background: #fff;
+  background: white;
 }
 
 #overlay-layer {
   position: absolute;
   top: 0;
   left: 0;
-  pointer-events: auto;
 }
