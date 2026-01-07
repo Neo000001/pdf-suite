@@ -1,158 +1,146 @@
+// PDFSuit Editor - Full Tool Support Logic
 let pdfDoc = null;
-let currentPage = 1;
 let renderScale = 1.5;
 let viewScale = 1;
 let currentTool = "select";
 
-// Canvas Refs
-let canvas, ctx, drawCanvas, drawCtx, overlayLayer, canvasInner, canvasArea;
+// Refs
+let canvas, ctx, drawCanvas, drawCtx, overlayLayer;
 
-// History
-let history = [];
-let historyIndex = -1;
-
-// State
-let isDrawing = false;
-let drawStartX = 0, drawStartY = 0;
+// Settings State
+let brushSize = 4;
+let brushColor = "#000000";
+let fontSize = 16;
+let currentFont = "Arial";
 
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. Element Mapping
     canvas = document.getElementById("pdf-canvas");
     ctx = canvas.getContext("2d");
     drawCanvas = document.getElementById("draw-canvas");
     drawCtx = drawCanvas.getContext("2d");
     overlayLayer = document.getElementById("overlay-layer");
-    canvasInner = document.getElementById("canvas-inner");
-    canvasArea = document.querySelector(".canvas-wrapper");
 
-    // 2. Tool Buttons Logic
+    // --- 1. CONNECT UI INPUTS ---
+    
+    // Brush Size Slider
+    const brushInput = document.getElementById("brush-size");
+    if (brushInput) {
+        brushInput.addEventListener("input", (e) => {
+            brushSize = parseInt(e.target.value);
+        });
+    }
+
+    // Font Size Select
+    const fontSelect = document.getElementById("font-size");
+    if (fontSelect) {
+        fontSelect.addEventListener("change", (e) => {
+            fontSize = parseInt(e.target.value);
+            if (selectedElement) selectedElement.style.fontSize = fontSize + "px";
+        });
+    }
+
+    // --- 2. TOOL SELECTION ---
     document.querySelectorAll(".tool-icon-btn").forEach(btn => {
         btn.addEventListener("click", () => {
             document.querySelectorAll(".tool-icon-btn").forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
-            setTool(btn.dataset.tool);
+            currentTool = btn.dataset.tool;
+            
+            // Pointer management: If drawing, disable overlay so clicks hit the canvas
+            const isDrawing = ["pen", "highlight", "eraser"].includes(currentTool);
+            drawCanvas.style.pointerEvents = isDrawing ? "auto" : "none";
+            overlayLayer.style.pointerEvents = isDrawing ? "none" : "auto";
         });
     });
 
-    // 3. Drawing Events
-    drawCanvas.addEventListener("mousedown", startDrawing);
-    window.addEventListener("mousemove", (e) => {
-        if (isDrawing) draw(e);
+    // --- 3. DRAWING & ERASING LOGIC ---
+    let isDrawing = false;
+    drawCanvas.addEventListener("mousedown", (e) => {
+        isDrawing = true;
+        const { x, y } = getCoords(e);
+        drawCtx.beginPath();
+        drawCtx.moveTo(x, y);
+        
+        // Dynamic Brush Settings
+        drawCtx.lineCap = "round";
+        drawCtx.lineJoin = "round";
+        
+        if (currentTool === "eraser") {
+            drawCtx.globalCompositeOperation = "destination-out";
+            drawCtx.lineWidth = brushSize * 5; // Eraser is usually bigger
+        } else if (currentTool === "highlight") {
+            drawCtx.globalCompositeOperation = "source-over";
+            drawCtx.strokeStyle = "rgba(255, 255, 0, 0.4)";
+            drawCtx.lineWidth = brushSize * 4;
+        } else {
+            drawCtx.globalCompositeOperation = "source-over";
+            drawCtx.strokeStyle = brushColor;
+            drawCtx.lineWidth = brushSize;
+        }
     });
-    window.addEventListener("mouseup", stopDrawing);
 
-    // 4. File Input
-    document.getElementById("file-input").onchange = (e) => {
-        const file = e.target.files[0];
-        if (file) loadPdf(file);
-    };
+    window.addEventListener("mousemove", (e) => {
+        if (!isDrawing || !["pen", "highlight", "eraser"].includes(currentTool)) return;
+        const { x, y } = getCoords(e);
+        drawCtx.lineTo(x, y);
+        drawCtx.stroke();
+    });
 
-    // 5. Actions
-    document.getElementById("zoom-in-btn").onclick = () => { viewScale += 0.1; updateView(); };
-    document.getElementById("zoom-out-btn").onclick = () => { viewScale -= 0.1; updateView(); };
-    document.getElementById("save-btn").onclick = exportPDF;
+    window.addEventListener("mouseup", () => isDrawing = false);
 
-    // PDF.js Worker
-    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+    // --- 4. TEXT & EDIT TEXT LOGIC ---
+    overlayLayer.addEventListener("click", (e) => {
+        if (currentTool === "text" || currentTool === "edit-text") {
+            const { x, y } = getCoords(e);
+            
+            if (currentTool === "edit-text") {
+                // ERASE THE PDF TEXT: Draw a white rectangle on the DRAW canvas
+                drawCtx.globalCompositeOperation = "source-over";
+                drawCtx.fillStyle = "white";
+                // Estimate size based on font
+                drawCtx.fillRect(x, y - (fontSize/2), fontSize * 5, fontSize * 1.2);
+            }
+            
+            createTextBox(x, y);
+        }
+    });
 });
 
-function setTool(tool) {
-    currentTool = tool;
-    const isDraw = ["pen", "highlight", "eraser"].includes(tool);
-    
-    // Switch interaction layers
-    drawCanvas.style.pointerEvents = isDraw ? "auto" : "none";
-    overlayLayer.style.pointerEvents = isDraw ? "none" : "auto";
-    
-    // Update cursor
-    canvasArea.style.cursor = isDraw ? "crosshair" : (tool === 'hand' ? 'grab' : 'default');
-}
+// --- HELPERS ---
 
 function getCoords(e) {
-    const rect = drawCanvas.getBoundingClientRect();
+    const rect = canvas.getBoundingClientRect();
+    // Account for zoom (viewScale)
     return {
-        x: (e.clientX - rect.left) / viewScale * (drawCanvas.width / (rect.width / viewScale)),
-        y: (e.clientY - rect.top) / viewScale * (drawCanvas.height / (rect.height / viewScale))
+        x: (e.clientX - rect.left) / viewScale,
+        y: (e.clientY - rect.top) / viewScale
     };
 }
 
-function startDrawing(e) {
-    isDrawing = true;
-    const { x, y } = getCoords(e);
-    drawCtx.beginPath();
-    drawCtx.moveTo(x, y);
-    drawCtx.lineCap = "round";
-    drawCtx.lineJoin = "round";
-}
-
-function draw(e) {
-    if (!isDrawing) return;
-    const { x, y } = getCoords(e);
+function createTextBox(x, y) {
+    const box = document.createElement("div");
+    box.className = "text-box";
+    box.contentEditable = true;
+    box.style.left = x + "px";
+    box.style.top = y + "px";
+    box.style.fontSize = fontSize + "px";
+    box.style.fontFamily = currentFont;
+    box.innerText = "Type here...";
     
-    drawCtx.globalCompositeOperation = currentTool === "eraser" ? "destination-out" : "source-over";
-    drawCtx.strokeStyle = currentTool === "highlight" ? "rgba(255, 255, 0, 0.5)" : "#000000";
-    drawCtx.lineWidth = currentTool === "highlight" ? 20 : 3;
+    box.addEventListener("mousedown", (e) => {
+        if (currentTool === "select") {
+            e.stopPropagation();
+            selectElement(box);
+        }
+    });
     
-    drawCtx.lineTo(x, y);
-    drawCtx.stroke();
+    overlayLayer.appendChild(box);
+    box.focus();
 }
 
-function stopDrawing() {
-    if (isDrawing) {
-        isDrawing = false;
-        pushHistory();
-    }
-}
-
-async function loadPdf(file) {
-    const data = await file.arrayBuffer();
-    pdfDoc = await pdfjsLib.getDocument({ data }).promise;
-    document.getElementById("empty-state").style.display = "none";
-    renderPage(1);
-}
-
-async function renderPage(num) {
-    const page = await pdfDoc.getPage(num);
-    const viewport = page.getViewport({ scale: renderScale });
-    
-    canvas.width = drawCanvas.width = viewport.width;
-    canvas.height = drawCanvas.height = viewport.height;
-    
-    await page.render({ canvasContext: ctx, viewport }).promise;
-    updateView();
-}
-
-function updateView() {
-    canvasInner.style.transform = `scale(${viewScale})`;
-    canvasInner.style.width = (canvas.width * viewScale) + "px";
-    canvasInner.style.height = (canvas.height * viewScale) + "px";
-}
-
-async function exportPDF() {
-    const exportCanvas = document.createElement("canvas");
-    exportCanvas.width = canvas.width;
-    exportCanvas.height = canvas.height;
-    const eCtx = exportCanvas.getContext("2d");
-
-    eCtx.drawImage(canvas, 0, 0);
-    eCtx.drawImage(drawCanvas, 0, 0);
-
-    const pdfDataUri = exportCanvas.toDataURL("image/png");
-    const pdfLibDoc = await PDFLib.PDFDocument.create();
-    const page = pdfLibDoc.addPage([canvas.width, canvas.height]);
-    const img = await pdfLibDoc.embedPng(pdfDataUri);
-
-    page.drawImage(img, { x: 0, y: 0, width: canvas.width, height: canvas.height });
-    const bytes = await pdfLibDoc.save();
-    const blob = new Blob([bytes], { type: "application/pdf" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "edited.pdf";
-    link.click();
-}
-
-function pushHistory() {
-    // Basic history logic
-    history.push(drawCanvas.toDataURL());
-    historyIndex++;
+let selectedElement = null;
+function selectElement(el) {
+    if (selectedElement) selectedElement.style.border = "none";
+    selectedElement = el;
+    selectedElement.style.border = "1px dashed blue";
 }
