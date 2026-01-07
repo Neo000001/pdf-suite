@@ -6,52 +6,51 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- PDF.js -->
-  <script src="../src/libs/pdf.min.js"></script>
+  <script src="/src/libs/pdf.min.js"></script>
 
   <!-- Styles -->
-  <link rel="stylesheet" href="../src/css/editor.css" />
+  <link rel="stylesheet" href="/src/css/editor.css" />
 </head>
+
 <body class="editor-empty">
 
-  <!-- TOP BAR -->
-  <header class="editor-header">
-    <div class="logo">
-      PDFSuit <span class="beta">Beta</span>
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="brand">
+    PDF<span>Suit</span>
+    <span class="beta">Beta</span>
+  </div>
+
+  <div class="tools">
+    <button id="openBtn">Open PDF</button>
+    <button id="zoomOut">−</button>
+    <span id="zoomLabel">100%</span>
+    <button id="zoomIn">+</button>
+    <button id="fitBtn">Fit</button>
+    <button id="saveBtn">Save</button>
+  </div>
+</header>
+
+<!-- EMPTY STATE -->
+<div class="empty-state" id="emptyState">
+  <h1>Open a PDF</h1>
+  <p>Your file stays in your browser</p>
+  <button id="openBtnCenter">Open PDF</button>
+</div>
+
+<!-- EDITOR -->
+<main class="editor">
+  <div class="canvas-wrapper" id="canvasWrapper">
+    <div class="canvas-inner" id="canvasInner">
+      <canvas id="pdfCanvas"></canvas>
+      <canvas id="drawCanvas"></canvas>
     </div>
+  </div>
+</main>
 
-    <div class="toolbar">
-      <button id="openBtn">Open PDF</button>
-      <button id="zoomOut">−</button>
-      <span id="zoomLabel">100%</span>
-      <button id="zoomIn">+</button>
-      <button id="fitBtn">Fit</button>
-      <button id="saveBtn">Save</button>
-    </div>
-  </header>
+<input type="file" id="fileInput" accept="application/pdf" hidden />
 
-  <!-- MAIN AREA -->
-  <main class="editor-main">
-
-    <!-- OPEN PDF SCREEN -->
-    <div class="open-screen">
-      <h1>Open a PDF</h1>
-      <p>Your file stays in your browser</p>
-      <button id="openBtnCenter">Open PDF</button>
-    </div>
-
-    <!-- CANVAS WRAPPER -->
-    <div class="canvas-wrapper">
-      <div class="canvas-inner">
-        <canvas id="pdfCanvas"></canvas>
-      </div>
-    </div>
-
-  </main>
-
-  <!-- FILE INPUT (hidden) -->
-  <input type="file" id="fileInput" accept="application/pdf" hidden />
-
-  <!-- SCRIPT -->
-  <script src="../src/js/editor-clean.js"></script>
+<!-- SCRIPT -->
+<script src="/src/js/editor.js"></script>
 </body>
 </html>
