@@ -1,266 +1,255 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
-  <head>
-    <meta charset="UTF-8" />
+<head>
+  <meta charset="UTF-8" />
 
-    <!-- SEO title + description -->
-    <title>PDFSuit – Free Online PDF Editor & PDF Tools</title>
-    <meta
-      name="description"
-      content="PDFSuit is a free online PDF editor and toolkit. Edit, highlight, sign, merge, compress and convert PDFs directly in your browser. Your files never leave your device."
-    />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1"
-    />
+  <!-- SEO -->
+  <title>PDFSuit – Free Online PDF Tools (Edit, Convert, Merge PDFs)</title>
+  <meta name="description"
+    content="PDFSuit offers free online PDF tools: PDF to Word, Merge PDF, Reorder Pages and a PDF Editor (Beta). Fast, private, browser-based." />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <!-- Open Graph / social preview -->
-    <meta property="og:title" content="PDFSuit – Free Online PDF Editor" />
-    <meta
-      property="og:description"
-      content="Edit and sign PDFs in your browser with PDFSuit. No upload, no watermark – your files stay on your device."
-    />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://pdfsuite.eebii.com/" />
-    <!-- Optional preview image (add later if you want) -->
-    <meta
-      property="og:image"
-      content="https://pdfsuite.eebii.com/assets/pdfsuit-preview.png"
-    />
+  <!-- Open Graph -->
+  <meta property="og:title" content="PDFSuit – Free Online PDF Tools" />
+  <meta property="og:description"
+    content="Convert PDF to Word, merge and reorder PDFs. Browser-based, fast and private." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://pdfsuite.eebii.com/" />
 
-    <!-- Main styles -->
-    <link rel="stylesheet" href="src/css/base.css" />
-  </head>
-  <body>
-    <!-- HEADER -->
-    <header class="site-header">
-      <div class="header-inner">
-        <a href="./index.html" class="logo">
-          PDF<span>Suit</span>
-        </a>
+  <!-- Styles -->
+  <link rel="stylesheet" href="src/css/base.css" />
+</head>
 
-        <nav class="nav-links">
-          <a href="./index.html#tools">Tools</a>
-          <a href="./index.html#how-it-works">How it works</a>
-          <a href="./index.html#about">About</a>
-        </nav>
+<body>
 
-        <div class="header-actions">
-          <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
-            🌙
-          </button>
-          <a href="./public/editor.html" class="btn-primary btn-small">
-            Open Editor
+<!-- ================= HEADER ================= -->
+<header class="site-header">
+  <div class="header-inner">
+    <a href="./index.html" class="logo">
+      PDF<span>Suit</span>
+    </a>
+
+    <nav class="nav-links">
+      <a href="#tools">Tools</a>
+      <a href="#how-it-works">How it works</a>
+      <a href="#about">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <a href="./public/editor.html" class="btn-primary btn-small">
+        Editor (Beta)
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- ================= MAIN ================= -->
+<main>
+
+  <!-- ================= HERO ================= -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-text">
+        <h1>
+          Free Online PDF Tools<br />
+          <span>Convert, merge & edit PDFs – in your browser</span>
+        </h1>
+
+        <p>
+          No login. No watermark. Your files stay on your device.
+          Fast, private and easy-to-use PDF tools.
+        </p>
+
+        <div class="hero-actions">
+          <a href="./tools/pdf-to-word.html" class="btn-primary">
+            PDF to Word
+          </a>
+          <a href="#tools" class="btn-ghost">
+            View all tools
           </a>
         </div>
+
+        <p class="hero-note">
+          PDF Editor is currently in <strong>Beta</strong>.
+        </p>
       </div>
-    </header>
 
-    <!-- MAIN -->
-    <main>
-      <!-- HERO -->
-      <section class="hero">
-        <div class="hero-inner">
-          <div class="hero-text">
-            <!-- MAIN H1 (important for SEO) -->
-            <h1>
-              PDFSuit – Free Online PDF Tools.<br />
-              <span>Edit, convert &amp; protect – in your browser.</span>
-            </h1>
-            <p>
-              No upload, no watermark, no login. Your PDFs are processed
-              directly in your browser for maximum privacy and speed.
-            </p>
-            <div class="hero-actions">
-              <a href="./public/editor.html" class="btn-primary">
-                Start Editing PDF
-              </a>
-              <a href="#tools" class="btn-ghost">
-                View All Tools
-              </a>
-            </div>
-            <p class="hero-note">
-              Coming soon: OCR, Word/Excel export &amp; full text editing.
-            </p>
-          </div>
-
-          <div class="hero-card">
-            <div class="hero-card-header">
-              <span class="chip">Beta</span>
-              <span class="hero-card-title">Local processing only</span>
-            </div>
-            <ul class="hero-list">
-              <li>✅ Edit &amp; annotate PDFs</li>
-              <li>✅ Merge, split &amp; reorder pages</li>
-              <li>✅ Convert PDF ⇄ Images</li>
-              <li>✅ Compress for smaller file size</li>
-              <li>🔜 OCR &amp; Word/Excel export</li>
-            </ul>
-          </div>
+      <div class="hero-card">
+        <div class="hero-card-header">
+          <span class="chip">Private</span>
+          <span class="hero-card-title">Browser-based processing</span>
         </div>
-      </section>
+        <ul class="hero-list">
+          <li>✅ PDF → Word (text-based)</li>
+          <li>✅ Merge & reorder PDFs</li>
+          <li>🧪 PDF Editor (Beta)</li>
+          <li>🔜 Compress & OCR</li>
+        </ul>
+      </div>
+    </div>
 
-      <!-- TOOLS GRID -->
-      <section id="tools" class="section section-alt">
-        <div class="section-inner">
-          <div class="section-header">
-            <h2>PDF tools in one place</h2>
-            <p>Start with the editor, or jump straight into a specific action.</p>
-          </div>
+    <!-- ===== Ad Slot (Hero Bottom) ===== -->
+    <div class="ad-slot ad-hero">
+      <ins class="adsbygoogle"
+        style="display:block"
+        data-ad-client="ca-pub-XXXX"
+        data-ad-slot="1111111111"
+        data-ad-format="auto"
+        data-full-width-responsive="true"></ins>
+    </div>
+  </section>
 
-          <div class="tools-grid">
-            <a href="./public/editor.html" class="tool-card">
-              <h3>✏️ Edit PDF</h3>
-              <p>
-                Open any PDF, add text, highlight, draw/sign and prepare
-                documents for sharing.
-              </p>
-              <span class="tool-link">Open editor →</span>
-            </a>
+  <!-- ================= TOOLS ================= -->
+  <section id="tools" class="section section-alt">
+    <div class="section-inner">
+      <div class="section-header">
+        <h2>All PDF tools in one place</h2>
+        <p>Choose a tool below to get started.</p>
+      </div>
 
-            <a href="#" class="tool-card tool-disabled">
-              <h3>🔁 Merge &amp; Split</h3>
-              <p>
-                Combine multiple PDFs or split a large PDF into smaller parts.
-                (Editor integration – coming soon)
-              </p>
-              <span class="tool-link">Planned</span>
-            </a>
+      <div class="tools-grid">
 
-            <a href="#" class="tool-card tool-disabled">
-              <h3>🖼 PDF ⇄ Images</h3>
-              <p>
-                Export each page as JPG/PNG or create a PDF from your images.
-              </p>
-              <span class="tool-link">Planned</span>
-            </a>
+        <!-- PDF TO WORD -->
+        <a href="./tools/pdf-to-word.html" class="tool-card primary">
+          <h3>📄 PDF → Word</h3>
+          <p>
+            Convert text-based PDFs into editable Word documents.
+            No upload to servers.
+          </p>
+          <span class="tool-link">Convert now →</span>
+        </a>
 
-            <a href="#" class="tool-card tool-disabled">
-              <h3>📦 Compress PDF</h3>
-              <p>
-                Reduce file size for email &amp; upload while keeping quality
-                acceptable.
-              </p>
-              <span class="tool-link">Planned</span>
-            </a>
+        <!-- MERGE PDF -->
+        <a href="./tools/merge-pdf.html" class="tool-card">
+          <h3>🔁 Merge PDF</h3>
+          <p>
+            Combine multiple PDF files into a single document easily.
+          </p>
+          <span class="tool-link">Merge PDFs →</span>
+        </a>
 
-            <a href="#" class="tool-card tool-disabled">
-              <h3>🔍 OCR &amp; Text Extract</h3>
-              <p>
-                Turn scanned PDFs into editable text with in-browser OCR.
-              </p>
-              <span class="tool-link">Planned</span>
-            </a>
+        <!-- REORDER PDF -->
+        <a href="./tools/reorder-pdf.html" class="tool-card">
+          <h3>📑 Reorder Pages</h3>
+          <p>
+            Reorder, rotate or remove pages from your PDF.
+          </p>
+          <span class="tool-link">Reorder pages →</span>
+        </a>
 
-            <a href="#" class="tool-card tool-disabled">
-              <h3>📄 PDF → Word / Excel</h3>
-              <p>
-                Convert PDFs into fully editable Word/Excel files with layout
-                preserved.
-              </p>
-              <span class="tool-link">Planned</span>
-            </a>
-          </div>
+        <!-- EDIT PDF BETA -->
+        <a href="./public/editor.html" class="tool-card beta">
+          <h3>✏️ Edit PDF (Beta)</h3>
+          <p>
+            Add text, highlight and sign PDFs.
+            Beta version – basic editing.
+          </p>
+          <span class="tool-link">Try editor →</span>
+        </a>
+
+        <!-- COMING SOON -->
+        <div class="tool-card tool-disabled">
+          <h3>📦 Compress PDF</h3>
+          <p>Reduce PDF file size without losing quality.</p>
+          <span class="tool-link">Coming soon</span>
         </div>
-      </section>
 
-      <!-- HOW IT WORKS -->
-      <section id="how-it-works" class="section">
-        <div class="section-inner">
-          <div class="section-header">
-            <h2>How PDFSuit works</h2>
-            <p>Designed to be private, fast and simple.</p>
-          </div>
+      </div>
+    </div>
+  </section>
 
-          <div class="steps-grid">
-            <div class="step-card">
-              <span class="step-badge">1</span>
-              <h3>Open a PDF</h3>
-              <p>
-                Click “Open Editor” and choose your PDF. The file stays on your
-                device – we don’t upload it to any server.
-              </p>
-            </div>
-            <div class="step-card">
-              <span class="step-badge">2</span>
-              <h3>Edit &amp; transform</h3>
-              <p>
-                Use tools to annotate, merge, compress or convert. All
-                processing is done using JavaScript in your browser.
-              </p>
-            </div>
-            <div class="step-card">
-              <span class="step-badge">3</span>
-              <h3>Download instantly</h3>
-              <p>
-                Download your new PDF or exported files. No watermarks, no
-                waiting, no login.
-              </p>
-            </div>
-          </div>
+  <!-- ===== Ad Slot (Middle) ===== -->
+  <div class="ad-slot ad-middle">
+    <ins class="adsbygoogle"
+      style="display:block"
+      data-ad-client="ca-pub-XXXX"
+      data-ad-slot="2222222222"
+      data-ad-format="auto"
+      data-full-width-responsive="true"></ins>
+  </div>
+
+  <!-- ================= HOW IT WORKS ================= -->
+  <section id="how-it-works" class="section">
+    <div class="section-inner">
+      <div class="section-header">
+        <h2>How PDFSuit works</h2>
+        <p>Simple, fast and privacy-first.</p>
+      </div>
+
+      <div class="steps-grid">
+        <div class="step-card">
+          <span class="step-badge">1</span>
+          <h3>Select a tool</h3>
+          <p>Choose PDF to Word, Merge, Reorder or Editor.</p>
         </div>
-      </section>
-
-      <!-- ABOUT / VISION -->
-      <section id="about" class="section section-alt">
-        <div class="section-inner">
-          <div class="section-header">
-            <h2>Built to go beyond normal PDF tools</h2>
-            <p>
-              The goal of PDFSuit is to become a full in-browser document
-              platform: deep PDF editing, OCR, Word/Excel export and more – all
-              free and ad-supported.
-            </p>
-          </div>
-
-          <div class="about-grid">
-            <div class="about-card">
-              <h3>Privacy first</h3>
-              <p>
-                Unlike many online tools, PDFSuit is being designed so your
-                files never leave your device for core operations.
-              </p>
-            </div>
-            <div class="about-card">
-              <h3>All-in-one workspace</h3>
-              <p>
-                Editor, converter, compressor, OCR and advanced exports – in
-                one consistent, clean interface.
-              </p>
-            </div>
-            <div class="about-card">
-              <h3>Free &amp; sustainable</h3>
-              <p>
-                The long-term plan is to keep all features free for individuals
-                using non-intrusive ads and optional pro features for power
-                users and teams.
-              </p>
-            </div>
-          </div>
+        <div class="step-card">
+          <span class="step-badge">2</span>
+          <h3>Open your PDF</h3>
+          <p>Your file stays in your browser – no server upload.</p>
         </div>
-      </section>
-    </main>
-
-    <!-- FOOTER -->
-    <footer class="site-footer">
-      <div class="footer-inner">
-        <span>© <span id="year"></span> PDFSuit. All rights reserved.</span>
-        <div class="footer-links">
-          <a href="#about">About</a>
-          <a href="#">Privacy</a>
-          <a href="#">Terms</a>
+        <div class="step-card">
+          <span class="step-badge">3</span>
+          <h3>Download result</h3>
+          <p>Get your processed PDF or Word file instantly.</p>
         </div>
       </div>
-    </footer>
+    </div>
+  </section>
 
-    <!-- Scripts -->
-    <script>
-      // Set current year automatically
-      document.addEventListener("DOMContentLoaded", () => {
-        const y = document.getElementById("year");
-        if (y) y.textContent = new Date().getFullYear();
-      });
-    </script>
-    <script src="src/js/app.js" defer></script>
-  </body>
+  <!-- ================= ABOUT ================= -->
+  <section id="about" class="section section-alt">
+    <div class="section-inner">
+      <div class="section-header">
+        <h2>Why PDFSuit?</h2>
+        <p>
+          PDFSuit is built to provide essential PDF tools without
+          compromising privacy or simplicity.
+        </p>
+      </div>
+
+      <div class="about-grid">
+        <div class="about-card">
+          <h3>Privacy focused</h3>
+          <p>Your files are processed locally in your browser.</p>
+        </div>
+        <div class="about-card">
+          <h3>Free & accessible</h3>
+          <p>All tools are free, supported by non-intrusive ads.</p>
+        </div>
+        <div class="about-card">
+          <h3>Growing platform</h3>
+          <p>More tools like OCR and compression are coming soon.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ================= FOOTER ================= -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <span>© <span id="year"></span> PDFSuit. All rights reserved.</span>
+    <div class="footer-links">
+      <a href="#about">About</a>
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ================= SCRIPTS ================= -->
+<script>
+  document.getElementById("year").textContent = new Date().getFullYear();
+</script>
+
+<!-- Google AdSense -->
+<script async
+  src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+  (adsbygoogle = window.adsbygoogle || []).push({});
+  (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+</body>
 </html>
