@@ -1,56 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>PDFSuit Editor (Beta)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8" />
+    <title>PDFSuit Editor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="../src/css/editor.css" />
 
-  <!-- PDF.js -->
-  <script src="/src/libs/pdf.min.js"></script>
-
-  <!-- Styles -->
-  <link rel="stylesheet" href="/src/css/editor.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 </head>
 
-<body class="editor-empty">
+<body>
 
-<!-- TOP BAR -->
 <header class="topbar">
-  <div class="brand">
-    PDF<span>Suit</span>
-    <span class="beta">Beta</span>
-  </div>
+    <div class="logo">PDF<span>Suit</span></div>
 
-  <div class="tools">
-    <button id="openBtn">Open PDF</button>
-    <button id="zoomOut">−</button>
-    <span id="zoomLabel">100%</span>
-    <button id="zoomIn">+</button>
-    <button id="fitBtn">Fit</button>
-    <button id="saveBtn">Save</button>
-  </div>
+    <div class="toolbar">
+        <select id="font-size">
+            <option value="10">10</option>
+            <option value="12" selected>12</option>
+            <option value="14">14</option>
+            <option value="18">18</option>
+            <option value="24">24</option>
+        </select>
+        <button id="bold-btn" title="Bold">B</button>
+        <button id="italic-btn" title="Italic">I</button>
+
+        <div class="divider"></div>
+
+        <span>Highlight:</span>
+        <button id="hl-mode-box" class="active">Box</button>
+        <button id="hl-mode-brush">Brush</button>
+        <input id="brush-size" type="range" min="2" max="20" value="4" title="Brush Size" />
+
+        <div class="divider"></div>
+
+        <button id="undo-btn" title="Undo">↶</button>
+        <button id="redo-btn" title="Redo">↷</button>
+        <button id="delete-btn" title="Delete Selected">🗑</button>
+
+        <div class="divider"></div>
+
+        <button id="zoom-out-btn">−</button>
+        <span id="zoom-label">100%</span>
+        <button id="zoom-in-btn">+</button>
+        <button id="zoom-reset-btn">Fit</button>
+
+        <button id="save-btn" class="save">Export PDF</button>
+    </div>
 </header>
 
-<!-- EMPTY STATE -->
-<div class="empty-state" id="emptyState">
-  <h1>Open a PDF</h1>
-  <p>Your file stays in your browser</p>
-  <button id="openBtnCenter">Open PDF</button>
+<div class="editor-root">
+
+    <aside class="leftbar">
+        <button class="tool-icon-btn active" data-tool="select" title="Select">◯</button>
+        <button class="tool-icon-btn" data-tool="hand" title="Pan">✋</button>
+        <button class="tool-icon-btn" data-tool="text" title="Add Text">T+</button>
+        <button class="tool-icon-btn" data-tool="edit-text" title="Edit Text (Whiteout)">✎</button>
+        <button class="tool-icon-btn" data-tool="pen" title="Pen">🖊</button>
+        <button class="tool-icon-btn" data-tool="highlight" title="Highlight">🟨</button>
+        <button class="tool-icon-btn" data-tool="eraser" title="Eraser">🧽</button>
+        <button class="tool-icon-btn" data-tool="rect" title="White Rectangle">▭</button>
+        <button class="tool-icon-btn" data-tool="signature" title="Signature">✒</button>
+
+        <input id="file-input" type="file" accept="application/pdf" hidden />
+        <button class="open-btn" onclick="document.getElementById('file-input').click()" title="Open PDF">📂</button>
+    </aside>
+
+    <main class="workspace">
+        <div id="empty-state">
+            <h2>Open a PDF to begin</h2>
+            <p>Your files are processed locally for privacy.</p>
+            <button onclick="document.getElementById('file-input').click()">Select PDF</button>
+        </div>
+
+        <div class="canvas-wrapper" id="canvas-area">
+            <div id="canvas-inner">
+                <canvas id="pdf-canvas"></canvas>
+                <canvas id="draw-canvas"></canvas>
+                <div id="overlay-layer"></div>
+            </div>
+        </div>
+        
+        <div id="page-controls">
+            <span id="page-label">Page 0 / 0</span>
+        </div>
+    </main>
 </div>
 
-<!-- EDITOR -->
-<main class="editor">
-  <div class="canvas-wrapper" id="canvasWrapper">
-    <div class="canvas-inner" id="canvasInner">
-      <canvas id="pdfCanvas"></canvas>
-      <canvas id="drawCanvas"></canvas>
+<div id="signature-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Add Signature</h3>
+            <button id="sig-close-btn">&times;</button>
+        </div>
+        
+        <div class="sig-tabs">
+            <button class="sig-tab active" data-tab="draw">Draw</button>
+            <button class="sig-tab" data-tab="type">Type</button>
+            <button class="sig-tab" data-tab="upload">Upload</button>
+        </div>
+
+        <div class="sig-body">
+            <div class="sig-tab-body" data-tab-body="draw">
+                <canvas id="sig-draw-canvas"></canvas>
+                <button id="sig-clear-btn">Clear</button>
+            </div>
+
+            <div class="sig-tab-body hidden" data-tab-body="type">
+                <input type="text" id="sig-type-input" placeholder="Type your name..." />
+                <select id="sig-font-select">
+                    <option value="'Segoe Script', cursive">Script</option>
+                    <option value="'Times New Roman', serif">Serif</option>
+                    <option value="Arial, sans-serif">Sans-Serif</option>
+                </select>
+            </div>
+
+            <div class="sig-tab-body hidden" data-tab-body="upload">
+                <input type="file" id="sig-upload-input" accept="image/*" />
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button id="sig-save-btn" class="primary">Add Signature</button>
+            <button id="sig-type-save-btn" class="primary hidden">Add Typed Signature</button>
+            <button id="sig-upload-save-btn" class="primary hidden">Add Image</button>
+        </div>
     </div>
-  </div>
-</main>
+</div>
 
-<input type="file" id="fileInput" accept="application/pdf" hidden />
-
-<!-- SCRIPT -->
-<script src="/src/js/editor.js"></script>
+<script src="../src/js/editor-init.js"></script>
 </body>
 </html>
