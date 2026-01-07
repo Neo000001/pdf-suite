@@ -4,20 +4,27 @@
   <meta charset="UTF-8" />
 
   <!-- SEO -->
-  <title>PDFSuit – Free Online PDF Tools (Edit, Convert, Merge PDFs)</title>
+  <title>PDFSuit – Free Online PDF Editor & PDF Tools</title>
   <meta name="description"
-    content="PDFSuit offers free online PDF tools: PDF to Word, Merge PDF, Reorder Pages and a PDF Editor (Beta). Fast, private, browser-based." />
+        content="PDFSuit is a free online PDF editor. Edit, sign, merge, reorder, convert PDFs directly in your browser. No upload, no watermark." />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- Open Graph -->
   <meta property="og:title" content="PDFSuit – Free Online PDF Tools" />
   <meta property="og:description"
-    content="Convert PDF to Word, merge and reorder PDFs. Browser-based, fast and private." />
+        content="Edit PDFs locally in your browser. No upload. No watermark." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://pdfsuite.eebii.com/" />
 
   <!-- Styles -->
   <link rel="stylesheet" href="src/css/base.css" />
+
+  <!-- Google Ads (PLACEHOLDER – enable later) -->
+  <!--
+  <script async
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXX"
+    crossorigin="anonymous"></script>
+  -->
 </head>
 
 <body>
@@ -25,9 +32,7 @@
 <!-- ================= HEADER ================= -->
 <header class="site-header">
   <div class="header-inner">
-    <a href="./index.html" class="logo">
-      PDF<span>Suit</span>
-    </a>
+    <a href="./index.html" class="logo">PDF<span>Suit</span></a>
 
     <nav class="nav-links">
       <a href="#tools">Tools</a>
@@ -37,201 +42,162 @@
 
     <div class="header-actions">
       <a href="./public/editor.html" class="btn-primary btn-small">
-        Editor (Beta)
+        Open Editor
       </a>
     </div>
   </div>
 </header>
 
-<!-- ================= MAIN ================= -->
-<main>
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <h1>
+        Free Online PDF Tools<br />
+        <span>Edit. Merge. Convert. Secure.</span>
+      </h1>
+      <p>
+        All PDF tools run directly in your browser.  
+        No upload. No watermark. Maximum privacy.
+      </p>
 
-  <!-- ================= HERO ================= -->
-  <section class="hero">
-    <div class="hero-inner">
-      <div class="hero-text">
-        <h1>
-          Free Online PDF Tools<br />
-          <span>Convert, merge & edit PDFs – in your browser</span>
-        </h1>
-
-        <p>
-          No login. No watermark. Your files stay on your device.
-          Fast, private and easy-to-use PDF tools.
-        </p>
-
-        <div class="hero-actions">
-          <a href="./tools/pdf-to-word.html" class="btn-primary">
-            PDF to Word
-          </a>
-          <a href="#tools" class="btn-ghost">
-            View all tools
-          </a>
-        </div>
-
-        <p class="hero-note">
-          PDF Editor is currently in <strong>Beta</strong>.
-        </p>
+      <div class="hero-actions">
+        <a href="./public/editor.html" class="btn-primary">
+          Start Editing PDF
+        </a>
+        <a href="#tools" class="btn-ghost">
+          View Tools
+        </a>
       </div>
 
-      <div class="hero-card">
-        <div class="hero-card-header">
-          <span class="chip">Private</span>
-          <span class="hero-card-title">Browser-based processing</span>
-        </div>
-        <ul class="hero-list">
-          <li>✅ PDF → Word (text-based)</li>
-          <li>✅ Merge & reorder PDFs</li>
-          <li>🧪 PDF Editor (Beta)</li>
-          <li>🔜 Compress & OCR</li>
-        </ul>
-      </div>
+      <p class="hero-note">
+        Beta version – more tools coming soon
+      </p>
     </div>
 
-    <!-- ===== Ad Slot (Hero Bottom) ===== -->
-    <div class="ad-slot ad-hero">
-      <ins class="adsbygoogle"
-        style="display:block"
-        data-ad-client="ca-pub-XXXX"
-        data-ad-slot="1111111111"
-        data-ad-format="auto"
-        data-full-width-responsive="true"></ins>
+    <div class="hero-card">
+      <span class="chip">Beta</span>
+      <ul class="hero-list">
+        <li>✅ Local PDF Editing</li>
+        <li>✅ Merge & Reorder Pages</li>
+        <li>✅ Sign & Annotate</li>
+        <li>🔜 PDF → Word</li>
+        <li>🔜 OCR</li>
+      </ul>
     </div>
-  </section>
-
-  <!-- ================= TOOLS ================= -->
-  <section id="tools" class="section section-alt">
-    <div class="section-inner">
-      <div class="section-header">
-        <h2>All PDF tools in one place</h2>
-        <p>Choose a tool below to get started.</p>
-      </div>
-
-      <div class="tools-grid">
-
-        <!-- PDF TO WORD -->
-        <a href="./tools/pdf-to-word.html" class="tool-card primary">
-          <h3>📄 PDF → Word</h3>
-          <p>
-            Convert text-based PDFs into editable Word documents.
-            No upload to servers.
-          </p>
-          <span class="tool-link">Convert now →</span>
-        </a>
-
-        <!-- MERGE PDF -->
-        <a href="./tools/merge-pdf.html" class="tool-card">
-          <h3>🔁 Merge PDF</h3>
-          <p>
-            Combine multiple PDF files into a single document easily.
-          </p>
-          <span class="tool-link">Merge PDFs →</span>
-        </a>
-
-        <!-- REORDER PDF -->
-        <a href="./tools/reorder-pdf.html" class="tool-card">
-          <h3>📑 Reorder Pages</h3>
-          <p>
-            Reorder, rotate or remove pages from your PDF.
-          </p>
-          <span class="tool-link">Reorder pages →</span>
-        </a>
-
-        <!-- EDIT PDF BETA -->
-        <a href="./public/editor.html" class="tool-card beta">
-          <h3>✏️ Edit PDF (Beta)</h3>
-          <p>
-            Add text, highlight and sign PDFs.
-            Beta version – basic editing.
-          </p>
-          <span class="tool-link">Try editor →</span>
-        </a>
-
-        <!-- COMING SOON -->
-        <div class="tool-card tool-disabled">
-          <h3>📦 Compress PDF</h3>
-          <p>Reduce PDF file size without losing quality.</p>
-          <span class="tool-link">Coming soon</span>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== Ad Slot (Middle) ===== -->
-  <div class="ad-slot ad-middle">
-    <ins class="adsbygoogle"
-      style="display:block"
-      data-ad-client="ca-pub-XXXX"
-      data-ad-slot="2222222222"
-      data-ad-format="auto"
-      data-full-width-responsive="true"></ins>
   </div>
+</section>
 
-  <!-- ================= HOW IT WORKS ================= -->
-  <section id="how-it-works" class="section">
-    <div class="section-inner">
-      <div class="section-header">
-        <h2>How PDFSuit works</h2>
-        <p>Simple, fast and privacy-first.</p>
+<!-- ================= AD SLOT (TOP) ================= -->
+<section class="ad-section">
+  <div class="ad-box">
+    <!-- Google Ad Placeholder -->
+    <span>Advertisement</span>
+  </div>
+</section>
+
+<!-- ================= TOOLS ================= -->
+<section id="tools" class="section section-alt">
+  <div class="section-inner">
+    <div class="section-header">
+      <h2>All PDF tools in one place</h2>
+      <p>Choose a tool to get started.</p>
+    </div>
+
+    <div class="tools-grid">
+
+      <!-- EDITOR -->
+      <a href="./public/editor.html" class="tool-card">
+        <h3>✏️ Edit PDF</h3>
+        <p>Add text, highlight, draw, sign and save.</p>
+        <span class="tool-link">Open editor →</span>
+      </a>
+
+      <!-- MERGE -->
+      <a href="./public/merge-pdf.html" class="tool-card tool-disabled">
+        <h3>🔗 Merge PDF</h3>
+        <p>Combine multiple PDFs into one file.</p>
+        <span class="tool-link">Coming soon</span>
+      </a>
+
+      <!-- REORDER -->
+      <a href="./public/reorder-pdf.html" class="tool-card tool-disabled">
+        <h3>📑 Reorder Pages</h3>
+        <p>Drag and rearrange PDF pages.</p>
+        <span class="tool-link">Coming soon</span>
+      </a>
+
+      <!-- PDF TO WORD -->
+      <a href="./public/pdf-to-word.html" class="tool-card tool-disabled">
+        <h3>📄 PDF → Word</h3>
+        <p>Convert PDF to editable Word document.</p>
+        <span class="tool-link">Beta</span>
+      </a>
+
+      <!-- COMPRESS -->
+      <a href="./public/compress-pdf.html" class="tool-card tool-disabled">
+        <h3>📦 Compress PDF</h3>
+        <p>Reduce PDF size without losing quality.</p>
+        <span class="tool-link">Planned</span>
+      </a>
+
+      <!-- OCR -->
+      <a href="./public/ocr.html" class="tool-card tool-disabled">
+        <h3>🔍 OCR</h3>
+        <p>Extract text from scanned PDFs.</p>
+        <span class="tool-link">Planned</span>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<!-- ================= AD SLOT (MIDDLE) ================= -->
+<section class="ad-section">
+  <div class="ad-box">
+    <span>Advertisement</span>
+  </div>
+</section>
+
+<!-- ================= HOW IT WORKS ================= -->
+<section id="how-it-works" class="section">
+  <div class="section-inner">
+    <div class="steps-grid">
+      <div class="step-card">
+        <span class="step-badge">1</span>
+        <h3>Open a PDF</h3>
+        <p>Select a PDF file from your device.</p>
       </div>
-
-      <div class="steps-grid">
-        <div class="step-card">
-          <span class="step-badge">1</span>
-          <h3>Select a tool</h3>
-          <p>Choose PDF to Word, Merge, Reorder or Editor.</p>
-        </div>
-        <div class="step-card">
-          <span class="step-badge">2</span>
-          <h3>Open your PDF</h3>
-          <p>Your file stays in your browser – no server upload.</p>
-        </div>
-        <div class="step-card">
-          <span class="step-badge">3</span>
-          <h3>Download result</h3>
-          <p>Get your processed PDF or Word file instantly.</p>
-        </div>
+      <div class="step-card">
+        <span class="step-badge">2</span>
+        <h3>Edit locally</h3>
+        <p>Everything runs inside your browser.</p>
+      </div>
+      <div class="step-card">
+        <span class="step-badge">3</span>
+        <h3>Download</h3>
+        <p>Save your edited file instantly.</p>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- ================= ABOUT ================= -->
-  <section id="about" class="section section-alt">
-    <div class="section-inner">
-      <div class="section-header">
-        <h2>Why PDFSuit?</h2>
-        <p>
-          PDFSuit is built to provide essential PDF tools without
-          compromising privacy or simplicity.
-        </p>
-      </div>
-
-      <div class="about-grid">
-        <div class="about-card">
-          <h3>Privacy focused</h3>
-          <p>Your files are processed locally in your browser.</p>
-        </div>
-        <div class="about-card">
-          <h3>Free & accessible</h3>
-          <p>All tools are free, supported by non-intrusive ads.</p>
-        </div>
-        <div class="about-card">
-          <h3>Growing platform</h3>
-          <p>More tools like OCR and compression are coming soon.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-</main>
+<!-- ================= ABOUT ================= -->
+<section id="about" class="section section-alt">
+  <div class="section-inner">
+    <h2>Why PDFSuit?</h2>
+    <p>
+      PDFSuit is built for privacy-first PDF editing.
+      No backend. No uploads. Just fast, local tools.
+    </p>
+  </div>
+</section>
 
 <!-- ================= FOOTER ================= -->
 <footer class="site-footer">
   <div class="footer-inner">
-    <span>© <span id="year"></span> PDFSuit. All rights reserved.</span>
+    <span>© <span id="year"></span> PDFSuit</span>
     <div class="footer-links">
-      <a href="#about">About</a>
       <a href="#">Privacy</a>
       <a href="#">Terms</a>
     </div>
@@ -241,14 +207,6 @@
 <!-- ================= SCRIPTS ================= -->
 <script>
   document.getElementById("year").textContent = new Date().getFullYear();
-</script>
-
-<!-- Google AdSense -->
-<script async
-  src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<script>
-  (adsbygoogle = window.adsbygoogle || []).push({});
-  (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
 
 </body>
