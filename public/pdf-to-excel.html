@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF to Excel - PDFSuite</title>
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211"
+        crossorigin="anonymous"></script>
+    <style>
+        .workspace {
+            max-width: 720px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background: var(--bg-soft);
+            border-radius: 16px;
+            border: 1px solid var(--border-subtle);
+            text-align: center;
+        }
+
+        .upload-box {
+            border: 2px dashed #22c55e;
+            padding: 3.5rem 2rem;
+            cursor: pointer;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            background: rgba(34, 197, 94, 0.04);
+            transition: all 0.2s;
+        }
+
+        .upload-box:hover {
+            background: rgba(34, 197, 94, 0.08);
+            border-color: #16a34a;
+        }
+
+        .upload-box svg {
+            width: 48px;
+            height: 48px;
+            color: #22c55e;
+            margin-bottom: 0.75rem;
+        }
+
+        #actionArea {
+            display: none;
+            text-align: left;
+        }
+
+        .result-area {
+            margin-top: 1.5rem;
+            background: var(--bg);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 1rem;
+            max-height: 400px;
+            overflow: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        td,
+        th {
+            border: 1px solid var(--border-subtle);
+            padding: 6px 10px;
+            text-align: left;
+            color: var(--fg);
+        }
+
+        th {
+            background: rgba(34, 197, 94, 0.1);
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+            <div class="header-actions"><a href="../index.html" class="btn-ghost btn-small">Back to Tools</a></div>
+        </div>
+    </header>
+    <div class="ad-banner-section">
+        <div class="ad-placeholder"><span>Advertisement - 728x90</span></div>
+    </div>
+
+    <div class="workspace">
+        <h1>PDF to Excel</h1>
+        <p style="color:var(--fg-muted); margin-bottom:1.5rem;">Extract tables from your PDF and download as a CSV
+            spreadsheet you can open in Excel or Google Sheets.</p>
+
+        <div class="upload-box" id="uploadBox">
+            <i data-lucide="file-spreadsheet"></i>
+            <h2>Select PDF File</h2>
+            <p style="color:var(--fg-muted)">Click to upload your PDF</p>
+            <input type="file" id="fileInput" accept="application/pdf" hidden>
+        </div>
+
+        <div id="actionArea">
+            <p id="fileInfo" style="margin-bottom:1rem; font-weight:600;"></p>
+            <div id="statusMsg" style="color:var(--fg-muted); margin-bottom:1rem;"></div>
+            <div class="result-area" id="resultArea" style="display:none;"></div>
+            <div style="display:flex; gap:1rem; margin-top:1.25rem; justify-content:center; flex-wrap:wrap;">
+                <button class="btn-primary" id="processBtn" style="background:#22c55e;">Extract & Download CSV</button>
+                <button class="btn-ghost" id="resetBtn">Upload Another</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="ad-banner-section bottom-ad">
+        <div class="ad-placeholder square"><span>Advertisement - 300x250</span></div>
+    </div>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+        lucide.createIcons();
+
+        const fileInput = document.getElementById('fileInput');
+        const uploadBox = document.getElementById('uploadBox');
+        const actionArea = document.getElementById('actionArea');
+        const processBtn = document.getElementById('processBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const statusMsg = document.getElementById('statusMsg');
+        const fileInfo = document.getElementById('fileInfo');
+        const resultArea = document.getElementById('resultArea');
+
+        let pdfBytes = null, fileName = '';
+
+        uploadBox.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', async e => {
+            const file = e.target.files[0];
+            if (!file) return;
+            fileName = file.name;
+            pdfBytes = await file.arrayBuffer();
+            uploadBox.style.display = 'none';
+            actionArea.style.display = 'block';
+            fileInfo.innerText = `Selected: ${fileName}`;
+        });
+
+        resetBtn.addEventListener('click', () => { location.reload(); });
+
+        processBtn.addEventListener('click', async () => {
+            processBtn.disabled = true;
+            processBtn.innerText = 'Extracting...';
+            statusMsg.innerText = 'Reading PDF text content...';
+
+            const doc = await pdfjsLib.getDocument({ data: new Uint8Array(pdfBytes) }).promise;
+            const allRows = [];
+
+            for (let i = 1; i <= doc.numPages; i++) {
+                const page = await doc.getPage(i);
+                const content = await page.getTextContent();
+
+                // Group items by approximate Y position (row detection)
+                const rowMap = {};
+                content.items.forEach(item => {
+                    const y = Math.round(item.transform[5]);
+                    if (!rowMap[y]) rowMap[y] = [];
+                    rowMap[y].push(item.str);
+                });
+
+                const sortedYs = Object.keys(rowMap).map(Number).sort((a, b) => b - a);
+                sortedYs.forEach(y => {
+                    const rowText = rowMap[y].join('\t');
+                    if (rowText.trim()) allRows.push(rowMap[y]);
+                });
+            }
+
+            if (allRows.length === 0) {
+                statusMsg.innerText = 'No text found in this PDF.';
+                processBtn.disabled = false; processBtn.innerText = 'Extract & Download CSV';
+                return;
+            }
+
+            // Preview table
+            let tableHtml = '<table><tbody>';
+            allRows.slice(0, 30).forEach(row => {
+                tableHtml += '<tr>' + row.map(c => `<td>${c.replace(/</g, '&lt;')}</td>`).join('') + '</tr>';
+            });
+            tableHtml += '</tbody></table>';
+            resultArea.innerHTML = tableHtml;
+            resultArea.style.display = 'block';
+
+            // Generate CSV
+            const csvContent = allRows.map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = fileName.replace('.pdf', '') + '_extracted.csv';
+            link.click();
+
+            statusMsg.innerText = `Extracted ${allRows.length} rows. Preview shown above.`;
+            processBtn.disabled = false;
+            processBtn.innerText = 'Extract & Download CSV';
+        });
+    </script>
+</body>
+
+</html>

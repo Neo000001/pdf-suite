@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF to PowerPoint - PDFSuite</title>
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211"
+        crossorigin="anonymous"></script>
+    <style>
+        .workspace {
+            max-width: 720px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background: var(--bg-soft);
+            border-radius: 16px;
+            border: 1px solid var(--border-subtle);
+            text-align: center;
+        }
+
+        .upload-box {
+            border: 2px dashed #f97316;
+            padding: 3.5rem 2rem;
+            cursor: pointer;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            background: rgba(249, 115, 22, 0.04);
+            transition: all 0.2s;
+        }
+
+        .upload-box:hover {
+            background: rgba(249, 115, 22, 0.08);
+            border-color: #ea580c;
+        }
+
+        .upload-box svg {
+            width: 48px;
+            height: 48px;
+            color: #f97316;
+            margin-bottom: 0.75rem;
+        }
+
+        #actionArea {
+            display: none;
+            text-align: left;
+        }
+
+        .slide-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .slide-thumb {
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-subtle);
+            text-align: center;
+        }
+
+        .slide-thumb canvas {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .slide-thumb p {
+            font-size: 0.75rem;
+            padding: 4px;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+            <div class="header-actions"><a href="../index.html" class="btn-ghost btn-small">Back to Tools</a></div>
+        </div>
+    </header>
+    <div class="ad-banner-section">
+        <div class="ad-placeholder"><span>Advertisement - 728x90</span></div>
+    </div>
+
+    <div class="workspace">
+        <h1>PDF to PowerPoint</h1>
+        <p style="color:var(--fg-muted); margin-bottom:1.5rem;">Each PDF page is converted into a slide image. Download
+            each slide as a high-quality PNG for use in PowerPoint or Google Slides.</p>
+
+        <div class="upload-box" id="uploadBox">
+            <i data-lucide="presentation"></i>
+            <h2>Select PDF File</h2>
+            <p style="color:var(--fg-muted)">Click to upload your PDF</p>
+            <input type="file" id="fileInput" accept="application/pdf" hidden>
+        </div>
+
+        <div id="actionArea">
+            <p id="fileInfo" style="font-weight:600; margin-bottom:1rem;"></p>
+            <div id="statusMsg" style="color:var(--fg-muted); margin-bottom:1rem;"></div>
+            <div class="slide-preview-grid" id="previewGrid"></div>
+            <div style="display:flex; gap:1rem; margin-top:1.5rem; justify-content:center; flex-wrap:wrap;">
+                <button class="btn-primary" id="convertBtn" style="background:#f97316;">Convert to Slide Images</button>
+                <button class="btn-primary" id="downloadAllBtn" style="display:none; background:#ea580c;">Download All
+                    Slides (ZIP)</button>
+                <button class="btn-ghost" id="resetBtn">Upload Another</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="ad-banner-section bottom-ad">
+        <div class="ad-placeholder square"><span>Advertisement - 300x250</span></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+        lucide.createIcons();
+
+        const fileInput = document.getElementById('fileInput');
+        const uploadBox = document.getElementById('uploadBox');
+        const actionArea = document.getElementById('actionArea');
+        const convertBtn = document.getElementById('convertBtn');
+        const downloadAllBtn = document.getElementById('downloadAllBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const statusMsg = document.getElementById('statusMsg');
+        const fileInfo = document.getElementById('fileInfo');
+        const previewGrid = document.getElementById('previewGrid');
+
+        let pdfBytes = null, fileName = '', slideDataUrls = [];
+
+        uploadBox.addEventListener('click', () => fileInput.click());
+        resetBtn.addEventListener('click', () => location.reload());
+
+        fileInput.addEventListener('change', async e => {
+            const file = e.target.files[0];
+            if (!file) return;
+            fileName = file.name;
+            pdfBytes = await file.arrayBuffer();
+            uploadBox.style.display = 'none';
+            actionArea.style.display = 'block';
+            fileInfo.innerText = `Selected: ${fileName}`;
+        });
+
+        convertBtn.addEventListener('click', async () => {
+            convertBtn.disabled = true;
+            convertBtn.innerText = 'Converting...';
+            previewGrid.innerHTML = '';
+            slideDataUrls = [];
+            statusMsg.innerText = 'Rendering slides...';
+
+            const doc = await pdfjsLib.getDocument({ data: new Uint8Array(pdfBytes) }).promise;
+
+            for (let i = 1; i <= doc.numPages; i++) {
+                statusMsg.innerText = `Converting page ${i} of ${doc.numPages}...`;
+                const page = await doc.getPage(i);
+                const vp = page.getViewport({ scale: 1.8 });
+                const canvas = document.createElement('canvas');
+                canvas.width = vp.width;
+                canvas.height = vp.height;
+                await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+
+                const dataUrl = canvas.toDataURL('image/png');
+                slideDataUrls.push({ name: `Slide_${i}.png`, dataUrl });
+
+                const thumb = document.createElement('div');
+                thumb.className = 'slide-thumb';
+                const tc = document.createElement('canvas');
+                const scale2 = 160 / vp.width;
+                tc.width = vp.width * scale2;
+                tc.height = vp.height * scale2;
+                tc.getContext('2d').drawImage(canvas, 0, 0, tc.width, tc.height);
+                const p = document.createElement('p');
+                p.innerText = `Slide ${i}`;
+                const dl = document.createElement('a');
+                dl.href = dataUrl;
+                dl.download = `Slide_${i}.png`;
+                dl.style.display = 'block';
+                dl.appendChild(tc);
+                thumb.appendChild(dl);
+                thumb.appendChild(p);
+                previewGrid.appendChild(thumb);
+            }
+
+            statusMsg.innerText = `${doc.numPages} slides ready. Click each to download, or use Download All.`;
+            convertBtn.disabled = false;
+            convertBtn.innerText = 'Convert Again';
+            downloadAllBtn.style.display = 'inline-flex';
+        });
+
+        downloadAllBtn.addEventListener('click', async () => {
+            downloadAllBtn.disabled = true;
+            downloadAllBtn.innerText = 'Zipping...';
+
+            const zip = new JSZip();
+            for (const s of slideDataUrls) {
+                const base64 = s.dataUrl.split(',')[1];
+                zip.file(s.name, base64, { base64: true });
+            }
+            const blob = await zip.generateAsync({ type: 'blob' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `${fileName.replace('.pdf', '')}_Slides.zip`;
+            a.click();
+
+            downloadAllBtn.disabled = false;
+            downloadAllBtn.innerText = 'Download All Slides (ZIP)';
+        });
+    </script>
+</body>
+
+</html>

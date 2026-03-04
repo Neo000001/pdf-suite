@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel to PDF - PDFSuite</title>
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211"
+        crossorigin="anonymous"></script>
+    <style>
+        .workspace {
+            max-width: 720px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background: var(--bg-soft);
+            border-radius: 16px;
+            border: 1px solid var(--border-subtle);
+            text-align: center;
+        }
+
+        .upload-box {
+            border: 2px dashed #22c55e;
+            padding: 3.5rem 2rem;
+            cursor: pointer;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            background: rgba(34, 197, 94, 0.04);
+            transition: all 0.2s;
+        }
+
+        .upload-box:hover {
+            background: rgba(34, 197, 94, 0.08);
+            border-color: #16a34a;
+        }
+
+        .upload-box svg {
+            width: 48px;
+            height: 48px;
+            color: #22c55e;
+            margin-bottom: 0.75rem;
+        }
+
+        .table-preview {
+            background: #fff;
+            border-radius: 8px;
+            overflow: auto;
+            max-height: 450px;
+            margin: 1rem 0;
+            border: 1px solid var(--border-subtle);
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            min-width: 400px;
+            font-size: 0.82rem;
+        }
+
+        td,
+        th {
+            border: 1px solid #e2e8f0;
+            padding: 5px 10px;
+            text-align: left;
+            color: #1e293b;
+            white-space: nowrap;
+        }
+
+        th {
+            background: #dcfce7;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) td {
+            background: #f0fdf4;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+            <div class="header-actions"><a href="../index.html" class="btn-ghost btn-small">Back to Tools</a></div>
+        </div>
+    </header>
+    <div class="ad-banner-section">
+        <div class="ad-placeholder"><span>Advertisement - 728x90</span></div>
+    </div>
+
+    <div class="workspace">
+        <h1>Excel to PDF</h1>
+        <p style="color:var(--fg-muted); margin-bottom:1.5rem;">Upload an Excel (.xlsx) or CSV file. We'll render your
+            spreadsheet and let you print it as a PDF.</p>
+
+        <div class="upload-box" id="uploadBox">
+            <i data-lucide="file-spreadsheet"></i>
+            <h2>Select Excel / CSV File</h2>
+            <p style="color:var(--fg-muted)">Supports .xlsx and .csv files</p>
+            <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" hidden>
+        </div>
+
+        <div id="actionArea" style="display:none;">
+            <p id="fileInfo" style="font-weight:600; margin-bottom:0.75rem;"></p>
+            <p id="statusMsg" style="color:var(--fg-muted); font-size:0.85rem; margin-bottom:1rem;"></p>
+            <div class="table-preview" id="tablePreview"></div>
+            <div style="display:flex; gap:1rem; margin-top:1.25rem; justify-content:center; flex-wrap:wrap;">
+                <button class="btn-primary" id="printBtn" style="background:#22c55e; display:none;">Print / Save as
+                    PDF</button>
+                <button class="btn-ghost" id="resetBtn">Upload Another</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="ad-banner-section bottom-ad">
+        <div class="ad-placeholder square"><span>Advertisement - 300x250</span></div>
+    </div>
+
+    <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script>
+        lucide.createIcons();
+        const fileInput = document.getElementById('fileInput');
+        const uploadBox = document.getElementById('uploadBox');
+        const actionArea = document.getElementById('actionArea');
+        const printBtn = document.getElementById('printBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const tablePreview = document.getElementById('tablePreview');
+        const fileInfo = document.getElementById('fileInfo');
+        const statusMsg = document.getElementById('statusMsg');
+
+        let tableHtml = '';
+
+        uploadBox.addEventListener('click', () => fileInput.click());
+        resetBtn.addEventListener('click', () => location.reload());
+
+        fileInput.addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (!file) return;
+            fileInfo.innerText = `Selected: ${file.name}`;
+            statusMsg.innerText = 'Parsing spreadsheet...';
+            uploadBox.style.display = 'none';
+            actionArea.style.display = 'block';
+
+            const reader = new FileReader();
+            reader.onload = ev => {
+                try {
+                    const wb = XLSX.read(ev.target.result, { type: 'array' });
+                    const ws = wb.Sheets[wb.SheetNames[0]];
+                    tableHtml = XLSX.utils.sheet_to_html(ws, { editable: false });
+                    tablePreview.innerHTML = tableHtml;
+                    statusMsg.innerText = `Showing sheet: ${wb.SheetNames[0]}`;
+                    printBtn.style.display = 'inline-flex';
+                } catch (err) {
+                    statusMsg.innerText = 'Failed to parse file.';
+                    console.error(err);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        printBtn.addEventListener('click', () => {
+            const win = window.open('', '_blank');
+            win.document.write(`<!DOCTYPE html>
+<html><head><title>Excel to PDF</title>
+<style>
+  body { font-family: Arial, sans-serif; font-size: 10pt; margin: 1.5cm; color:#000; }
+  table { border-collapse: collapse; width: 100%; }
+  td, th { border: 1px solid #ccc; padding: 4px 8px; font-size:10pt; }
+  th { background: #dcfce7; font-weight: bold; }
+  tr:nth-child(even) td { background: #f0fdf4; }
+  @media print { body { margin: 1cm; } }
+</style></head><body>${tableHtml}</body></html>`);
+            win.document.close();
+            setTimeout(() => win.print(), 400);
+        });
+    </script>
+</body>
+
+</html>

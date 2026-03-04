@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word to PDF - PDFSuite</title>
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211"
+        crossorigin="anonymous"></script>
+    <style>
+        .workspace {
+            max-width: 720px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background: var(--bg-soft);
+            border-radius: 16px;
+            border: 1px solid var(--border-subtle);
+            text-align: center;
+        }
+
+        .upload-box {
+            border: 2px dashed #3b82f6;
+            padding: 3.5rem 2rem;
+            cursor: pointer;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            background: rgba(59, 130, 246, 0.04);
+            transition: all 0.2s;
+        }
+
+        .upload-box:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: #2563eb;
+        }
+
+        .upload-box svg {
+            width: 48px;
+            height: 48px;
+            color: #3b82f6;
+            margin-bottom: 0.75rem;
+        }
+
+        .info-box {
+            background: rgba(59, 130, 246, 0.06);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin: 1.5rem 0;
+            font-size: 0.9rem;
+            color: var(--fg-muted);
+            text-align: left;
+        }
+
+        .info-box ul {
+            padding-left: 1.25rem;
+            margin: 0.5rem 0 0;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+            <div class="header-actions"><a href="../index.html" class="btn-ghost btn-small">Back to Tools</a></div>
+        </div>
+    </header>
+    <div class="ad-banner-section">
+        <div class="ad-placeholder"><span>Advertisement - 728x90</span></div>
+    </div>
+
+    <div class="workspace">
+        <h1>Word to PDF</h1>
+        <p style="color:var(--fg-muted); margin-bottom:1.5rem;">Upload a Word document (.docx) and print it to PDF using
+            your browser's built-in print engine — no upload to any server.</p>
+
+        <div class="upload-box" id="uploadBox">
+            <i data-lucide="file-input"></i>
+            <h2>Select Word File (.docx)</h2>
+            <p style="color:var(--fg-muted)">Click to upload .docx file</p>
+            <input type="file" id="fileInput" accept=".docx,.doc" hidden>
+        </div>
+
+        <div id="actionArea" style="display:none;">
+            <p id="fileInfo" style="font-weight:600; margin-bottom:1rem;"></p>
+
+            <div class="info-box">
+                <strong>How this works:</strong>
+                <ul>
+                    <li>Your Word document is read locally in your browser</li>
+                    <li>The content is rendered as clean HTML</li>
+                    <li>Use your browser's "Print → Save as PDF" to download it</li>
+                </ul>
+            </div>
+
+            <div id="docPreview"
+                style="background:#fff; color:#000; border-radius:8px; padding:2rem; text-align:left; max-height:500px; overflow:auto; margin:1rem 0; font-size:0.9rem; line-height:1.7;">
+            </div>
+
+            <div style="display:flex; gap:1rem; margin-top:1.25rem; justify-content:center; flex-wrap:wrap;">
+                <button class="btn-primary" id="printBtn" style="background:#3b82f6;">Print / Save as PDF</button>
+                <button class="btn-ghost" id="resetBtn">Upload Another</button>
+            </div>
+            <p id="statusMsg" style="color:var(--fg-muted); margin-top:0.75rem; font-size:0.85rem;"></p>
+        </div>
+    </div>
+
+    <div class="ad-banner-section bottom-ad">
+        <div class="ad-placeholder square"><span>Advertisement - 300x250</span></div>
+    </div>
+
+    <script src="https://unpkg.com/mammoth@1.6.0/mammoth.browser.min.js"></script>
+    <script>
+        lucide.createIcons();
+        const fileInput = document.getElementById('fileInput');
+        const uploadBox = document.getElementById('uploadBox');
+        const actionArea = document.getElementById('actionArea');
+        const printBtn = document.getElementById('printBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const docPreview = document.getElementById('docPreview');
+        const fileInfo = document.getElementById('fileInfo');
+        const statusMsg = document.getElementById('statusMsg');
+
+        uploadBox.addEventListener('click', () => fileInput.click());
+        resetBtn.addEventListener('click', () => location.reload());
+
+        fileInput.addEventListener('change', async e => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            fileInfo.innerText = `Selected: ${file.name}`;
+            statusMsg.innerText = 'Parsing document...';
+            uploadBox.style.display = 'none';
+            actionArea.style.display = 'block';
+
+            const reader = new FileReader();
+            reader.onload = async ev => {
+                try {
+                    const result = await mammoth.convertToHtml({ arrayBuffer: ev.target.result });
+                    docPreview.innerHTML = result.value;
+                    statusMsg.innerText = 'Preview ready. Click "Print / Save as PDF" to save.';
+                    if (result.messages && result.messages.length > 0) {
+                        console.warn('Conversion warnings:', result.messages);
+                    }
+                } catch (err) {
+                    statusMsg.innerText = 'Failed to parse document. Only .docx files are supported.';
+                    console.error(err);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        printBtn.addEventListener('click', () => {
+            const content = docPreview.innerHTML;
+            const win = window.open('', '_blank');
+            win.document.write(`<!DOCTYPE html>
+<html><head><title>Word to PDF</title>
+<style>
+  body { font-family: 'Calibri', Arial, sans-serif; font-size: 12pt; line-height: 1.6; margin: 2.5cm; color: #000; }
+  h1, h2, h3 { margin-top: 1.2em; }
+  p { margin: 0.5em 0; }
+  table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+  td, th { border: 1px solid #ddd; padding: 6px 10px; }
+  img { max-width: 100%; }
+  @media print {
+    body { margin: 1.5cm; }
+  }
+</style>
+</head><body>${content}</body></html>`);
+            win.document.close();
+            setTimeout(() => { win.print(); }, 500);
+        });
+    </script>
+</body>
+
+</html>
