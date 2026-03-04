@@ -1,175 +1,175 @@
-﻿<!DOCTYPE html>
-<html lang="en" data-theme="dark">
-
-<head>
-    <meta charset="UTF-8">
-    <title>Protect PDF - PDFSuite</title>
-    <link rel="stylesheet" href="../src/css/base.css" />
-    <link rel="stylesheet" href="../src/css/dashboard.css" />
-    <style>
-        .workspace {
-            max-width: 800px;
-            margin: 3rem auto;
-            padding: 2rem;
-            background: var(--bg-soft);
-            border-radius: 16px;
-            border: 1px solid var(--border-subtle);
-            text-align: center;
-        }
-
-        .upload-box {
-            border: 2px dashed #ec4899;
-            padding: 3rem;
-            cursor: pointer;
-            border-radius: 8px;
-            margin-bottom: 2rem;
-            background: rgba(236, 72, 153, 0.05);
-        }
-
-        .btn-large {
-            padding: 1rem 2rem;
-            font-size: 1.1rem;
-            width: 100%;
-            font-weight: 600;
-            margin-top: 2rem;
-        }
-    </style>
-    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+ï»¿<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Protect PDF - PDFSuite</title>
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <style>
+        .workspace {
+            max-width: 800px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background: var(--bg-soft);
+            border-radius: 16px;
+            border: 1px solid var(--border-subtle);
+            text-align: center;
+        }
+
+        .upload-box {
+            border: 2px dashed #ec4899;
+            padding: 3rem;
+            cursor: pointer;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            background: rgba(236, 72, 153, 0.05);
+        }
+
+        .btn-large {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            width: 100%;
+            font-weight: 600;
+            margin-top: 2rem;
+        }
+    </style>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211" crossorigin="anonymous"></script>
-</head>
-
-<body>
-    <header class="site-header">
-        <div class="header-inner">
-            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
-            <div class="header-actions"><a href="../index.html" class="btn-ghost btn-small">Back to Tools</a></div>
-        </div>
-    </header>
-    <div class="ad-banner-section">
-        <div class="ad-placeholder"><span>Google Ads - 728x90 Top placement</span></div>
-    </div>
-
-    <div class="workspace">
-        <h1>Watermark & Protect PDF</h1>
-        <p>Permanently embed watermarks across all pages of your PDF to protect them from theft.</p>
-        <div class="upload-box" id="uploadBox">
-            <h2>ðŸ”’ Select PDF File</h2>
-            <input type="file" id="fileInput" accept="application/pdf" hidden>
-        </div>
-        <div id="actionArea" style="display: none; text-align: left;">
-            <p id="fileInfo" style="margin-bottom: 1.5rem; font-weight: 600;"></p>
-
-            <div style="display:flex; gap:1rem; margin-top:0.5rem; align-items:flex-end;">
-                <div style="flex:1;">
-                    <label style="color:var(--fg-muted)">Watermark Text:</label>
-                    <input type="text" id="watermarkText" value="CONFIDENTIAL"
-                        style="width:100%; padding:0.75rem; border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg); color:var(--fg); margin-top:0.5rem; font-size:1.1rem; font-weight:bold;">
-                </div>
-                <div style="width: 100px;">
-                    <label style="color:var(--fg-muted)">Color:</label>
-                    <input type="color" id="watermarkColor" value="#ef4444"
-                        style="width:100%; height: 50px; padding:0.25rem; border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg); cursor:pointer; margin-top:0.5rem;">
-                </div>
-            </div>
-
-            <button class="btn-primary btn-large" id="processBtn"
-                style="background: linear-gradient(135deg, #ec4899, #f43f5e)">Bake Watermark onto PDF</button>
-            <p id="statusMsg" style="margin-top: 1rem; color: #ec4899; text-align: center;"></p>
-        </div>
-    </div>
-
-    <div class="ad-banner-section bottom-ad">
-        <div class="ad-placeholder square"><span>Google Ads - 300x250</span></div>
-    </div>
-
-    <script>
-        const fileInput = document.getElementById('fileInput');
-        const uploadBox = document.getElementById('uploadBox');
-        const actionArea = document.getElementById('actionArea');
-        const processBtn = document.getElementById('processBtn');
-        const statusMsg = document.getElementById('statusMsg');
-        const fileInfo = document.getElementById('fileInfo');
-        const watermarkTextInput = document.getElementById('watermarkText');
-        const watermarkColorInput = document.getElementById('watermarkColor');
-
-        let currentPdfBytes = null;
-        let fileName = '';
-
-        uploadBox.addEventListener('click', () => fileInput.click());
-
-        fileInput.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                currentPdfBytes = await file.arrayBuffer();
-                fileName = file.name;
-                uploadBox.style.display = 'none';
-                actionArea.style.display = 'block';
-                fileInfo.innerText = `Selected: ${fileName}`;
-            }
-        });
-
-        processBtn.addEventListener('click', async () => {
-            try {
-                processBtn.disabled = true;
-                processBtn.innerText = "Protecting Document...";
-
-                const { PDFDocument, rgb, degrees, StandardFonts } = PDFLib;
-                const doc = await PDFDocument.load(currentPdfBytes);
-
-                const pages = doc.getPages();
-                const helveticaFont = await doc.embedFont(StandardFonts.HelveticaBold);
-                const text = watermarkTextInput.value;
-                const hexColor = watermarkColorInput.value;
-
-                // Convert hex to rgb for pdf-lib
-                const r = parseInt(hexColor.substr(1, 2), 16) / 255;
-                const g = parseInt(hexColor.substr(3, 2), 16) / 255;
-                const b = parseInt(hexColor.substr(5, 2), 16) / 255;
-
-                for (let page of pages) {
-                    const { width, height } = page.getSize();
-                    const fontSize = 60;
-                    const textWidth = helveticaFont.widthOfTextAtSize(text, fontSize);
-
-                    // To perfectly center rotated text, we calculate the offset transformation mathematically
-                    // since PDFLib rotates around the bottom-left coordinate of the text element.
-                    const angleInRad = 45 * Math.PI / 180;
-                    const x = width / 2 - (textWidth / 2) * Math.cos(angleInRad) + (fontSize / 2) * Math.sin(angleInRad);
-                    const y = height / 2 - (textWidth / 2) * Math.sin(angleInRad) - (fontSize / 2) * Math.cos(angleInRad);
-
-                    page.drawText(text, {
-                        x: x,
-                        y: y,
-                        size: fontSize,
-                        font: helveticaFont,
-                        color: rgb(r, g, b),
-                        opacity: 0.3,
-                        rotate: degrees(45),
-                    });
-                }
-
-                const newPdfBytes = await doc.save();
-
-                const blob = new Blob([newPdfBytes], { type: 'application/pdf' });
-
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `Protected_${fileName}`;
-                link.click();
-
-                statusMsg.innerText = "Success! Watermark embedded on all pages.";
-                processBtn.innerText = "Bake Watermark";
-                processBtn.disabled = false;
-
-            } catch (err) {
-                console.error(err);
-                alert("Failed to protect document. See console.");
-                processBtn.disabled = false;
-                processBtn.innerText = "Bake Watermark";
-            }
-        });
-    </script>
-</body>
-
-</html>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+            <div class="header-actions"><a href="../index.html" class="btn-ghost btn-small">Back to Tools</a></div>
+        </div>
+    </header>
+    <div class="ad-banner-section">
+        <div class="ad-placeholder"><span>Google Ads - 728x90 Top placement</span></div>
+    </div>
+
+    <div class="workspace">
+        <h1>Watermark & Protect PDF</h1>
+        <p>Permanently embed watermarks across all pages of your PDF to protect them from theft.</p>
+        <div class="upload-box" id="uploadBox">
+            <h2>Select PDF File</h2>
+            <input type="file" id="fileInput" accept="application/pdf" hidden>
+        </div>
+        <div id="actionArea" style="display: none; text-align: left;">
+            <p id="fileInfo" style="margin-bottom: 1.5rem; font-weight: 600;"></p>
+
+            <div style="display:flex; gap:1rem; margin-top:0.5rem; align-items:flex-end;">
+                <div style="flex:1;">
+                    <label style="color:var(--fg-muted)">Watermark Text:</label>
+                    <input type="text" id="watermarkText" value="CONFIDENTIAL"
+                        style="width:100%; padding:0.75rem; border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg); color:var(--fg); margin-top:0.5rem; font-size:1.1rem; font-weight:bold;">
+                </div>
+                <div style="width: 100px;">
+                    <label style="color:var(--fg-muted)">Color:</label>
+                    <input type="color" id="watermarkColor" value="#ef4444"
+                        style="width:100%; height: 50px; padding:0.25rem; border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg); cursor:pointer; margin-top:0.5rem;">
+                </div>
+            </div>
+
+            <button class="btn-primary btn-large" id="processBtn"
+                style="background: linear-gradient(135deg, #ec4899, #f43f5e)">Bake Watermark onto PDF</button>
+            <p id="statusMsg" style="margin-top: 1rem; color: #ec4899; text-align: center;"></p>
+        </div>
+    </div>
+
+    <div class="ad-banner-section bottom-ad">
+        <div class="ad-placeholder square"><span>Google Ads - 300x250</span></div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const uploadBox = document.getElementById('uploadBox');
+        const actionArea = document.getElementById('actionArea');
+        const processBtn = document.getElementById('processBtn');
+        const statusMsg = document.getElementById('statusMsg');
+        const fileInfo = document.getElementById('fileInfo');
+        const watermarkTextInput = document.getElementById('watermarkText');
+        const watermarkColorInput = document.getElementById('watermarkColor');
+
+        let currentPdfBytes = null;
+        let fileName = '';
+
+        uploadBox.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                currentPdfBytes = await file.arrayBuffer();
+                fileName = file.name;
+                uploadBox.style.display = 'none';
+                actionArea.style.display = 'block';
+                fileInfo.innerText = `Selected: ${fileName}`;
+            }
+        });
+
+        processBtn.addEventListener('click', async () => {
+            try {
+                processBtn.disabled = true;
+                processBtn.innerText = "Protecting Document...";
+
+                const { PDFDocument, rgb, degrees, StandardFonts } = PDFLib;
+                const doc = await PDFDocument.load(currentPdfBytes);
+
+                const pages = doc.getPages();
+                const helveticaFont = await doc.embedFont(StandardFonts.HelveticaBold);
+                const text = watermarkTextInput.value;
+                const hexColor = watermarkColorInput.value;
+
+                // Convert hex to rgb for pdf-lib
+                const r = parseInt(hexColor.substr(1, 2), 16) / 255;
+                const g = parseInt(hexColor.substr(3, 2), 16) / 255;
+                const b = parseInt(hexColor.substr(5, 2), 16) / 255;
+
+                for (let page of pages) {
+                    const { width, height } = page.getSize();
+                    const fontSize = 60;
+                    const textWidth = helveticaFont.widthOfTextAtSize(text, fontSize);
+
+                    // To perfectly center rotated text, we calculate the offset transformation mathematically
+                    // since PDFLib rotates around the bottom-left coordinate of the text element.
+                    const angleInRad = 45 * Math.PI / 180;
+                    const x = width / 2 - (textWidth / 2) * Math.cos(angleInRad) + (fontSize / 2) * Math.sin(angleInRad);
+                    const y = height / 2 - (textWidth / 2) * Math.sin(angleInRad) - (fontSize / 2) * Math.cos(angleInRad);
+
+                    page.drawText(text, {
+                        x: x,
+                        y: y,
+                        size: fontSize,
+                        font: helveticaFont,
+                        color: rgb(r, g, b),
+                        opacity: 0.3,
+                        rotate: degrees(45),
+                    });
+                }
+
+                const newPdfBytes = await doc.save();
+
+                const blob = new Blob([newPdfBytes], { type: 'application/pdf' });
+
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `Protected_${fileName}`;
+                link.click();
+
+                statusMsg.innerText = "Success! Watermark embedded on all pages.";
+                processBtn.innerText = "Bake Watermark";
+                processBtn.disabled = false;
+
+            } catch (err) {
+                console.error(err);
+                alert("Failed to protect document. See console.");
+                processBtn.disabled = false;
+                processBtn.innerText = "Bake Watermark";
+            }
+        });
+    </script>
+</body>
+
+</html>

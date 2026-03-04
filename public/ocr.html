@@ -1,170 +1,170 @@
-﻿<!DOCTYPE html>
-<html lang="en" data-theme="dark">
-
-<head>
-    <meta charset="UTF-8">
-    <title>OCR - PDFSuite</title>
-    <link rel="stylesheet" href="../src/css/base.css" />
-    <link rel="stylesheet" href="../src/css/dashboard.css" />
-    <style>
-        .workspace {
-            max-width: 800px;
-            margin: 3rem auto;
-            padding: 2rem;
-            background: var(--bg-soft);
-            border-radius: 16px;
-            border: 1px solid var(--border-subtle);
-            text-align: center;
-        }
-
-        .upload-box {
-            border: 2px dashed #f59e0b;
-            padding: 3rem;
-            cursor: pointer;
-            border-radius: 8px;
-            margin-bottom: 2rem;
-            background: rgba(245, 158, 11, 0.05);
-        }
-
-        .btn-large {
-            padding: 1rem 2rem;
-            font-size: 1.1rem;
-            width: 100%;
-            font-weight: 600;
-            margin-top: 1rem;
-        }
-
-        #output-text {
-            width: 100%;
-            height: 300px;
-            background: var(--bg);
-            color: var(--fg);
-            border: 1px solid var(--border-subtle);
-            border-radius: 8px;
-            padding: 1rem;
-            font-family: monospace;
-            font-size: 0.9rem;
-            resize: vertical;
-            margin-top: 1rem;
-        }
-
-        #progress-bar {
-            width: 100%;
-            height: 8px;
-            background: var(--bg);
-            border: 1px solid var(--border-subtle);
-            border-radius: 4px;
-            overflow: hidden;
-            display: none;
-            margin-top: 1rem;
-        }
-
-        #progress-fill {
-            width: 0%;
-            height: 100%;
-            background: #f59e0b;
-            transition: width 0.1s;
-        }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+ï»¿<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <title>OCR - PDFSuite</title>
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <style>
+        .workspace {
+            max-width: 800px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background: var(--bg-soft);
+            border-radius: 16px;
+            border: 1px solid var(--border-subtle);
+            text-align: center;
+        }
+
+        .upload-box {
+            border: 2px dashed #f59e0b;
+            padding: 3rem;
+            cursor: pointer;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            background: rgba(245, 158, 11, 0.05);
+        }
+
+        .btn-large {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            width: 100%;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+
+        #output-text {
+            width: 100%;
+            height: 300px;
+            background: var(--bg);
+            color: var(--fg);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            margin-top: 1rem;
+        }
+
+        #progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--bg);
+            border: 1px solid var(--border-subtle);
+            border-radius: 4px;
+            overflow: hidden;
+            display: none;
+            margin-top: 1rem;
+        }
+
+        #progress-fill {
+            width: 0%;
+            height: 100%;
+            background: #f59e0b;
+            transition: width 0.1s;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211" crossorigin="anonymous"></script>
-</head>
-
-<body>
-    <header class="site-header">
-        <div class="header-inner">
-            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
-            <div class="header-actions"><a href="../index.html" class="btn-ghost btn-small">Back to Tools</a></div>
-        </div>
-    </header>
-    <div class="ad-banner-section">
-        <div class="ad-placeholder"><span>Google Ads - 728x90 Top placement</span></div>
-    </div>
-
-    <div class="workspace">
-        <h1>OCR Text Extraction</h1>
-        <p>Use Tesseract.js AI inside your browser to extract text from images and scanned documents.</p>
-        <div class="upload-box" id="uploadBox">
-            <h2>ðŸ” Select Scanned Image (JPG/PNG)</h2>
-            <input type="file" id="fileInput" accept="image/jpeg, image/png" hidden>
-        </div>
-        <div id="actionArea" style="display: none;">
-            <p id="fileInfo" style="margin-bottom: 1.5rem; font-weight: 600; text-align: left;"></p>
-
-            <div id="progress-bar">
-                <div id="progress-fill"></div>
-            </div>
-            <p id="statusMsg" style="margin-top: 1rem; color: #f59e0b; font-size: 0.8rem;"></p>
-
-            <textarea id="output-text" placeholder="Extracted text will appear here..."></textarea>
-            <button class="btn-primary btn-large" id="processBtn">Start OCR Extraction</button>
-        </div>
-    </div>
-
-    <div class="ad-banner-section bottom-ad">
-        <div class="ad-placeholder square"><span>Google Ads - 300x250</span></div>
-    </div>
-
-    <script>
-        const fileInput = document.getElementById('fileInput');
-        const uploadBox = document.getElementById('uploadBox');
-        const actionArea = document.getElementById('actionArea');
-        const processBtn = document.getElementById('processBtn');
-        const statusMsg = document.getElementById('statusMsg');
-        const outputText = document.getElementById('output-text');
-        const fileInfo = document.getElementById('fileInfo');
-        const progressBar = document.getElementById('progress-bar');
-        const progressFill = document.getElementById('progress-fill');
-
-        let objectUrl = null;
-
-        uploadBox.addEventListener('click', () => fileInput.click());
-
-        fileInput.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                objectUrl = URL.createObjectURL(file);
-                uploadBox.style.display = 'none';
-                actionArea.style.display = 'block';
-                fileInfo.innerText = `Source: ${file.name}`;
-            }
-        });
-
-        processBtn.addEventListener('click', async () => {
-            if (!objectUrl) return;
-            processBtn.disabled = true;
-            progressBar.style.display = 'block';
-            outputText.value = '';
-
-            try {
-                const worker = await Tesseract.createWorker("eng", 1, {
-                    logger: m => {
-                        if (m.status === 'recognizing text') {
-                            progressFill.style.width = Math.max(0, parseInt(m.progress * 100)) + '%';
-                            statusMsg.innerText = `Recognizing text... ${Math.max(0, parseInt(m.progress * 100))}%`;
-                        } else {
-                            statusMsg.innerText = m.status;
-                        }
-                    }
-                });
-
-                const { data: { text } } = await worker.recognize(objectUrl);
-                outputText.value = text;
-                statusMsg.innerText = "Text successfully extracted from image!";
-                statusMsg.style.color = '#22c55e';
-
-                await worker.terminate();
-            } catch (err) {
-                console.error(err);
-                statusMsg.innerText = "OCR Failed.";
-                statusMsg.style.color = "#ef4444";
-            } finally {
-                processBtn.disabled = false;
-                processBtn.innerText = "Run Again";
-            }
-        });
-    </script>
-</body>
-
-</html>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+            <div class="header-actions"><a href="../index.html" class="btn-ghost btn-small">Back to Tools</a></div>
+        </div>
+    </header>
+    <div class="ad-banner-section">
+        <div class="ad-placeholder"><span>Google Ads - 728x90 Top placement</span></div>
+    </div>
+
+    <div class="workspace">
+        <h1>OCR Text Extraction</h1>
+        <p>Use Tesseract.js AI inside your browser to extract text from images and scanned documents.</p>
+        <div class="upload-box" id="uploadBox">
+            <h2>Select Scanned Image (JPG/PNG)</h2>
+            <input type="file" id="fileInput" accept="image/jpeg, image/png" hidden>
+        </div>
+        <div id="actionArea" style="display: none;">
+            <p id="fileInfo" style="margin-bottom: 1.5rem; font-weight: 600; text-align: left;"></p>
+
+            <div id="progress-bar">
+                <div id="progress-fill"></div>
+            </div>
+            <p id="statusMsg" style="margin-top: 1rem; color: #f59e0b; font-size: 0.8rem;"></p>
+
+            <textarea id="output-text" placeholder="Extracted text will appear here..."></textarea>
+            <button class="btn-primary btn-large" id="processBtn">Start OCR Extraction</button>
+        </div>
+    </div>
+
+    <div class="ad-banner-section bottom-ad">
+        <div class="ad-placeholder square"><span>Google Ads - 300x250</span></div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const uploadBox = document.getElementById('uploadBox');
+        const actionArea = document.getElementById('actionArea');
+        const processBtn = document.getElementById('processBtn');
+        const statusMsg = document.getElementById('statusMsg');
+        const outputText = document.getElementById('output-text');
+        const fileInfo = document.getElementById('fileInfo');
+        const progressBar = document.getElementById('progress-bar');
+        const progressFill = document.getElementById('progress-fill');
+
+        let objectUrl = null;
+
+        uploadBox.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                objectUrl = URL.createObjectURL(file);
+                uploadBox.style.display = 'none';
+                actionArea.style.display = 'block';
+                fileInfo.innerText = `Source: ${file.name}`;
+            }
+        });
+
+        processBtn.addEventListener('click', async () => {
+            if (!objectUrl) return;
+            processBtn.disabled = true;
+            progressBar.style.display = 'block';
+            outputText.value = '';
+
+            try {
+                const worker = await Tesseract.createWorker("eng", 1, {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            progressFill.style.width = Math.max(0, parseInt(m.progress * 100)) + '%';
+                            statusMsg.innerText = `Recognizing text... ${Math.max(0, parseInt(m.progress * 100))}%`;
+                        } else {
+                            statusMsg.innerText = m.status;
+                        }
+                    }
+                });
+
+                const { data: { text } } = await worker.recognize(objectUrl);
+                outputText.value = text;
+                statusMsg.innerText = "Text successfully extracted from image!";
+                statusMsg.style.color = '#22c55e';
+
+                await worker.terminate();
+            } catch (err) {
+                console.error(err);
+                statusMsg.innerText = "OCR Failed.";
+                statusMsg.style.color = "#ef4444";
+            } finally {
+                processBtn.disabled = false;
+                processBtn.innerText = "Run Again";
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -186,7 +186,7 @@
     <div class="workspace">
 
         <div class="upload-box" id="uploadBox">
-            <h2 style="color: #8b5cf6;">ðŸ”— Visually Merge PDFs</h2>
+            <h2 style="color: #8b5cf6;">Visually Merge PDFs</h2>
             <p style="color:var(--fg-muted)">Upload multiple PDF files. Drag and drop the documents to set the merge
                 order.</p>
             <input type="file" id="fileInput" accept="application/pdf" multiple hidden>
@@ -201,7 +201,7 @@
                 </div>
                 <div style="display:flex; gap: 1rem; align-items:center;">
                     <span id="statusMsg" style="font-size:0.9rem; color:#22c55e;"></span>
-                    <button class="btn-primary" id="saveBtn" style="background:#8b5cf6;">ðŸ”— Combine PDFs</button>
+                    <button class="btn-primary" id="saveBtn" style="background:#8b5cf6;">Combine PDFs</button>
                 </div>
             </div>
 
@@ -409,13 +409,13 @@
                 link.click();
 
                 statusMsg.innerText = "Merge Successful!";
-                saveBtn.innerText = "ðŸ”— Combine PDFs";
+                saveBtn.innerText = "Combine PDFs";
                 saveBtn.disabled = false;
             } catch (err) {
                 console.error(err);
                 alert("Failed to merge. See console.");
                 saveBtn.disabled = false;
-                saveBtn.innerText = "ðŸ”— Combine PDFs";
+                saveBtn.innerText = "Combine PDFs";
                 statusMsg.innerText = "";
             }
         });

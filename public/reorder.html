@@ -5,20 +5,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Organize & Reorder PDF - PDFSuite</title>
-    <meta name="description" content="Visually sort, organize, and delete PDF pages like a pro.">
+    <meta name="description" content="Visually sort, organize, rotate, and delete PDF pages like a pro.">
 
     <link rel="stylesheet" href="../src/css/base.css" />
     <link rel="stylesheet" href="../src/css/dashboard.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211"
+        crossorigin="anonymous"></script>
 
     <style>
         .workspace {
             max-width: 1100px;
             margin: 2rem auto;
             padding: 1.5rem;
-            background: var(--bg);
-            border: none;
-            text-align: center;
         }
 
         .upload-box {
@@ -29,9 +31,22 @@
             margin: 2rem auto;
             background: rgba(59, 130, 246, 0.05);
             max-width: 700px;
+            text-align: center;
+            transition: all 0.2s;
         }
 
-        /* Toolbar that appears after upload */
+        .upload-box:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: #2563eb;
+        }
+
+        .upload-box svg {
+            width: 52px;
+            height: 52px;
+            color: #3b82f6;
+            margin-bottom: 1rem;
+        }
+
         .sticky-toolbar {
             position: sticky;
             top: 0;
@@ -47,22 +62,6 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
 
-        .view-controls {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-        }
-
-        .scale-btn {
-            padding: 0.25rem 0.5rem;
-            background: transparent;
-            border: 1px solid var(--border-subtle);
-            color: var(--fg);
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        /* Grid for Thumbnail Pages */
         .pages-grid {
             display: grid;
             gap: 1.5rem;
@@ -92,7 +91,6 @@
         .page-thumb-wrapper:hover {
             border-color: var(--accent);
             transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
         }
 
         .page-canvas {
@@ -119,7 +117,6 @@
             color: var(--fg-muted);
         }
 
-        /* Action Buttons on each thumbnail */
         .thumb-actions {
             display: flex;
             gap: 0.25rem;
@@ -127,36 +124,43 @@
 
         .action-icon {
             background: transparent;
-            border: none;
-            font-size: 1.1rem;
+            border: 1px solid var(--border-subtle);
+            color: var(--fg-muted);
+            font-size: 0.7rem;
             cursor: pointer;
-            opacity: 0.5;
-            padding: 0.15rem;
+            padding: 3px 7px;
             border-radius: 4px;
+            transition: all 0.15s;
         }
 
         .action-icon:hover {
             opacity: 1;
-            background: rgba(255, 255, 255, 0.1);
+            color: var(--fg);
+            border-color: var(--accent);
         }
 
         .action-icon.trash:hover {
-            background: rgba(239, 68, 68, 0.2);
+            border-color: #ef4444;
             color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
         }
 
-        /* Hidden inputs */
         #actionArea {
             display: none;
         }
+
+        @media (max-width: 600px) {
+            .pages-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+                gap: 1rem;
+            }
+
+            .sticky-toolbar {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+        }
     </style>
-
-    <!-- PDF.js for rendering thumbnails -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <!-- PDF-LIB for actual save/rotate logic -->
-    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211" crossorigin="anonymous"></script>
 </head>
 
 <body>
@@ -170,39 +174,35 @@
 
     <div class="workspace">
         <div class="upload-box" id="uploadBox">
-            <h2>ðŸ‘ï¸ Visually Organize PDF</h2>
-            <p style="color:var(--fg-muted)">Upload a PDF to view thumbnails. Drag to reorder, click to rotate or
-                delete.</p>
+            <i data-lucide="layout-grid"></i>
+            <h2>Visually Organize PDF</h2>
+            <p style="color:var(--fg-muted)">Upload a PDF. Drag to reorder, click Rotate or Delete on each page.</p>
             <input type="file" id="fileInput" accept="application/pdf" hidden>
         </div>
 
         <div id="actionArea">
-
             <div class="sticky-toolbar">
-                <div class="view-controls">
+                <div style="display:flex; align-items:center; gap: 1rem;">
                     <span style="font-weight:600" id="fileTitle">Document</span>
-                    <span style="color:var(--fg-muted); margin-left:1rem; font-size:0.9rem;" id="pageCountLabel"></span>
+                    <span style="color:var(--fg-muted); font-size:0.9rem;" id="pageCountLabel"></span>
                 </div>
-                <div style="display:flex; gap: 1rem; align-items:center;">
+                <div style="display:flex; gap:1rem; align-items:center;">
                     <span id="statusMsg" style="font-size:0.9rem; color:#22c55e;"></span>
-                    <button class="btn-primary" id="saveBtn">ðŸ’¾ Save Organized PDF</button>
+                    <button class="btn-primary" id="saveBtn">Save Organized PDF</button>
                 </div>
             </div>
 
-            <div class="pages-grid" id="pagesGrid">
-                <!-- Thumbnails injected here -->
-            </div>
-
+            <div class="pages-grid" id="pagesGrid"></div>
         </div>
     </div>
 
-    <!-- BOTTOM AD -->
     <div class="ad-banner-section bottom-ad">
         <div class="ad-placeholder square"><span>Google Ads - 300x250</span></div>
     </div>
 
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+        lucide.createIcons();
 
         const fileInput = document.getElementById('fileInput');
         const uploadBox = document.getElementById('uploadBox');
@@ -213,29 +213,23 @@
         const saveBtn = document.getElementById('saveBtn');
         const statusMsg = document.getElementById('statusMsg');
 
-        // State Variables
         let originalPdfBytes = null;
         let fileName = '';
-        // Let's keep an array of "pages" metadata. 
-        // e.g. [{ originalIndex: 1, rotation: 0, deleted: false }, ...]
         let pagesData = [];
 
         uploadBox.addEventListener('click', () => fileInput.click());
 
         fileInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
-            if (file) {
-                fileName = file.name;
-                originalPdfBytes = await file.arrayBuffer();
-
-                uploadBox.style.display = 'none';
-                actionArea.style.display = 'block';
-                fileTitle.innerText = fileName;
-
-                statusMsg.innerText = "Extracting pages...";
-                await renderThumbnails();
-                statusMsg.innerText = "";
-            }
+            if (!file) return;
+            fileName = file.name;
+            originalPdfBytes = await file.arrayBuffer();
+            uploadBox.style.display = 'none';
+            actionArea.style.display = 'block';
+            fileTitle.innerText = fileName;
+            statusMsg.innerText = 'Rendering pages...';
+            await renderThumbnails();
+            statusMsg.innerText = '';
         });
 
         async function renderThumbnails() {
@@ -244,29 +238,25 @@
 
             const doc = await pdfjsLib.getDocument({ data: new Uint8Array(originalPdfBytes) }).promise;
             const numPages = doc.numPages;
-            pageCountLabel.innerText = `${numPages} Pages`;
+            pageCountLabel.innerText = `${numPages} pages`;
 
             for (let i = 1; i <= numPages; i++) {
                 pagesData.push({ id: `page_${i}`, originalIndex: i, rotation: 0, deleted: false });
 
                 const page = await doc.getPage(i);
-                // Render at a small scale for thumbnail
                 const viewport = page.getViewport({ scale: 0.5 });
 
                 const wrapper = document.createElement('div');
                 wrapper.className = 'page-thumb-wrapper';
                 wrapper.draggable = true;
-                wrapper.dataset.index = i - 1; // index in array
+                wrapper.dataset.index = i - 1;
 
                 const canvas = document.createElement('canvas');
                 canvas.className = 'page-canvas';
                 canvas.width = viewport.width;
                 canvas.height = viewport.height;
-                const ctx = canvas.getContext('2d');
+                await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
 
-                await page.render({ canvasContext: ctx, viewport: viewport }).promise;
-
-                // Tools info
                 const infoDiv = document.createElement('div');
                 infoDiv.className = 'page-info';
 
@@ -279,73 +269,63 @@
 
                 const rotateBtn = document.createElement('button');
                 rotateBtn.className = 'action-icon rotate';
-                rotateBtn.innerText = 'â†»';
-                rotateBtn.title = "Rotate Right";
+                rotateBtn.innerText = 'Rotate';
+                rotateBtn.title = 'Rotate Right 90°';
                 rotateBtn.onclick = (ev) => {
                     ev.stopPropagation();
-                    let pData = pagesData[wrapper.dataset.index];
+                    const pData = pagesData[wrapper.dataset.index];
                     pData.rotation = (pData.rotation + 90) % 360;
                     canvas.style.transform = `rotate(${pData.rotation}deg)`;
+                    canvas.style.transition = 'transform 0.3s';
                 };
 
                 const trashBtn = document.createElement('button');
                 trashBtn.className = 'action-icon trash';
-                trashBtn.innerText = 'ðŸ—‘';
-                trashBtn.title = "Delete Page";
+                trashBtn.innerText = 'Delete';
+                trashBtn.title = 'Delete this page';
                 trashBtn.onclick = (ev) => {
                     ev.stopPropagation();
                     pagesData[wrapper.dataset.index].deleted = true;
-                    wrapper.style.display = 'none'; // hide from view
-                    updatePageCount();
+                    wrapper.style.opacity = '0';
+                    wrapper.style.transition = 'opacity 0.2s';
+                    setTimeout(() => { wrapper.style.display = 'none'; updatePageCount(); }, 200);
                 };
 
                 actDiv.appendChild(rotateBtn);
                 actDiv.appendChild(trashBtn);
-
                 infoDiv.appendChild(numSpan);
                 infoDiv.appendChild(actDiv);
-
                 wrapper.appendChild(canvas);
                 wrapper.appendChild(infoDiv);
-
-                // Drag logic setup
                 setupDragListeners(wrapper);
-
                 pagesGrid.appendChild(wrapper);
             }
         }
 
         function updatePageCount() {
             const visibleCount = pagesData.filter(p => !p.deleted).length;
-            pageCountLabel.innerText = `${visibleCount} Pages`;
+            pageCountLabel.innerText = `${visibleCount} pages`;
         }
 
-        /* ==== DRAG AND DROP REORDER LOGIC ==== */
         let draggedItem = null;
 
         function setupDragListeners(el) {
-            el.addEventListener('dragstart', function (e) {
+            el.addEventListener('dragstart', function () {
                 draggedItem = this;
                 setTimeout(() => this.classList.add('dragging'), 0);
             });
-
             el.addEventListener('dragend', function () {
                 this.classList.remove('dragging');
                 draggedItem = null;
                 updateArrayFromDOM();
             });
-
-            el.addEventListener('dragover', function (e) { e.preventDefault(); });
-
-            el.addEventListener('dragenter', function (e) { e.preventDefault(); });
-
+            el.addEventListener('dragover', (e) => e.preventDefault());
+            el.addEventListener('dragenter', (e) => e.preventDefault());
             el.addEventListener('drop', function () {
-                if (this !== draggedItem) {
-                    // Swap DOM placement
-                    let allItems = Array.from(pagesGrid.querySelectorAll('.page-thumb-wrapper'));
-                    let draggedIndex = allItems.indexOf(draggedItem);
-                    let dropIndex = allItems.indexOf(this);
-
+                if (this !== draggedItem && draggedItem !== null) {
+                    const allItems = Array.from(pagesGrid.querySelectorAll('.page-thumb-wrapper'));
+                    const draggedIndex = allItems.indexOf(draggedItem);
+                    const dropIndex = allItems.indexOf(this);
                     if (draggedIndex < dropIndex) {
                         this.parentNode.insertBefore(draggedItem, this.nextSibling);
                     } else {
@@ -356,87 +336,72 @@
         }
 
         function updateArrayFromDOM() {
-            // We need to re-sync `pagesData` order to match DOM order, so we save correctly.
-            const newOrderElements = Array.from(pagesGrid.querySelectorAll('.page-thumb-wrapper'));
+            const elements = Array.from(pagesGrid.querySelectorAll('.page-thumb-wrapper'));
             const newPagesData = [];
-            // We read the original index from the dataset, grab the matching data object, push it to new sorted array
-            newOrderElements.forEach((el, newDomIndex) => {
-                let originalArrayIndex = el.dataset.index;
-                let dataObj = pagesData[originalArrayIndex];
-                newPagesData.push(dataObj);
-                // update the dataset index to match the new array position
-                el.dataset.index = newDomIndex;
+            elements.forEach((el, newIdx) => {
+                const origIdx = el.dataset.index;
+                newPagesData.push(pagesData[origIdx]);
+                el.dataset.index = newIdx;
             });
             pagesData = newPagesData;
-
-            // Re-number visuals safely
             let pNum = 1;
-            newOrderElements.forEach((el) => {
-                if (!pagesData[el.dataset.index].deleted) {
-                    el.querySelector('.page-num').innerText = pNum++;
+            elements.forEach(el => {
+                const numEl = el.querySelector('.page-num');
+                if (numEl && !pagesData[el.dataset.index].deleted) {
+                    numEl.innerText = pNum++;
                 }
             });
         }
 
-        /* ==== SAVE PDF LOGIC USING PDF-LIB ==== */
         saveBtn.addEventListener('click', async () => {
             try {
                 saveBtn.disabled = true;
-                saveBtn.innerText = "Processing...";
-                statusMsg.innerText = "Building PDF...";
+                saveBtn.innerText = 'Processing...';
+                statusMsg.innerText = 'Building PDF...';
 
                 const { PDFDocument, degrees } = PDFLib;
                 const sourceDoc = await PDFDocument.load(originalPdfBytes);
                 const newPdf = await PDFDocument.create();
 
-                // Map pagesData logically:
-                // Filter out deleted.
                 const finalPages = pagesData.filter(p => !p.deleted);
 
                 if (finalPages.length === 0) {
-                    alert("You cannot save an empty document. Undelete or refresh.");
+                    alert('Cannot save empty document. Restore at least one page.');
                     saveBtn.disabled = false;
-                    saveBtn.innerText = "ðŸ’¾ Save Organized PDF";
-                    statusMsg.innerText = "";
+                    saveBtn.innerText = 'Save Organized PDF';
+                    statusMsg.innerText = '';
                     return;
                 }
 
-                // We pull the specific original indices from sourceDoc in the exact order of finalPages array
-                const indicesToCopy = finalPages.map(p => p.originalIndex - 1); // zero-indexed
+                const indicesToCopy = finalPages.map(p => p.originalIndex - 1);
+                const copiedPages = await newPdf.copyPages(sourceDoc, indicesToCopy);
 
-                const copiedPagesArr = await newPdf.copyPages(sourceDoc, indicesToCopy);
-
-                // Loop through our array, add it to new PDF, and apply any rotations
                 finalPages.forEach((pData, i) => {
-                    let page = copiedPagesArr[i];
-                    // original rotation + added rotation
-                    let currentRot = page.getRotation().angle;
+                    const page = copiedPages[i];
+                    const currentRot = page.getRotation().angle;
                     page.setRotation(degrees(currentRot + pData.rotation));
                     newPdf.addPage(page);
                 });
 
                 const newPdfBytes = await newPdf.save();
-
                 const blob = new Blob([newPdfBytes], { type: 'application/pdf' });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
                 link.download = `Organized_${fileName}`;
                 link.click();
 
-                statusMsg.innerText = "Saved successfully!";
-                saveBtn.innerText = "ðŸ’¾ Save Organized PDF";
+                statusMsg.innerText = 'Saved successfully!';
+                setTimeout(() => { statusMsg.innerText = ''; }, 3000);
+                saveBtn.innerText = 'Save Organized PDF';
                 saveBtn.disabled = false;
-
-                setTimeout(() => { statusMsg.innerText = "" }, 3000);
             } catch (err) {
                 console.error(err);
-                alert("Failed to organize document. See console.");
+                alert('Failed to save. See console.');
                 saveBtn.disabled = false;
-                saveBtn.innerText = "ðŸ’¾ Save Organized PDF";
-                statusMsg.innerText = "";
+                saveBtn.innerText = 'Save Organized PDF';
+                statusMsg.innerText = '';
             }
         });
-
     </script>
 </body>
 

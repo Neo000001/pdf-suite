@@ -9,6 +9,11 @@
     <link rel="stylesheet" href="../src/css/base.css" />
     <link rel="stylesheet" href="../src/css/dashboard.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211"
+        crossorigin="anonymous"></script>
+
     <style>
         .workspace {
             max-width: 800px;
@@ -22,11 +27,24 @@
 
         .upload-box {
             border: 2px dashed #10b981;
-            padding: 3rem;
+            padding: 3.5rem 2rem;
             cursor: pointer;
-            border-radius: 8px;
+            border-radius: 12px;
             margin-bottom: 2rem;
             background: rgba(16, 185, 129, 0.05);
+            transition: all 0.2s;
+        }
+
+        .upload-box:hover {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: #059669;
+        }
+
+        .upload-box svg {
+            width: 48px;
+            height: 48px;
+            color: #10b981;
+            margin-bottom: 0.75rem;
         }
 
         .btn-large {
@@ -36,10 +54,35 @@
             font-weight: 600;
             margin-top: 1rem;
         }
-    </style>
-    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211" crossorigin="anonymous"></script>
+        .stats-bar {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: var(--bg);
+            border-radius: 10px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-item .val {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #10b981;
+        }
+
+        .stat-item .lbl {
+            font-size: 0.8rem;
+            color: var(--fg-muted);
+            margin-top: 2px;
+        }
+    </style>
 </head>
 
 <body>
@@ -56,17 +99,37 @@
 
     <div class="workspace">
         <h1>Compress PDF</h1>
-        <p>Reduce the file size of your PDF locally in the browser.</p>
+        <p style="color:var(--fg-muted); margin-bottom:1.5rem">Reduce the file size of your PDF securely in your
+            browser. No upload to any server.</p>
 
         <div class="upload-box" id="uploadBox">
-            <h2>ðŸ“¦ Select PDF File</h2>
+            <i data-lucide="file-archive"></i>
+            <h2>Select PDF File</h2>
+            <p style="color:var(--fg-muted)">Click to upload and compress</p>
             <input type="file" id="fileInput" accept="application/pdf" hidden>
         </div>
 
-        <div id="actionArea" style="display: none;">
-            <p id="fileInfo" style="margin-bottom: 1.5rem; font-weight: 600;"></p>
-            <button class="btn-primary btn-large" id="processBtn">Compress PDF</button>
-            <p id="statusMsg" style="margin-top: 1rem; color: #10b981;"></p>
+        <div id="actionArea" style="display:none;">
+            <p id="fileInfo" style="margin-bottom:1rem; font-weight:600;"></p>
+
+            <div class="stats-bar" id="statsBar" style="display:none;">
+                <div class="stat-item">
+                    <div class="val" id="origSize">-</div>
+                    <div class="lbl">Original Size</div>
+                </div>
+                <div class="stat-item">
+                    <div class="val" id="newSize">-</div>
+                    <div class="lbl">Compressed Size</div>
+                </div>
+                <div class="stat-item">
+                    <div class="val" id="savedPct">-</div>
+                    <div class="lbl">Saved</div>
+                </div>
+            </div>
+
+            <button class="btn-primary btn-large" id="processBtn" style="background:#10b981;">Compress PDF</button>
+            <p id="statusMsg" style="margin-top:1rem; color:#10b981;"></p>
+            <button class="btn-ghost" id="resetBtn" style="margin-top:0.75rem; width:100%;">Upload Another</button>
         </div>
     </div>
 
@@ -75,71 +138,80 @@
     </div>
 
     <script>
+        lucide.createIcons();
+
         const fileInput = document.getElementById('fileInput');
         const uploadBox = document.getElementById('uploadBox');
         const actionArea = document.getElementById('actionArea');
         const processBtn = document.getElementById('processBtn');
+        const resetBtn = document.getElementById('resetBtn');
         const statusMsg = document.getElementById('statusMsg');
         const fileInfo = document.getElementById('fileInfo');
+        const statsBar = document.getElementById('statsBar');
 
         let currentPdfBytes = null;
         let fileName = '';
         let originalSize = 0;
 
         uploadBox.addEventListener('click', () => fileInput.click());
+        resetBtn.addEventListener('click', () => location.reload());
+
+        function fmtBytes(b) {
+            if (b > 1024 * 1024) return (b / 1024 / 1024).toFixed(2) + ' MB';
+            return (b / 1024).toFixed(1) + ' KB';
+        }
 
         fileInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
-            if (file) {
-                currentPdfBytes = await file.arrayBuffer();
-                fileName = file.name;
-                originalSize = file.size;
-                uploadBox.style.display = 'none';
-                actionArea.style.display = 'block';
-                fileInfo.innerText = `Selected: ${fileName} (${(originalSize / 1024 / 1024).toFixed(2)} MB)`;
-            }
+            if (!file) return;
+            currentPdfBytes = await file.arrayBuffer();
+            fileName = file.name;
+            originalSize = file.size;
+            uploadBox.style.display = 'none';
+            actionArea.style.display = 'block';
+            fileInfo.innerText = `Selected: ${fileName}  (${fmtBytes(originalSize)})`;
         });
 
         processBtn.addEventListener('click', async () => {
             try {
                 processBtn.disabled = true;
-                processBtn.innerText = "Compressing...";
+                processBtn.innerText = 'Compressing...';
+                statsBar.style.display = 'none';
 
-                // Basic re-save using pdf-lib drops unreferenced objects and metadata
                 const { PDFDocument } = PDFLib;
                 const doc = await PDFDocument.load(currentPdfBytes, { updateMetadata: false });
-                // Strip metadata to reduce size
-                doc.setTitle('');
-                doc.setAuthor('');
-                doc.setSubject('');
-                doc.setCreator('');
-                doc.setProducer('');
-                doc.setKeywords([]);
+
+                // Strip all metadata (common source of bloat)
+                doc.setTitle(''); doc.setAuthor(''); doc.setSubject('');
+                doc.setCreator(''); doc.setProducer(''); doc.setKeywords([]);
 
                 const newPdfBytes = await doc.save({ useObjectStreams: true });
-
                 const blob = new Blob([newPdfBytes], { type: 'application/pdf' });
-
                 const newSize = blob.size;
-                let compressionText = `Saved ${((originalSize - newSize) / 1024).toFixed(2)} KB by removing metadata & optimizing objects!`;
-                if (newSize >= originalSize) {
-                    compressionText = "File was already heavily optimized.";
-                }
+
+                // Show stats
+                document.getElementById('origSize').innerText = fmtBytes(originalSize);
+                document.getElementById('newSize').innerText = fmtBytes(newSize);
+                const saved = ((originalSize - newSize) / originalSize * 100);
+                document.getElementById('savedPct').innerText = (saved > 0 ? saved.toFixed(1) + '%' : '0%');
+                statsBar.style.display = 'flex';
 
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
                 link.download = `Compressed_${fileName}`;
                 link.click();
 
-                statusMsg.innerText = "Success! " + compressionText;
-                processBtn.innerText = "Compress PDF";
-                processBtn.disabled = false;
+                statusMsg.innerText = newSize < originalSize
+                    ? `Reduced by ${fmtBytes(originalSize - newSize)}. File downloaded!`
+                    : 'PDF was already optimized — minimal savings possible.';
 
+                processBtn.innerText = 'Compress Again';
+                processBtn.disabled = false;
             } catch (err) {
                 console.error(err);
-                alert("Failed to compress document. See console.");
+                alert('Failed to compress. See console.');
                 processBtn.disabled = false;
-                processBtn.innerText = "Compress PDF";
+                processBtn.innerText = 'Compress PDF';
             }
         });
     </script>
