@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Split PDF - PDFSuite</title>
+    <meta name="description" content="Split specific pages from your PDF fast and secure locally in your browser.">
+
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        .workspace {
+            max-width: 800px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background: var(--bg-soft);
+            border-radius: 16px;
+            border: 1px solid var(--border-subtle);
+            text-align: center;
+        }
+
+        .upload-box {
+            border: 2px dashed var(--accent);
+            padding: 3rem;
+            cursor: pointer;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .page-input {
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+            background: var(--bg);
+            color: var(--fg);
+            width: 100%;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+            <div class="header-actions">
+                <a href="../index.html" class="btn-ghost btn-small">Back to Tools</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="ad-banner-section">
+        <div class="ad-placeholder"><span>Google Ads - 728x90 Top placement</span></div>
+    </div>
+
+    <div class="workspace">
+        <h1>Split PDF</h1>
+        <p>Extract specific pages from your PDF file immediately.</p>
+
+        <div class="upload-box" id="uploadBox">
+            <h2>📂 Select PDF File</h2>
+            <input type="file" id="fileInput" accept="application/pdf" hidden>
+        </div>
+
+        <div id="actionArea" style="display: none;">
+            <p id="fileInfo" style="margin-bottom: 1.5rem; font-weight: 600;"></p>
+
+            <div style="text-align: left; margin-bottom: 1.5rem;">
+                <label>Enter page ranges to extract (e.g. 1-3, 5):</label>
+                <input type="text" class="page-input" id="rangeInput" placeholder="1-3, 5">
+            </div>
+
+            <button class="btn-primary" id="splitBtn" style="width:100%; padding:1rem;">Split and Download PDF</button>
+            <p id="statusMsg" style="margin-top: 1rem; color: #22c55e;"></p>
+        </div>
+    </div>
+
+    <div class="ad-banner-section bottom-ad">
+        <div class="ad-placeholder square"><span>Google Ads - 300x250</span></div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const uploadBox = document.getElementById('uploadBox');
+        const actionArea = document.getElementById('actionArea');
+        const fileInfo = document.getElementById('fileInfo');
+        const splitBtn = document.getElementById('splitBtn');
+        const rangeInput = document.getElementById('rangeInput');
+        const statusMsg = document.getElementById('statusMsg');
+
+        let currentPdfBytes = null;
+        let fileName = '';
+
+        uploadBox.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                currentPdfBytes = await file.arrayBuffer();
+                fileName = file.name;
+                uploadBox.style.display = 'none';
+                actionArea.style.display = 'block';
+                fileInfo.innerText = `Selected: ${fileName}`;
+            }
+        });
+
+        splitBtn.addEventListener('click', async () => {
+            try {
+                splitBtn.disabled = true;
+                splitBtn.innerText = "Processing...";
+
+                const { PDFDocument } = PDFLib;
+                const sourceDoc = await PDFDocument.load(currentPdfBytes);
+                const totalPages = sourceDoc.getPageCount();
+
+                // Parse range string (e.g. "1-3, 5") to array of zero-indexed integers
+                const pagesToExtract = new Set();
+                const ranges = rangeInput.value.split(',');
+
+                for (let r of ranges) {
+                    r = r.trim();
+                    if (r.includes('-')) {
+                        const parts = r.split('-');
+                        let start = parseInt(parts[0]);
+                        let end = parseInt(parts[1]);
+                        if (!isNaN(start) && !isNaN(end)) {
+                            for (let i = start; i <= end; i++) {
+                                if (i > 0 && i <= totalPages) pagesToExtract.add(i - 1);
+                            }
+                        }
+                    } else {
+                        let p = parseInt(r);
+                        if (!isNaN(p) && p > 0 && p <= totalPages) {
+                            pagesToExtract.add(p - 1);
+                        }
+                    }
+                }
+
+                const sortedPages = Array.from(pagesToExtract).sort((a, b) => a - b);
+
+                if (sortedPages.length === 0) {
+                    alert("No valid pages selected. Please check your ranges (Document has " + totalPages + " pages).");
+                    splitBtn.disabled = false;
+                    splitBtn.innerText = "Split and Download PDF";
+                    return;
+                }
+
+                const newPdf = await PDFDocument.create();
+                const copiedPages = await newPdf.copyPages(sourceDoc, sortedPages);
+                copiedPages.forEach((page) => newPdf.addPage(page));
+
+                const newPdfBytes = await newPdf.save();
+
+                const blob = new Blob([newPdfBytes], { type: 'application/pdf' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `Split_${fileName}`;
+                link.click();
+
+                statusMsg.innerText = "Success! Splitted PDF downloaded.";
+                splitBtn.innerText = "Split again";
+                splitBtn.disabled = false;
+
+            } catch (err) {
+                console.error(err);
+                alert("Failed to split document. See console.");
+                splitBtn.disabled = false;
+                splitBtn.innerText = "Split and Download PDF";
+            }
+        });
+    </script>
+</body>
+
+</html>

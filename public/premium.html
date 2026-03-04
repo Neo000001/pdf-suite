@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Feature - PDFSuite PRO</title>
+
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        .pro-workspace {
+            max-width: 600px;
+            margin: 4rem auto;
+            padding: 3rem;
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
+            border-radius: 24px;
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        html[data-theme="light"] .pro-workspace {
+            background: linear-gradient(135deg, #ffffff, #f8fafc);
+            border-color: #c084fc;
+        }
+
+        .pro-badge {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            background: linear-gradient(90deg, #f59e0b, #eab308);
+            color: #fff;
+            font-weight: 800;
+            font-size: 1.2rem;
+            border-radius: 999px;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.4);
+        }
+
+        .pro-title {
+            font-size: 2.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .pro-desc {
+            color: var(--fg-muted);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 2.5rem;
+        }
+
+        .features-list {
+            text-align: left;
+            margin: 0 auto 3rem;
+            max-width: 400px;
+        }
+
+        .features-list li {
+            margin-bottom: 1rem;
+            color: var(--fg);
+            font-size: 1.05rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .btn-upgrade {
+            background: linear-gradient(90deg, #a855f7, #ec4899);
+            color: white;
+            padding: 1.25rem 2.5rem;
+            border-radius: 999px;
+            border: none;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+            box-shadow: 0 15px 30px rgba(236, 72, 153, 0.3);
+        }
+
+        .btn-upgrade:hover {
+            transform: translateY(-3px);
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+            <div class="header-actions"><a href="../index.html" class="btn-ghost btn-small">Back to Tools</a></div>
+        </div>
+    </header>
+
+    <div class="pro-workspace">
+        <div class="pro-badge">PRO FEATURE</div>
+        <h1 class="pro-title">Unlock High-Fidelity Conversion & Advanced Tools</h1>
+        <p class="pro-desc">
+            Features such as exact docx formatting, Microsoft Excel tables, OCR text extraction from scans, and
+            Enterprise Redaction require dedicated server processing.
+        </p>
+
+        <ul class="features-list">
+            <li>✅ <strong>Flawless Formatting:</strong> Word, Excel, PPT perfectly matched.</li>
+            <li>✅ <strong>Advanced OCR Engine:</strong> Extract text from dense scanned images.</li>
+            <li>✅ <strong>Unlimited API Calls:</strong> Automate document processing.</li>
+            <li>✅ <strong>No Ads:</strong> Clean, distraction-free environment.</li>
+        </ul>
+
+        <button class="btn-upgrade" onclick="alert('Stripe Checkout / Subscription logic would open here.')">Upgrade to
+            PDFSuite PRO - $9/mo</button>
+    </div>
+
+    <!-- BOTTOM AD -->
+    <div class="ad-banner-section bottom-ad">
+        <div class="ad-placeholder square"><span>Google Ads - 300x250</span></div>
+    </div>
+
+</body>
+
+</html>

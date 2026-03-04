@@ -1,213 +1,359 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
+
 <head>
   <meta charset="UTF-8" />
-
-  <!-- SEO -->
-  <title>PDFSuit – Free Online PDF Editor & PDF Tools</title>
+  <title>PDFSuite – The Ultimate All-in-One PDF Platform</title>
   <meta name="description"
-        content="PDFSuit is a free online PDF editor. Edit, sign, merge, reorder, convert PDFs directly in your browser. No upload, no watermark." />
+    content="PDFSuite is a free, powerful online PDF editor. Create, edit, sign, merge, compress, and use advanced AI tools on your PDFs securely in your browser." />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Open Graph -->
-  <meta property="og:title" content="PDFSuit – Free Online PDF Tools" />
-  <meta property="og:description"
-        content="Edit PDFs locally in your browser. No upload. No watermark." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://pdfsuite.eebii.com/" />
-
-  <!-- Styles -->
   <link rel="stylesheet" href="src/css/base.css" />
+  <link rel="stylesheet" href="src/css/dashboard.css" />
 
-  <!-- Google Ads (PLACEHOLDER – enable later) -->
-  <!--
-  <script async
-    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXX"
-    crossorigin="anonymous"></script>
-  -->
+  <!-- Modern Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
 
-<!-- ================= HEADER ================= -->
-<header class="site-header">
-  <div class="header-inner">
-    <a href="./index.html" class="logo">PDF<span>Suit</span></a>
-
-    <nav class="nav-links">
-      <a href="#tools">Tools</a>
-      <a href="#how-it-works">How it works</a>
-      <a href="#about">About</a>
-    </nav>
-
-    <div class="header-actions">
-      <a href="./public/editor.html" class="btn-primary btn-small">
-        Open Editor
+  <!-- ================= HEADER ================= -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="./index.html" class="logo">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent); margin-right: 8px;">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        PDF<span>Suite</span>
       </a>
-    </div>
-  </div>
-</header>
 
-<!-- ================= HERO ================= -->
-<section class="hero">
-  <div class="hero-inner">
-    <div class="hero-text">
-      <h1>
-        Free Online PDF Tools<br />
-        <span>Edit. Merge. Convert. Secure.</span>
-      </h1>
-      <p>
-        All PDF tools run directly in your browser.  
-        No upload. No watermark. Maximum privacy.
-      </p>
+      <nav class="nav-links">
+        <a href="#quick-tools">Tools</a>
+        <a href="#features">Features</a>
+        <a href="#ai-tools">AI Powered</a>
+        <a href="#pricing">Pricing</a>
+      </nav>
 
-      <div class="hero-actions">
-        <a href="./public/editor.html" class="btn-primary">
-          Start Editing PDF
-        </a>
-        <a href="#tools" class="btn-ghost">
-          View Tools
+      <div class="header-actions">
+        <button class="theme-toggle" id="themeToggleBtn" aria-label="Toggle Theme">
+          <svg id="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+        <a href="./public/editor.html" class="btn-primary btn-small">
+          Open Editor
         </a>
       </div>
-
-      <p class="hero-note">
-        Beta version – more tools coming soon
-      </p>
     </div>
+  </header>
 
-    <div class="hero-card">
-      <span class="chip">Beta</span>
-      <ul class="hero-list">
-        <li>✅ Local PDF Editing</li>
-        <li>✅ Merge & Reorder Pages</li>
-        <li>✅ Sign & Annotate</li>
-        <li>🔜 PDF → Word</li>
-        <li>🔜 OCR</li>
-      </ul>
-    </div>
-  </div>
-</section>
+  <!-- ================= HERO ================= -->
+  <section class="hero glass-hero">
+    <div class="hero-inner">
+      <div class="hero-text">
+        <div class="badge-new">✨ Introducing PDFSuite AI</div>
+        <h1>
+          Do more with your PDFs.<br />
+          <span class="gradient-text">Edit, Convert, Sign, Automate.</span>
+        </h1>
+        <p>
+          The only PDF platform you'll ever need. Powerful tools to edit locally, convert with high fidelity, compress
+          smartly, and summarize with AI.
+        </p>
 
-<!-- ================= AD SLOT (TOP) ================= -->
-<section class="ad-section">
-  <div class="ad-box">
-    <!-- Google Ad Placeholder -->
-    <span>Advertisement</span>
-  </div>
-</section>
+        <div class="hero-actions">
+          <a href="./public/editor.html" class="btn-primary btn-large">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            Upload File
+          </a>
+          <a href="#quick-tools" class="btn-ghost btn-large">
+            Explore Tools
+          </a>
+        </div>
 
-<!-- ================= TOOLS ================= -->
-<section id="tools" class="section section-alt">
-  <div class="section-inner">
-    <div class="section-header">
-      <h2>All PDF tools in one place</h2>
-      <p>Choose a tool to get started.</p>
-    </div>
-
-    <div class="tools-grid">
-
-      <!-- EDITOR -->
-      <a href="./public/editor.html" class="tool-card">
-        <h3>✏️ Edit PDF</h3>
-        <p>Add text, highlight, draw, sign and save.</p>
-        <span class="tool-link">Open editor →</span>
-      </a>
-
-      <!-- MERGE -->
-      <a href="./public/merge-pdf.html" class="tool-card tool-disabled">
-        <h3>🔗 Merge PDF</h3>
-        <p>Combine multiple PDFs into one file.</p>
-        <span class="tool-link">Coming soon</span>
-      </a>
-
-      <!-- REORDER -->
-      <a href="./public/reorder-pdf.html" class="tool-card tool-disabled">
-        <h3>📑 Reorder Pages</h3>
-        <p>Drag and rearrange PDF pages.</p>
-        <span class="tool-link">Coming soon</span>
-      </a>
-
-      <!-- PDF TO WORD -->
-      <a href="./public/pdf-to-word.html" class="tool-card tool-disabled">
-        <h3>📄 PDF → Word</h3>
-        <p>Convert PDF to editable Word document.</p>
-        <span class="tool-link">Beta</span>
-      </a>
-
-      <!-- COMPRESS -->
-      <a href="./public/compress-pdf.html" class="tool-card tool-disabled">
-        <h3>📦 Compress PDF</h3>
-        <p>Reduce PDF size without losing quality.</p>
-        <span class="tool-link">Planned</span>
-      </a>
-
-      <!-- OCR -->
-      <a href="./public/ocr.html" class="tool-card tool-disabled">
-        <h3>🔍 OCR</h3>
-        <p>Extract text from scanned PDFs.</p>
-        <span class="tool-link">Planned</span>
-      </a>
-
-    </div>
-  </div>
-</section>
-
-<!-- ================= AD SLOT (MIDDLE) ================= -->
-<section class="ad-section">
-  <div class="ad-box">
-    <span>Advertisement</span>
-  </div>
-</section>
-
-<!-- ================= HOW IT WORKS ================= -->
-<section id="how-it-works" class="section">
-  <div class="section-inner">
-    <div class="steps-grid">
-      <div class="step-card">
-        <span class="step-badge">1</span>
-        <h3>Open a PDF</h3>
-        <p>Select a PDF file from your device.</p>
+        <div class="hero-stats">
+          <div class="stat"><span class="highlight">30+</span> Tools</div>
+          <div class="stat"><span class="highlight">100%</span> Private</div>
+          <div class="stat"><span class="highlight">Auto</span> OCR</div>
+        </div>
       </div>
-      <div class="step-card">
-        <span class="step-badge">2</span>
-        <h3>Edit locally</h3>
-        <p>Everything runs inside your browser.</p>
-      </div>
-      <div class="step-card">
-        <span class="step-badge">3</span>
-        <h3>Download</h3>
-        <p>Save your edited file instantly.</p>
+
+      <div class="hero-visual">
+        <div class="floating-card edit-card">
+          <div class="icon">✏️</div>
+          <div class="info">
+            <strong>Smart Editor</strong>
+            <span>Edit text directly</span>
+          </div>
+        </div>
+        <div class="floating-card sign-card">
+          <div class="icon">🖋️</div>
+          <div class="info">
+            <strong>E-Signatures</strong>
+            <span>Sign in seconds</span>
+          </div>
+        </div>
+        <div class="floating-card ai-card">
+          <div class="icon">🤖</div>
+          <div class="info">
+            <strong>AI Summarizer</strong>
+            <span>Read 100 pages in 1 min</span>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ================= ABOUT ================= -->
-<section id="about" class="section section-alt">
-  <div class="section-inner">
-    <h2>Why PDFSuit?</h2>
-    <p>
-      PDFSuit is built for privacy-first PDF editing.
-      No backend. No uploads. Just fast, local tools.
-    </p>
-  </div>
-</section>
-
-<!-- ================= FOOTER ================= -->
-<footer class="site-footer">
-  <div class="footer-inner">
-    <span>© <span id="year"></span> PDFSuit</span>
-    <div class="footer-links">
-      <a href="#">Privacy</a>
-      <a href="#">Terms</a>
+  <!-- ================= SECTION: TOP AD ================= -->
+  <section class="ad-banner-section">
+    <div class="ad-container">
+      <!-- Google Adsense Insert Here -->
+      <div class="ad-placeholder">
+        <span>Advertisement Placement - 728x90</span>
+      </div>
     </div>
-  </div>
-</footer>
+  </section>
 
-<!-- ================= SCRIPTS ================= -->
-<script>
-  document.getElementById("year").textContent = new Date().getFullYear();
-</script>
+  <!-- ================= DASHBOARD CATEGORIES ================= -->
+  <section id="quick-tools" class="section workspace-section">
+    <div class="section-inner">
+
+      <!-- Category 1: Most Popular / Essential -->
+      <div class="category-group">
+        <div class="category-header">
+          <h2>Essentials</h2>
+          <p>The core tools you need every day</p>
+        </div>
+        <div class="tools-grid">
+          <a href="./public/editor.html" class="tool-card premium-card">
+            <div class="tool-icon gradient-bg-1">✏️</div>
+            <div class="tool-content">
+              <h3>Edit PDF</h3>
+              <p>Add text, highlight, images, and shapes directly.</p>
+            </div>
+          </a>
+          <a href="./public/merge.html" class="tool-card">
+            <div class="tool-icon">🔗</div>
+            <div class="tool-content">
+              <h3>Merge PDF</h3>
+              <p>Combine multiple PDFs into one document.</p>
+            </div>
+          </a>
+          <a href="./public/premium.html" class="tool-card">
+            <div class="tool-icon">📦</div>
+            <div class="tool-content">
+              <h3>Compress PDF</h3>
+              <p>Reduce file size instantly without losing quality.</p>
+            </div>
+          </a>
+          <a href="./public/editor.html" class="tool-card premium-card">
+            <div class="tool-icon gradient-bg-2">🖋️</div>
+            <div class="tool-content">
+              <h3>Fill & Sign</h3>
+              <p>Create e-signatures and fill out PDF forms.</p>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- Category 2: Convert FROM PDF -->
+      <div class="category-group">
+        <div class="category-header">
+          <h2>Convert from PDF</h2>
+          <p>Extract your data back to editable formats</p>
+        </div>
+        <div class="tools-grid small-grid">
+          <a href="./public/premium.html" class="tool-card small">
+            <div class="tool-icon">📄</div>
+            <h3>PDF to Word</h3>
+          </a>
+          <a href="./public/premium.html" class="tool-card small">
+            <div class="tool-icon">📊</div>
+            <h3>PDF to Excel</h3>
+          </a>
+          <a href="./public/premium.html" class="tool-card small">
+            <div class="tool-icon">📽️</div>
+            <h3>PDF to PPT</h3>
+          </a>
+          <a href="./public/pdf-to-jpg.html" class="tool-card small">
+            <div class="tool-icon">🖼️</div>
+            <h3>PDF to JPG</h3>
+          </a>
+          <a href="./public/pdf-to-text.html" class="tool-card small">
+            <div class="tool-icon">📝</div>
+            <h3>PDF to Text</h3>
+          </a>
+        </div>
+      </div>
+
+      <!-- Category 3: Convert TO PDF -->
+      <div class="category-group">
+        <div class="category-header">
+          <h2>Convert to PDF</h2>
+          <p>Turn any file into a standard PDF</p>
+        </div>
+        <div class="tools-grid small-grid">
+          <a href="./public/premium.html" class="tool-card small">
+            <div class="tool-icon">📄✍️</div>
+            <h3>Word to PDF</h3>
+          </a>
+          <a href="./public/premium.html" class="tool-card small">
+            <div class="tool-icon">📊✍️</div>
+            <h3>Excel to PDF</h3>
+          </a>
+          <a href="./public/jpg-to-pdf.html" class="tool-card small">
+            <div class="tool-icon">🖼️✍️</div>
+            <h3>JPG to PDF</h3>
+          </a>
+          <a href="./public/scan-to-pdf.html" class="tool-card small">
+            <div class="tool-icon">📸✍️</div>
+            <h3>Scan to PDF</h3>
+          </a>
+        </div>
+      </div>
+
+      <!-- Category 4: Organize Pages -->
+      <div class="category-group">
+        <div class="category-header">
+          <h2>Organize Pages</h2>
+          <p>Manage the structure of your document</p>
+        </div>
+        <div class="tools-grid">
+          <a href="./public/split.html" class="tool-card">
+            <div class="tool-icon">✂️</div>
+            <div class="tool-content">
+              <h3>Split PDF</h3>
+              <p>Extract pages or split into multiple files.</p>
+            </div>
+          </a>
+          <a href="./public/remove-pages.html" class="tool-card">
+            <div class="tool-icon">🗑️</div>
+            <div class="tool-content">
+              <h3>Remove Pages</h3>
+              <p>Delete unwanted pages from your document.</p>
+            </div>
+          </a>
+          <a href="./public/premium.html" class="tool-card">
+            <div class="tool-icon">🔄</div>
+            <div class="tool-content">
+              <h3>Rotate/Reorder</h3>
+              <p>Change orientation and drag pages to reorder.</p>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- Category 5: Security & Advanced -->
+      <div class="category-group" id="ai-tools">
+        <div class="category-header">
+          <h2>Advanced & AI Tools <span class="badge-pro">PRO</span></h2>
+          <p>Next-gen features for professional workflows</p>
+        </div>
+        <div class="tools-grid">
+          <a href="./public/premium.html" class="tool-card ai-card-style">
+            <div class="tool-icon">🔍</div>
+            <div class="tool-content">
+              <h3>OCR Text Recognition</h3>
+              <p>Extract editable text from scanned documents & images.</p>
+            </div>
+          </a>
+          <a href="./public/ai-summarizer.html" class="tool-card ai-card-style">
+            <div class="tool-icon">🤖</div>
+            <div class="tool-content">
+              <h3>AI Summarizer</h3>
+              <p>Chat with your PDF and get instant summaries.</p>
+            </div>
+          </a>
+          <a href="./public/premium.html" class="tool-card">
+            <div class="tool-icon">🔒</div>
+            <div class="tool-content">
+              <h3>Protect PDF</h3>
+              <p>Add passwords and restrict permissions.</p>
+            </div>
+          </a>
+          <a href="./public/premium.html" class="tool-card">
+            <div class="tool-icon">🕵️</div>
+            <div class="tool-content">
+              <h3>Redact PDF</h3>
+              <p>Permanently black out sensitive information.</p>
+            </div>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= SECTION: BOTTOM AD ================= -->
+  <section class="ad-banner-section bottom-ad">
+    <div class="ad-container">
+      <div class="ad-placeholder square">
+        <span>Advertisement - 300x250</span>
+      </div>
+      <div class="ad-placeholder square">
+        <span>Advertisement - 300x250</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="logo">PDF<span>Suite</span></div>
+        <p>The ultimate toolkit for all your PDF needs.</p>
+      </div>
+      <div class="footer-links">
+        <div class="link-group">
+          <h4>Product</h4>
+          <a href="#">Pricing</a>
+          <a href="#">Desktop App</a>
+          <a href="#">API</a>
+        </div>
+        <div class="link-group">
+          <h4>Legal</h4>
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span id="year"></span> PDFSuite. All rights reserved.</span>
+    </div>
+  </footer>
+
+  <!-- ================= SCRIPTS ================= -->
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    // Theme Toggler
+    const toggleBtn = document.getElementById('themeToggleBtn');
+    const htmlEl = document.documentElement;
+    const moonIcon = document.getElementById('moon-icon');
+
+    toggleBtn.addEventListener('click', () => {
+      if (htmlEl.getAttribute('data-theme') === 'dark') {
+        htmlEl.setAttribute('data-theme', 'light');
+        moonIcon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+      } else {
+        htmlEl.setAttribute('data-theme', 'dark');
+        moonIcon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+      }
+    });
+  </script>
 
 </body>
+
 </html>

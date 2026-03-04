@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan to PDF - PDFSuite</title>
+
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        .workspace {
+            max-width: 900px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background: var(--bg-soft);
+            border-radius: 16px;
+            border: 1px solid var(--border-subtle);
+            text-align: center;
+        }
+
+        #camera-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #videoElement {
+            width: 100%;
+            display: block;
+        }
+
+        #captureBtn {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 4px solid var(--accent);
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        #captureBtn:active {
+            transform: translateX(-50%) scale(0.95);
+        }
+
+        .gallery {
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+            padding: 1rem;
+            background: var(--bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+            min-height: 120px;
+            margin-bottom: 2rem;
+        }
+
+        .scanned-img {
+            height: 100px;
+            border-radius: 4px;
+            border: 2px solid var(--accent);
+        }
+
+        .btn-large {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            width: 100%;
+            max-width: 400px;
+        }
+    </style>
+
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+</head>
+
+<body>
+
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+            <div class="header-actions"><a href="../index.html" class="btn-ghost btn-small">Back to Tools</a></div>
+        </div>
+    </header>
+
+    <div class="workspace">
+        <h1>Scan to PDF</h1>
+        <p>Use your device's camera to scan documents and instantly create a multi-page PDF locally.</p>
+
+        <div id="setupArea">
+            <button class="btn-primary btn-large" id="startCamBtn">📸 Access Camera</button>
+        </div>
+
+        <div id="scanArea" style="display: none;">
+            <div id="camera-container">
+                <video id="videoElement" autoplay playsinline></video>
+                <button id="captureBtn" title="Take Photo"></button>
+            </div>
+
+            <div style="text-align: left;"><label><strong>Scanned Pages:</strong></label></div>
+            <div class="gallery" id="gallery"></div>
+
+            <button class="btn-primary btn-large" id="finishPdfBtn" disabled>💾 Save as PDF Document</button>
+            <p id="statusMsg" style="margin-top: 1rem; color: #22c55e;"></p>
+        </div>
+    </div>
+
+    <canvas id="canvasElement" style="display: none;"></canvas>
+
+    <script>
+        const startCamBtn = document.getElementById('startCamBtn');
+        const scanArea = document.getElementById('scanArea');
+        const setupArea = document.getElementById('setupArea');
+        const video = document.getElementById('videoElement');
+        const captureBtn = document.getElementById('captureBtn');
+        const canvas = document.getElementById('canvasElement');
+        const gallery = document.getElementById('gallery');
+        const finishPdfBtn = document.getElementById('finishPdfBtn');
+        const statusMsg = document.getElementById('statusMsg');
+
+        let stream = null;
+        let images = []; // Base64 data URLs
+
+        startCamBtn.addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } }
+                });
+                video.srcObject = stream;
+                setupArea.style.display = 'none';
+                scanArea.style.display = 'block';
+            } catch (err) {
+                alert("Camera access denied or not available. Please ensure you have given permission.");
+                console.error(err);
+            }
+        });
+
+        captureBtn.addEventListener('click', () => {
+            // Set canvas to actual video resolution
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const imgData = canvas.toDataURL('image/jpeg', 0.85);
+            images.push(imgData);
+
+            const imgEl = document.createElement('img');
+            imgEl.src = imgData;
+            imgEl.className = 'scanned-img';
+            gallery.appendChild(imgEl);
+
+            finishPdfBtn.disabled = false;
+        });
+
+        finishPdfBtn.addEventListener('click', async () => {
+            if (images.length === 0) return;
+
+            try {
+                finishPdfBtn.disabled = true;
+                finishPdfBtn.innerText = "Generating PDF...";
+
+                const { PDFDocument } = PDFLib;
+                const pdfDoc = await PDFDocument.create();
+
+                for (const b64 of images) {
+                    const imgBytes = await fetch(b64).then(res => res.arrayBuffer());
+                    const pdfImage = await pdfDoc.embedJpg(imgBytes);
+                    const { width, height } = pdfImage.scale(1);
+                    const page = pdfDoc.addPage([width, height]);
+                    page.drawImage(pdfImage, { x: 0, y: 0, width, height });
+                }
+
+                const pdfBytes = await pdfDoc.save();
+
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `ScannedDoc_PDFSuite_${new Date().getTime()}.pdf`;
+                link.click();
+
+                statusMsg.innerText = "PDF created safely in your browser!";
+                finishPdfBtn.innerText = "Save to PDF Document";
+                finishPdfBtn.disabled = false;
+
+            } catch (err) {
+                console.error(err);
+                statusMsg.innerText = "Error generating PDF.";
+                statusMsg.style.color = '#ef4444';
+                finishPdfBtn.disabled = false;
+                finishPdfBtn.innerText = "Save to PDF Document";
+            }
+        });
+    </script>
+</body>
+
+</html>

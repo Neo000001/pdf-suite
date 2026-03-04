@@ -1,75 +1,381 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
+
 <head>
     <meta charset="UTF-8">
-    <title>PDFSuit Editor</title>
-    <link rel="stylesheet" href="editor.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit PDF - PDFSuite</title>
+
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        .workspace-layout {
+            display: flex;
+            height: 85vh;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .sidebar {
+            width: 250px;
+            background: var(--bg-soft);
+            border-right: 1px solid var(--border-subtle);
+            padding: 1.5rem;
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+
+        .editor-main {
+            flex: 1;
+            background: var(--bg);
+            position: relative;
+            overflow: auto;
+            display: flex;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .tools-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .tool-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            color: var(--fg);
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        .tool-btn:hover {
+            background: rgba(96, 165, 250, 0.1);
+            border-color: var(--accent);
+        }
+
+        .tool-btn.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .pdf-container {
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        canvas {
+            display: block;
+        }
+
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .text-box {
+            position: absolute;
+            pointer-events: auto;
+            border: 1px dashed var(--accent);
+            background: transparent;
+            font-family: Helvetica, sans-serif;
+            font-size: 16px;
+            color: #000;
+            padding: 2px;
+            min-width: 50px;
+            outline: none;
+            cursor: text;
+        }
+
+        .toolbar-top {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        /* Upload Area inside main */
+        #uploadArea {
+            margin: auto;
+            text-align: center;
+            padding: 4rem;
+            border: 2px dashed var(--border-subtle);
+            border-radius: 16px;
+            cursor: pointer;
+        }
+
+        #uploadArea:hover {
+            border-color: var(--accent);
+            background: rgba(96, 165, 250, 0.05);
+        }
+    </style>
+
+    <!-- PDF.js for Viewing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <!-- PDF-LIB for Exporting Edits -->
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 </head>
+
 <body>
 
-<header class="topbar">
-    <div class="logo">PDF<span>Suit</span></div>
-    
-    <div class="toolbar">
-        <select id="font-size">
-            <option value="12">12px</option>
-            <option value="16" selected>16px</option>
-            <option value="20">20px</option>
-            <option value="24">24px</option>
-            <option value="32">32px</option>
-        </select>
-
-        <div class="divider"></div>
-        
-        <span>Size:</span>
-        <input type="range" id="brush-size" min="1" max="20" value="4">
-
-        <div class="divider"></div>
-
-        <button id="undo-btn" title="Undo">↶</button>
-        <button id="delete-btn" title="Delete Selected">🗑</button>
-        
-        <div class="divider"></div>
-
-        <button id="save-btn" class="save">Export PDF</button>
-    </div>
-</header>
-
-<div class="editor-root">
-    <aside class="leftbar">
-        <button class="tool-icon-btn active" data-tool="select" title="Select">◯</button>
-        <button class="tool-icon-btn" data-tool="pen" title="Pen">🖊</button>
-        <button class="tool-icon-btn" data-tool="highlight" title="Highlight">🟨</button>
-        <button class="tool-icon-btn" data-tool="eraser" title="Eraser">🧽</button>
-        <button class="tool-icon-btn" data-tool="text" title="Add Text">T+</button>
-        <button class="tool-icon-btn" data-tool="edit-text" title="Edit PDF Text">✎</button>
-        
-        <input type="file" id="file-input" accept="application/pdf" hidden>
-        <button class="open-btn" onclick="document.getElementById('file-input').click()">📂</button>
-    </aside>
-
-    <main class="workspace">
-        <div id="empty-state">
-            <h2>Open a PDF to begin</h2>
-            <button onclick="document.getElementById('file-input').click()">Select PDF</button>
-        </div>
-
-        <div class="canvas-wrapper">
-            <div id="canvas-inner">
-                <canvas id="pdf-canvas"></canvas>
-                <canvas id="draw-canvas"></canvas>
-                <div id="overlay-layer"></div>
+    <!-- HEADER -->
+    <header class="site-header">
+        <div class="header-inner" style="max-width: 100%;">
+            <a href="../index.html" class="logo">PDF<span>Suite</span> | Editor</a>
+            <div class="header-actions">
+                <button class="btn-primary btn-small" id="exportBtn" disabled>Export PDF</button>
             </div>
         </div>
+    </header>
 
-        <div id="page-controls">
-            <span id="page-label">Page 0 / 0</span>
+    <!-- TOP AD -->
+    <div class="ad-banner-section">
+        <div class="ad-container">
+            <div class="ad-placeholder"><span>Google Ads - 728x90</span></div>
         </div>
-    </main>
-</div>
+    </div>
 
-<script src="editor-init.js"></script>
+    <div class="workspace-layout">
+        <aside class="sidebar">
+            <h3 style="margin-top:0;">Tools</h3>
+            <div class="tools-list">
+                <button class="tool-btn active" id="tool-view">👁️ View / Select</button>
+                <button class="tool-btn" id="tool-text">T Add Text Clickable</button>
+            </div>
+
+            <div class="toolbar-top" id="pageControls" style="display:none">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
+                    <button class="btn-ghost" id="prevPage" style="padding: 0.2rem 0.5rem">◀</button>
+                    <span id="pageInfo">Page 1 / 1</span>
+                    <button class="btn-ghost" id="nextPage" style="padding: 0.2rem 0.5rem">▶</button>
+                </div>
+                <p style="font-size:0.8rem; color: var(--fg-muted);">
+                    Instructions:<br> Select 'Add Text Clickable', then click anywhere on the document to add a text
+                    overlay.
+                    When done, click "Export PDF" in the header.
+                </p>
+            </div>
+        </aside>
+
+        <main class="editor-main" id="mainArea">
+            <div id="uploadArea">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📂</div>
+                <h3>Open PDF Document</h3>
+                <p style="color:var(--fg-muted)">Click or Drag & Drop to begin editing</p>
+                <input type="file" id="fileInput" accept="application/pdf" hidden>
+            </div>
+
+            <div class="pdf-container" id="pdfViewer" style="display:none;">
+                <canvas id="pdfCanvas"></canvas>
+                <div id="overlay"></div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const pdfViewer = document.getElementById('pdfViewer');
+        const canvas = document.getElementById('pdfCanvas');
+        const overlay = document.getElementById('overlay');
+        const ctx = canvas.getContext('2d');
+        const exportBtn = document.getElementById('exportBtn');
+
+        let originalPdfBytes = null;
+        let pdfDoc = null;
+        let pageNum = 1;
+        let currentRenderTask = null;
+        let scale = 1.2;
+        let currentTool = 'view';
+
+        // Structure to hold edits per page
+        const textEdits = {}; // { 1: [{text, x, y}], 2: [...] }
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file && file.type === 'application/pdf') {
+                originalPdfBytes = await file.arrayBuffer();
+                const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(originalPdfBytes) });
+                pdfDoc = await loadingTask.promise;
+
+                uploadArea.style.display = 'none';
+                pdfViewer.style.display = 'block';
+                document.getElementById('pageControls').style.display = 'block';
+                exportBtn.disabled = false;
+
+                renderPage(pageNum);
+            }
+        });
+
+        async function renderPage(num) {
+            document.getElementById('pageInfo').innerText = `Page ${num} / ${pdfDoc.numPages}`;
+
+            const page = await pdfDoc.getPage(num);
+            const viewport = page.getViewport({ scale: scale });
+
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            pdfViewer.style.width = `${viewport.width}px`;
+            pdfViewer.style.height = `${viewport.height}px`;
+
+            overlay.innerHTML = '';
+            restoreEditsForPage(num);
+
+            const renderContext = { canvasContext: ctx, viewport: viewport };
+            if (currentRenderTask) { currentRenderTask.cancel(); }
+            currentRenderTask = page.render(renderContext);
+        }
+
+        document.getElementById('prevPage').addEventListener('click', () => {
+            if (pageNum <= 1) return;
+            saveEditsForCurrentPage();
+            pageNum--;
+            renderPage(pageNum);
+        });
+
+        document.getElementById('nextPage').addEventListener('click', () => {
+            if (pageNum >= pdfDoc.numPages) return;
+            saveEditsForCurrentPage();
+            pageNum++;
+            renderPage(pageNum);
+        });
+
+        // Tool switching
+        document.getElementById('tool-view').addEventListener('click', (e) => {
+            currentTool = 'view';
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+        });
+
+        document.getElementById('tool-text').addEventListener('click', (e) => {
+            currentTool = 'text';
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+        });
+
+        // Adding Text
+        overlay.addEventListener('click', (e) => {
+            if (currentTool === 'text') {
+                if (e.target !== overlay) return; // Don't trigger if clicking an existing text box
+
+                const rect = overlay.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                const input = document.createElement('div');
+                input.contentEditable = true;
+                input.className = 'text-box';
+                input.style.left = `${x}px`;
+                input.style.top = `${y}px`;
+                input.innerText = 'Type here';
+
+                overlay.appendChild(input);
+                input.focus();
+
+                // Auto select tool switch back to view
+                currentTool = 'view';
+                document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById('tool-view').classList.add('active');
+            }
+        });
+
+        function saveEditsForCurrentPage() {
+            const inputs = overlay.querySelectorAll('.text-box');
+            const edits = [];
+            inputs.forEach(inp => {
+                if (inp.innerText.trim() !== '') {
+                    edits.push({
+                        text: inp.innerText,
+                        x: parseFloat(inp.style.left),
+                        y: parseFloat(inp.style.top)
+                    });
+                }
+            });
+            textEdits[pageNum] = edits;
+        }
+
+        function restoreEditsForPage(num) {
+            const edits = textEdits[num] || [];
+            edits.forEach(edit => {
+                const input = document.createElement('div');
+                input.contentEditable = true;
+                input.className = 'text-box';
+                input.style.left = `${edit.x}px`;
+                input.style.top = `${edit.y}px`;
+                input.innerText = edit.text;
+                overlay.appendChild(input);
+            });
+        }
+
+        // Export PDF
+        exportBtn.addEventListener('click', async () => {
+            if (!originalPdfBytes) return;
+
+            exportBtn.innerText = "Exporting...";
+            exportBtn.disabled = true;
+
+            saveEditsForCurrentPage(); // Save current page state
+
+            const { PDFDocument, rgb } = PDFLib;
+            const doc = await PDFDocument.load(originalPdfBytes);
+            const pages = doc.getPages();
+
+            for (let i = 1; i <= doc.getPageCount(); i++) {
+                const edits = textEdits[i];
+                if (!edits || edits.length === 0) continue;
+
+                const page = pages[i - 1];
+                const { height } = page.getSize();
+
+                // We rendered at a certain scale, need to map coordinates back to pdf points
+                // Our canvas height = page point height * scale
+                // pdf X = canvas X / scale
+                // pdf Y (from bottom left) = height - (canvas Y / scale) 
+
+                for (let edit of edits) {
+                    const pdfX = edit.x / scale;
+                    // adjusting Y a bit down for baseline offset in PDF drawing
+                    const pdfY = height - (edit.y / scale) - (16 / scale);
+
+                    page.drawText(edit.text, {
+                        x: pdfX,
+                        y: pdfY,
+                        size: 16 / scale, // Normalize font size based on scale
+                        color: rgb(0, 0, 0),
+                    });
+                }
+            }
+
+            const modifiedPdfBytes = await doc.save();
+            const blob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'Edited_PDFSuite.pdf';
+            link.click();
+
+            exportBtn.innerText = "Export PDF";
+            exportBtn.disabled = false;
+        });
+
+    </script>
 </body>
+
 </html>
