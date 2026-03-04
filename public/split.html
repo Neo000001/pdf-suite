@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" data-theme="dark">
 
 <head>
@@ -127,6 +127,8 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211" crossorigin="anonymous"></script>
 </head>
 
 <body>
@@ -140,7 +142,7 @@
 
     <div class="workspace">
         <div class="upload-box" id="uploadBox">
-            <h2 style="color: #06b6d4;">✂️ Visually Split PDF</h2>
+            <h2 style="color: #06b6d4;">Visually Split PDF</h2>
             <p style="color:var(--fg-muted)">Upload a PDF. Click pages to select them for extraction into a new
                 document.</p>
             <input type="file" id="fileInput" accept="application/pdf" hidden>
@@ -156,7 +158,7 @@
                 <div style="display:flex; gap: 1rem; align-items:center;">
                     <span id="statusMsg" style="font-size:0.9rem; color:#22c55e;"></span>
                     <button class="btn-primary" id="saveBtn"
-                        style="background:#06b6d4; pointer-events: none; opacity: 0.5;">✂️ Extract Pages</button>
+                        style="background:#06b6d4; pointer-events: none; opacity: 0.5;">Extract Pages</button>
                 </div>
             </div>
 
@@ -222,7 +224,7 @@
 
                 const overlay = document.createElement('div');
                 overlay.className = 'extract-badge';
-                overlay.innerText = '✓';
+                overlay.innerText = 'âœ“';
 
                 const canvas = document.createElement('canvas');
                 canvas.className = 'page-canvas';
@@ -305,7 +307,7 @@
                 link.click();
 
                 statusMsg.innerText = "Extracted document saved!";
-                saveBtn.innerText = "✂️ Extract Pages";
+                saveBtn.innerText = "Extract Pages";
                 saveBtn.disabled = false;
             } catch (err) {
                 console.error(err);

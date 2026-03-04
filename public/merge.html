@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" data-theme="dark">
 
 <head>
@@ -170,6 +170,8 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211" crossorigin="anonymous"></script>
 </head>
 
 <body>
@@ -184,7 +186,7 @@
     <div class="workspace">
 
         <div class="upload-box" id="uploadBox">
-            <h2 style="color: #8b5cf6;">🔗 Visually Merge PDFs</h2>
+            <h2 style="color: #8b5cf6;">ðŸ”— Visually Merge PDFs</h2>
             <p style="color:var(--fg-muted)">Upload multiple PDF files. Drag and drop the documents to set the merge
                 order.</p>
             <input type="file" id="fileInput" accept="application/pdf" multiple hidden>
@@ -199,7 +201,7 @@
                 </div>
                 <div style="display:flex; gap: 1rem; align-items:center;">
                     <span id="statusMsg" style="font-size:0.9rem; color:#22c55e;"></span>
-                    <button class="btn-primary" id="saveBtn" style="background:#8b5cf6;">🔗 Combine PDFs</button>
+                    <button class="btn-primary" id="saveBtn" style="background:#8b5cf6;">ðŸ”— Combine PDFs</button>
                 </div>
             </div>
 
@@ -277,7 +279,7 @@
 
             const removeBtn = document.createElement('button');
             removeBtn.className = 'remove-doc-btn';
-            removeBtn.innerText = '×';
+            removeBtn.innerText = 'Ã—';
             removeBtn.title = "Remove Document";
             removeBtn.onclick = (e) => {
                 e.stopPropagation();
@@ -407,13 +409,13 @@
                 link.click();
 
                 statusMsg.innerText = "Merge Successful!";
-                saveBtn.innerText = "🔗 Combine PDFs";
+                saveBtn.innerText = "ðŸ”— Combine PDFs";
                 saveBtn.disabled = false;
             } catch (err) {
                 console.error(err);
                 alert("Failed to merge. See console.");
                 saveBtn.disabled = false;
-                saveBtn.innerText = "🔗 Combine PDFs";
+                saveBtn.innerText = "ðŸ”— Combine PDFs";
                 statusMsg.innerText = "";
             }
         });
