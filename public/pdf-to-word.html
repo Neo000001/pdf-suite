@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <title>PDF to Word - PDFSuite</title>
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <style>
+        .workspace {
+            max-width: 800px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background: var(--bg-soft);
+            border-radius: 16px;
+            border: 1px solid var(--border-subtle);
+            text-align: center;
+        }
+
+        .upload-box {
+            border: 2px dashed #3b82f6;
+            padding: 3rem;
+            cursor: pointer;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .btn-large {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            width: 100%;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+            <div class="header-actions"><a href="../index.html" class="btn-ghost btn-small">Back to Tools</a></div>
+        </div>
+    </header>
+    <div class="ad-banner-section">
+        <div class="ad-placeholder"><span>Google Ads - 728x90 Top placement</span></div>
+    </div>
+
+    <div class="workspace">
+        <h1>PDF to Word DOCX</h1>
+        <p>Extract all text locally into a Microsoft Word readable format.</p>
+        <div class="upload-box" id="uploadBox">
+            <h2>📄 Select PDF File</h2>
+            <input type="file" id="fileInput" accept="application/pdf" hidden>
+        </div>
+        <div id="actionArea" style="display: none;">
+            <p id="fileInfo" style="margin-bottom: 1.5rem; font-weight: 600; text-align: left;"></p>
+            <button class="btn-primary btn-large" id="downloadBtn" disabled>Download Word Document</button>
+            <p id="statusMsg" style="margin-top: 1rem; color: #a855f7;"></p>
+        </div>
+    </div>
+
+    <div class="ad-banner-section bottom-ad">
+        <div class="ad-placeholder square"><span>Google Ads - 300x250</span></div>
+    </div>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        const fileInput = document.getElementById('fileInput');
+        const uploadBox = document.getElementById('uploadBox');
+        const actionArea = document.getElementById('actionArea');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const statusMsg = document.getElementById('statusMsg');
+        const fileInfo = document.getElementById('fileInfo');
+
+        let fileName = '';
+        let extractedText = '';
+
+        uploadBox.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                fileName = file.name.replace('.pdf', '');
+                uploadBox.style.display = 'none';
+                actionArea.style.display = 'block';
+                fileInfo.innerText = `Source: ${file.name}`;
+
+                try {
+                    statusMsg.innerText = "Extracting formatting... please wait.";
+                    const arrayBuffer = await file.arrayBuffer();
+                    const doc = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
+
+                    let fullText = "<html><body>";
+                    for (let i = 1; i <= doc.numPages; i++) {
+                        const page = await doc.getPage(i);
+                        const content = await page.getTextContent();
+                        const strings = content.items.map(item => item.str);
+                        fullText += `<h2>--- Page ${i} ---</h2><p>` + strings.join(" ") + "</p><br>";
+                    }
+                    fullText += "</body></html>";
+                    extractedText = fullText;
+                    statusMsg.innerText = "Conversion ready! You can now download your word-compatible document.";
+                    downloadBtn.disabled = false;
+                } catch (err) {
+                    console.error(err);
+                    statusMsg.innerText = "Failed to extract text. This might be a scanned image-only PDF. (Try OCR)";
+                    statusMsg.style.color = "#ef4444";
+                }
+            }
+        });
+
+        downloadBtn.addEventListener('click', () => {
+            if (!extractedText) return;
+            const blob = new Blob(['\ufeff', extractedText], {
+                type: 'application/msword;charset=utf-8'
+            });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${fileName}_Converted.doc`;
+            link.click();
+        });
+    </script>
+</body>
+
+</html>

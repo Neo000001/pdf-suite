@@ -4,83 +4,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Split PDF - PDFSuite</title>
-    <meta name="description" content="Split specific pages from your PDF fast and secure locally in your browser.">
+    <title>Visually Split PDF - PDFSuite</title>
 
     <link rel="stylesheet" href="../src/css/base.css" />
     <link rel="stylesheet" href="../src/css/dashboard.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 
     <style>
         .workspace {
-            max-width: 800px;
-            margin: 3rem auto;
-            padding: 2rem;
-            background: var(--bg-soft);
-            border-radius: 16px;
-            border: 1px solid var(--border-subtle);
+            max-width: 1100px;
+            margin: 2rem auto;
+            padding: 1.5rem;
+            background: var(--bg);
+            border: none;
             text-align: center;
         }
 
         .upload-box {
-            border: 2px dashed var(--accent);
-            padding: 3rem;
+            border: 2px dashed #06b6d4;
+            padding: 4rem;
             cursor: pointer;
-            border-radius: 8px;
-            margin-bottom: 2rem;
+            border-radius: 12px;
+            margin: 2rem auto;
+            background: rgba(6, 182, 212, 0.05);
+            max-width: 700px;
         }
 
-        .page-input {
-            padding: 0.75rem;
+        .sticky-toolbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: var(--bg-soft);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
             border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .pages-grid {
+            display: grid;
+            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            padding-bottom: 4rem;
+        }
+
+        .page-thumb-wrapper {
+            position: relative;
+            background: var(--bg-soft);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .page-thumb-wrapper:hover {
+            border-color: #06b6d4;
+            transform: translateY(-3px);
+        }
+
+        .page-thumb-wrapper.selected {
+            border-color: #06b6d4;
+            background: rgba(6, 182, 212, 0.1);
+        }
+
+        .page-thumb-wrapper.selected .extract-badge {
+            display: block;
+        }
+
+        .page-canvas {
+            max-width: 100%;
+            height: auto;
             border: 1px solid var(--border-subtle);
-            background: var(--bg);
-            color: var(--fg);
+            background: #fff;
+            pointer-events: none;
+        }
+
+        .page-info {
             width: 100%;
-            font-size: 1rem;
-            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px dashed var(--border-subtle);
+        }
+
+        .page-num {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--fg-muted);
+            pointer-events: none;
+        }
+
+        .extract-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #06b6d4;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            pointer-events: none;
+        }
+
+        #actionArea {
+            display: none;
         }
     </style>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 </head>
 
 <body>
 
-    <!-- HEADER -->
     <header class="site-header">
         <div class="header-inner">
             <a href="../index.html" class="logo">PDF<span>Suite</span></a>
-            <div class="header-actions">
-                <a href="../index.html" class="btn-ghost btn-small">Back to Tools</a>
-            </div>
+            <div class="header-actions"><a href="../index.html" class="btn-ghost btn-small">Back to Tools</a></div>
         </div>
     </header>
 
-    <div class="ad-banner-section">
-        <div class="ad-placeholder"><span>Google Ads - 728x90 Top placement</span></div>
-    </div>
-
     <div class="workspace">
-        <h1>Split PDF</h1>
-        <p>Extract specific pages from your PDF file immediately.</p>
-
         <div class="upload-box" id="uploadBox">
-            <h2>📂 Select PDF File</h2>
+            <h2 style="color: #06b6d4;">✂️ Visually Split PDF</h2>
+            <p style="color:var(--fg-muted)">Upload a PDF. Click pages to select them for extraction into a new
+                document.</p>
             <input type="file" id="fileInput" accept="application/pdf" hidden>
         </div>
 
-        <div id="actionArea" style="display: none;">
-            <p id="fileInfo" style="margin-bottom: 1.5rem; font-weight: 600;"></p>
-
-            <div style="text-align: left; margin-bottom: 1.5rem;">
-                <label>Enter page ranges to extract (e.g. 1-3, 5):</label>
-                <input type="text" class="page-input" id="rangeInput" placeholder="1-3, 5">
+        <div id="actionArea">
+            <div class="sticky-toolbar">
+                <div style="display:flex; align-items: center;">
+                    <span style="font-weight:600" id="fileTitle">Document</span>
+                    <span style="color:#06b6d4; margin-left:1rem; font-weight:bold; font-size:0.9rem;"
+                        id="selectCountLabel">0 pages selected to extract</span>
+                </div>
+                <div style="display:flex; gap: 1rem; align-items:center;">
+                    <span id="statusMsg" style="font-size:0.9rem; color:#22c55e;"></span>
+                    <button class="btn-primary" id="saveBtn"
+                        style="background:#06b6d4; pointer-events: none; opacity: 0.5;">✂️ Extract Pages</button>
+                </div>
             </div>
 
-            <button class="btn-primary" id="splitBtn" style="width:100%; padding:1rem;">Split and Download PDF</button>
-            <p id="statusMsg" style="margin-top: 1rem; color: #22c55e;"></p>
+            <div class="pages-grid" id="pagesGrid"></div>
         </div>
     </div>
 
@@ -89,92 +169,148 @@
     </div>
 
     <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
         const fileInput = document.getElementById('fileInput');
         const uploadBox = document.getElementById('uploadBox');
         const actionArea = document.getElementById('actionArea');
-        const fileInfo = document.getElementById('fileInfo');
-        const splitBtn = document.getElementById('splitBtn');
-        const rangeInput = document.getElementById('rangeInput');
+        const pagesGrid = document.getElementById('pagesGrid');
+        const fileTitle = document.getElementById('fileTitle');
+        const selectCountLabel = document.getElementById('selectCountLabel');
+        const saveBtn = document.getElementById('saveBtn');
         const statusMsg = document.getElementById('statusMsg');
 
-        let currentPdfBytes = null;
+        let originalPdfBytes = null;
         let fileName = '';
+        let pagesData = []; // { originalIndex: 1, selected: false }
 
         uploadBox.addEventListener('click', () => fileInput.click());
 
         fileInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (file) {
-                currentPdfBytes = await file.arrayBuffer();
                 fileName = file.name;
+                originalPdfBytes = await file.arrayBuffer();
+
                 uploadBox.style.display = 'none';
                 actionArea.style.display = 'block';
-                fileInfo.innerText = `Selected: ${fileName}`;
+                fileTitle.innerText = fileName;
+
+                statusMsg.innerText = "Extracting pages...";
+                await renderThumbnails();
+                statusMsg.innerText = "Hold Shift to select a range!";
             }
         });
 
-        splitBtn.addEventListener('click', async () => {
-            try {
-                splitBtn.disabled = true;
-                splitBtn.innerText = "Processing...";
+        let lastClickedIdx = -1;
 
-                const { PDFDocument } = PDFLib;
-                const sourceDoc = await PDFDocument.load(currentPdfBytes);
-                const totalPages = sourceDoc.getPageCount();
+        async function renderThumbnails() {
+            pagesGrid.innerHTML = '';
+            pagesData = [];
 
-                // Parse range string (e.g. "1-3, 5") to array of zero-indexed integers
-                const pagesToExtract = new Set();
-                const ranges = rangeInput.value.split(',');
+            const doc = await pdfjsLib.getDocument({ data: new Uint8Array(originalPdfBytes) }).promise;
 
-                for (let r of ranges) {
-                    r = r.trim();
-                    if (r.includes('-')) {
-                        const parts = r.split('-');
-                        let start = parseInt(parts[0]);
-                        let end = parseInt(parts[1]);
-                        if (!isNaN(start) && !isNaN(end)) {
-                            for (let i = start; i <= end; i++) {
-                                if (i > 0 && i <= totalPages) pagesToExtract.add(i - 1);
-                            }
+            for (let i = 1; i <= doc.numPages; i++) {
+                pagesData.push({ originalIndex: i, selected: false });
+
+                const page = await doc.getPage(i);
+                const viewport = page.getViewport({ scale: 0.5 });
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'page-thumb-wrapper';
+                wrapper.dataset.index = i - 1;
+
+                const overlay = document.createElement('div');
+                overlay.className = 'extract-badge';
+                overlay.innerText = '✓';
+
+                const canvas = document.createElement('canvas');
+                canvas.className = 'page-canvas';
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                const ctx = canvas.getContext('2d');
+                await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'page-info';
+                const numSpan = document.createElement('span');
+                numSpan.className = 'page-num';
+                numSpan.innerText = `Page ${i}`;
+                infoDiv.appendChild(numSpan);
+
+                wrapper.appendChild(overlay);
+                wrapper.appendChild(canvas);
+                wrapper.appendChild(infoDiv);
+
+                // Shift + Click Range Select Logic
+                wrapper.addEventListener('click', function (e) {
+                    let idx = parseInt(this.dataset.index);
+
+                    if (e.shiftKey && lastClickedIdx !== -1) {
+                        // Select range
+                        let start = Math.min(lastClickedIdx, idx);
+                        let end = Math.max(lastClickedIdx, idx);
+                        for (let k = start; k <= end; k++) {
+                            pagesData[k].selected = true;
+                            pagesGrid.children[k].classList.add('selected');
                         }
                     } else {
-                        let p = parseInt(r);
-                        if (!isNaN(p) && p > 0 && p <= totalPages) {
-                            pagesToExtract.add(p - 1);
-                        }
+                        pagesData[idx].selected = !pagesData[idx].selected;
+                        this.classList.toggle('selected');
                     }
-                }
 
-                const sortedPages = Array.from(pagesToExtract).sort((a, b) => a - b);
+                    lastClickedIdx = idx;
+                    updateCount();
+                });
 
-                if (sortedPages.length === 0) {
-                    alert("No valid pages selected. Please check your ranges (Document has " + totalPages + " pages).");
-                    splitBtn.disabled = false;
-                    splitBtn.innerText = "Split and Download PDF";
-                    return;
-                }
+                pagesGrid.appendChild(wrapper);
+            }
+        }
 
+        function updateCount() {
+            const selectCount = pagesData.filter(p => p.selected).length;
+            selectCountLabel.innerText = `${selectCount} pages selected format extraction`;
+
+            if (selectCount > 0) {
+                saveBtn.style.pointerEvents = 'auto';
+                saveBtn.style.opacity = '1';
+            } else {
+                saveBtn.style.pointerEvents = 'none';
+                saveBtn.style.opacity = '0.5';
+            }
+        }
+
+        saveBtn.addEventListener('click', async () => {
+            try {
+                const pagesToExtract = pagesData.filter(p => p.selected);
+                if (pagesToExtract.length === 0) return;
+
+                saveBtn.disabled = true;
+                saveBtn.innerText = "Processing...";
+                statusMsg.innerText = "Building Extracted PDF...";
+
+                const { PDFDocument } = PDFLib;
+                const sourceDoc = await PDFDocument.load(originalPdfBytes);
                 const newPdf = await PDFDocument.create();
-                const copiedPages = await newPdf.copyPages(sourceDoc, sortedPages);
-                copiedPages.forEach((page) => newPdf.addPage(page));
+
+                const indicesToKeep = pagesToExtract.map(p => p.originalIndex - 1);
+                const copiedPagesArr = await newPdf.copyPages(sourceDoc, indicesToKeep);
+                copiedPagesArr.forEach(page => newPdf.addPage(page));
 
                 const newPdfBytes = await newPdf.save();
-
                 const blob = new Blob([newPdfBytes], { type: 'application/pdf' });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = `Split_${fileName}`;
+                link.download = `Extracted_${fileName}`;
                 link.click();
 
-                statusMsg.innerText = "Success! Splitted PDF downloaded.";
-                splitBtn.innerText = "Split again";
-                splitBtn.disabled = false;
-
+                statusMsg.innerText = "Extracted document saved!";
+                saveBtn.innerText = "✂️ Extract Pages";
+                saveBtn.disabled = false;
             } catch (err) {
                 console.error(err);
-                alert("Failed to split document. See console.");
-                splitBtn.disabled = false;
-                splitBtn.innerText = "Split and Download PDF";
+                alert("Failed to build document. See console.");
+                saveBtn.disabled = false;
             }
         });
     </script>

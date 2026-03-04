@@ -4,184 +4,292 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Remove PDF Pages - PDFSuite</title>
+    <title>Visually Remove Pages - PDFSuite</title>
 
     <link rel="stylesheet" href="../src/css/base.css" />
     <link rel="stylesheet" href="../src/css/dashboard.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 
     <style>
         .workspace {
-            max-width: 800px;
-            margin: 3rem auto;
-            padding: 2rem;
-            background: var(--bg-soft);
-            border-radius: 16px;
-            border: 1px solid var(--border-subtle);
+            max-width: 1100px;
+            margin: 2rem auto;
+            padding: 1.5rem;
+            background: var(--bg);
+            border: none;
             text-align: center;
         }
 
         .upload-box {
             border: 2px dashed #ef4444;
-            padding: 3rem;
+            padding: 4rem;
             cursor: pointer;
-            border-radius: 8px;
-            margin-bottom: 2rem;
+            border-radius: 12px;
+            margin: 2rem auto;
             background: rgba(239, 68, 68, 0.05);
+            max-width: 700px;
         }
 
-        .page-input {
-            padding: 0.75rem;
-            border-radius: 8px;
-            border: 1px solid var(--border-subtle);
-            background: var(--bg);
-            color: var(--fg);
-            width: 100%;
-            font-size: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .btn-danger {
-            background: #ef4444;
-            color: white;
+        .sticky-toolbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: var(--bg-soft);
+            border-bottom: 1px solid var(--border-subtle);
             padding: 1rem;
-            border: none;
-            border-radius: 999px;
-            width: 100%;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 1.1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
 
-        .btn-danger:hover {
-            background: #dc2626;
+        .pages-grid {
+            display: grid;
+            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            padding-bottom: 4rem;
+        }
+
+        .page-thumb-wrapper {
+            position: relative;
+            background: var(--bg-soft);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .page-thumb-wrapper:hover {
+            border-color: #ef4444;
+            transform: translateY(-3px);
+        }
+
+        .page-thumb-wrapper.selected-to-delete {
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            opacity: 0.6;
+        }
+
+        .page-thumb-wrapper.selected-to-delete .delete-overlay {
+            display: flex;
+        }
+
+        .page-canvas {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid var(--border-subtle);
+            background: #fff;
+            pointer-events: none;
+        }
+
+        .page-info {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px dashed var(--border-subtle);
+        }
+
+        .page-num {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--fg-muted);
+        }
+
+        .delete-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(239, 68, 68, 0.8);
+            color: white;
+            border-radius: 6px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            pointer-events: none;
+            font-weight: bold;
+        }
+
+        #actionArea {
+            display: none;
         }
     </style>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 </head>
 
 <body>
 
-    <!-- HEADER -->
     <header class="site-header">
         <div class="header-inner">
             <a href="../index.html" class="logo">PDF<span>Suite</span></a>
-            <div class="header-actions">
-                <a href="../index.html" class="btn-ghost btn-small">Back to Tools</a>
-            </div>
+            <div class="header-actions"><a href="../index.html" class="btn-ghost btn-small">Back to Tools</a></div>
         </div>
     </header>
 
     <div class="workspace">
-        <h1>Remove PDF Pages</h1>
-        <p>Delete unnecessary pages to clean up your document.</p>
-
         <div class="upload-box" id="uploadBox">
-            <h2>🚮 Drop PDF here to Remove Pages</h2>
+            <h2 style="color: #ef4444;">Visually Remove Pages</h2>
+            <p style="color:var(--fg-muted)">Upload a PDF, then simply click on the pages you want to delete.</p>
             <input type="file" id="fileInput" accept="application/pdf" hidden>
         </div>
 
-        <div id="actionArea" style="display: none;">
-            <p id="fileInfo" style="margin-bottom: 1.5rem; font-weight: 600;"></p>
-
-            <div style="text-align: left; margin-bottom: 1.5rem;">
-                <label>Pages to Delete (e.g. 1, 4-6):</label>
-                <input type="text" class="page-input" id="rangeInput" placeholder="1, 4-6">
+        <div id="actionArea">
+            <div class="sticky-toolbar">
+                <div style="display:flex; align-items: center;">
+                    <span style="font-weight:600" id="fileTitle">Document</span>
+                    <span style="color:#ef4444; margin-left:1rem; font-weight:bold; font-size:0.9rem;"
+                        id="deleteCountLabel">0 pages to delete</span>
+                </div>
+                <div style="display:flex; gap: 1rem; align-items:center;">
+                    <span id="statusMsg" style="font-size:0.9rem; color:#22c55e;"></span>
+                    <button class="btn-primary" id="saveBtn" style="background:#ef4444;">Remove Pages &
+                        Save</button>
+                </div>
             </div>
 
-            <button class="btn-danger" id="processBtn">Delete Selected Pages & Download</button>
-            <p id="statusMsg" style="margin-top: 1rem; color: #22c55e;"></p>
+            <div class="pages-grid" id="pagesGrid"></div>
         </div>
     </div>
 
+    <div class="ad-banner-section bottom-ad">
+        <div class="ad-placeholder square"><span>Google Ads - 300x250</span></div>
+    </div>
+
     <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
         const fileInput = document.getElementById('fileInput');
         const uploadBox = document.getElementById('uploadBox');
         const actionArea = document.getElementById('actionArea');
-        const fileInfo = document.getElementById('fileInfo');
-        const processBtn = document.getElementById('processBtn');
-        const rangeInput = document.getElementById('rangeInput');
+        const pagesGrid = document.getElementById('pagesGrid');
+        const fileTitle = document.getElementById('fileTitle');
+        const deleteCountLabel = document.getElementById('deleteCountLabel');
+        const saveBtn = document.getElementById('saveBtn');
         const statusMsg = document.getElementById('statusMsg');
 
-        let currentPdfBytes = null;
+        let originalPdfBytes = null;
         let fileName = '';
+        let pagesData = []; // { originalIndex: 1, toDelete: false }
 
         uploadBox.addEventListener('click', () => fileInput.click());
 
         fileInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (file) {
-                currentPdfBytes = await file.arrayBuffer();
                 fileName = file.name;
+                originalPdfBytes = await file.arrayBuffer();
+
                 uploadBox.style.display = 'none';
                 actionArea.style.display = 'block';
-                fileInfo.innerText = `Selected: ${fileName}`;
+                fileTitle.innerText = fileName;
+
+                statusMsg.innerText = "Extracting pages...";
+                await renderThumbnails();
+                statusMsg.innerText = "";
             }
         });
 
-        processBtn.addEventListener('click', async () => {
+        async function renderThumbnails() {
+            pagesGrid.innerHTML = '';
+            pagesData = [];
+
+            const doc = await pdfjsLib.getDocument({ data: new Uint8Array(originalPdfBytes) }).promise;
+
+            for (let i = 1; i <= doc.numPages; i++) {
+                pagesData.push({ originalIndex: i, toDelete: false });
+
+                const page = await doc.getPage(i);
+                const viewport = page.getViewport({ scale: 0.5 });
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'page-thumb-wrapper';
+                wrapper.dataset.index = i - 1;
+
+                const overlay = document.createElement('div');
+                overlay.className = 'delete-overlay';
+                overlay.innerText = 'X';
+
+                const canvas = document.createElement('canvas');
+                canvas.className = 'page-canvas';
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                const ctx = canvas.getContext('2d');
+                await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'page-info';
+                const numSpan = document.createElement('span');
+                numSpan.className = 'page-num';
+                numSpan.innerText = `Page ${i}`;
+                infoDiv.appendChild(numSpan);
+
+                wrapper.appendChild(overlay);
+                wrapper.appendChild(canvas);
+                wrapper.appendChild(infoDiv);
+
+                wrapper.addEventListener('click', function () {
+                    let idx = this.dataset.index;
+                    pagesData[idx].toDelete = !pagesData[idx].toDelete;
+                    this.classList.toggle('selected-to-delete');
+                    updateCount();
+                });
+
+                pagesGrid.appendChild(wrapper);
+            }
+        }
+
+        function updateCount() {
+            const deleteCount = pagesData.filter(p => p.toDelete).length;
+            deleteCountLabel.innerText = `${deleteCount} pages selected format deletion`;
+        }
+
+        saveBtn.addEventListener('click', async () => {
             try {
-                processBtn.disabled = true;
-                processBtn.innerText = "Processing...";
-
-                const { PDFDocument } = PDFLib;
-                const sourceDoc = await PDFDocument.load(currentPdfBytes);
-                const totalPages = sourceDoc.getPageCount();
-
-                const pagesToDelete = new Set();
-                const ranges = rangeInput.value.split(',');
-
-                for (let r of ranges) {
-                    r = r.trim();
-                    if (r.includes('-')) {
-                        const parts = r.split('-');
-                        let start = parseInt(parts[0]);
-                        let end = parseInt(parts[1]);
-                        if (!isNaN(start) && !isNaN(end)) {
-                            for (let i = start; i <= end; i++) {
-                                if (i > 0 && i <= totalPages) pagesToDelete.add(i - 1);
-                            }
-                        }
-                    } else {
-                        let p = parseInt(r);
-                        if (!isNaN(p) && p > 0 && p <= totalPages) {
-                            pagesToDelete.add(p - 1);
-                        }
-                    }
-                }
-
-                const sortedPagesToDelete = Array.from(pagesToDelete).sort((a, b) => b - a);
-
-                if (sortedPagesToDelete.length === 0) {
-                    alert("No valid pages selected for removal. (Document has " + totalPages + " pages).");
-                    processBtn.disabled = false;
-                    processBtn.innerText = "Delete Selected Pages & Download";
+                const pagesToKeep = pagesData.filter(p => !p.toDelete);
+                if (pagesToKeep.length === 0) {
+                    alert("You can't delete every page! Leave at least one.");
                     return;
                 }
 
-                for (const pageIndex of sortedPagesToDelete) {
-                    sourceDoc.removePage(pageIndex);
-                }
+                saveBtn.disabled = true;
+                saveBtn.innerText = "Processing...";
+                statusMsg.innerText = "Building PDF...";
 
-                const newPdfBytes = await sourceDoc.save();
+                const { PDFDocument } = PDFLib;
+                const sourceDoc = await PDFDocument.load(originalPdfBytes);
+                const newPdf = await PDFDocument.create();
 
+                const indicesToKeep = pagesToKeep.map(p => p.originalIndex - 1);
+                const copiedPagesArr = await newPdf.copyPages(sourceDoc, indicesToKeep);
+                copiedPagesArr.forEach(page => newPdf.addPage(page));
+
+                const newPdfBytes = await newPdf.save();
                 const blob = new Blob([newPdfBytes], { type: 'application/pdf' });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
                 link.download = `Cleaned_${fileName}`;
                 link.click();
 
-                statusMsg.innerText = "Success! Cleaned PDF downloaded.";
-                processBtn.innerText = "Remove more pages";
-                processBtn.disabled = false;
-
+                statusMsg.innerText = "Saved successfully!";
+                saveBtn.innerText = "Remove Pages & Save";
+                saveBtn.disabled = false;
             } catch (err) {
                 console.error(err);
-                alert("Failed to process document. See console.");
-                processBtn.disabled = false;
-                processBtn.innerText = "Delete Selected Pages & Download";
+                alert("Failed to organize document. See console.");
+                saveBtn.disabled = false;
             }
         });
     </script>

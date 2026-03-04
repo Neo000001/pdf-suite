@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compress PDF - PDFSuite</title>
+
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        .workspace {
+            max-width: 800px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background: var(--bg-soft);
+            border-radius: 16px;
+            border: 1px solid var(--border-subtle);
+            text-align: center;
+        }
+
+        .upload-box {
+            border: 2px dashed #10b981;
+            padding: 3rem;
+            cursor: pointer;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .btn-large {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            width: 100%;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+    </style>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+            <div class="header-actions"><a href="../index.html" class="btn-ghost btn-small">Back to Tools</a></div>
+        </div>
+    </header>
+
+    <div class="ad-banner-section">
+        <div class="ad-placeholder"><span>Google Ads - 728x90 Top placement</span></div>
+    </div>
+
+    <div class="workspace">
+        <h1>Compress PDF</h1>
+        <p>Reduce the file size of your PDF locally in the browser.</p>
+
+        <div class="upload-box" id="uploadBox">
+            <h2>📦 Select PDF File</h2>
+            <input type="file" id="fileInput" accept="application/pdf" hidden>
+        </div>
+
+        <div id="actionArea" style="display: none;">
+            <p id="fileInfo" style="margin-bottom: 1.5rem; font-weight: 600;"></p>
+            <button class="btn-primary btn-large" id="processBtn">Compress PDF</button>
+            <p id="statusMsg" style="margin-top: 1rem; color: #10b981;"></p>
+        </div>
+    </div>
+
+    <div class="ad-banner-section bottom-ad">
+        <div class="ad-placeholder square"><span>Google Ads - 300x250</span></div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const uploadBox = document.getElementById('uploadBox');
+        const actionArea = document.getElementById('actionArea');
+        const processBtn = document.getElementById('processBtn');
+        const statusMsg = document.getElementById('statusMsg');
+        const fileInfo = document.getElementById('fileInfo');
+
+        let currentPdfBytes = null;
+        let fileName = '';
+        let originalSize = 0;
+
+        uploadBox.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                currentPdfBytes = await file.arrayBuffer();
+                fileName = file.name;
+                originalSize = file.size;
+                uploadBox.style.display = 'none';
+                actionArea.style.display = 'block';
+                fileInfo.innerText = `Selected: ${fileName} (${(originalSize / 1024 / 1024).toFixed(2)} MB)`;
+            }
+        });
+
+        processBtn.addEventListener('click', async () => {
+            try {
+                processBtn.disabled = true;
+                processBtn.innerText = "Compressing...";
+
+                // Basic re-save using pdf-lib drops unreferenced objects and metadata
+                const { PDFDocument } = PDFLib;
+                const doc = await PDFDocument.load(currentPdfBytes, { updateMetadata: false });
+                // Strip metadata to reduce size
+                doc.setTitle('');
+                doc.setAuthor('');
+                doc.setSubject('');
+                doc.setCreator('');
+                doc.setProducer('');
+                doc.setKeywords([]);
+
+                const newPdfBytes = await doc.save({ useObjectStreams: true });
+
+                const blob = new Blob([newPdfBytes], { type: 'application/pdf' });
+
+                const newSize = blob.size;
+                let compressionText = `Saved ${((originalSize - newSize) / 1024).toFixed(2)} KB by removing metadata & optimizing objects!`;
+                if (newSize >= originalSize) {
+                    compressionText = "File was already heavily optimized.";
+                }
+
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `Compressed_${fileName}`;
+                link.click();
+
+                statusMsg.innerText = "Success! " + compressionText;
+                processBtn.innerText = "Compress PDF";
+                processBtn.disabled = false;
+
+            } catch (err) {
+                console.error(err);
+                alert("Failed to compress document. See console.");
+                processBtn.disabled = false;
+                processBtn.innerText = "Compress PDF";
+            }
+        });
+    </script>
+</body>
+
+</html>

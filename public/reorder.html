@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organize & Reorder PDF - PDFSuite</title>
+    <meta name="description" content="Visually sort, organize, and delete PDF pages like a pro.">
+
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        .workspace {
+            max-width: 1100px;
+            margin: 2rem auto;
+            padding: 1.5rem;
+            background: var(--bg);
+            border: none;
+            text-align: center;
+        }
+
+        .upload-box {
+            border: 2px dashed #3b82f6;
+            padding: 4rem;
+            cursor: pointer;
+            border-radius: 12px;
+            margin: 2rem auto;
+            background: rgba(59, 130, 246, 0.05);
+            max-width: 700px;
+        }
+
+        /* Toolbar that appears after upload */
+        .sticky-toolbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: var(--bg-soft);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .view-controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .scale-btn {
+            padding: 0.25rem 0.5rem;
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+            color: var(--fg);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Grid for Thumbnail Pages */
+        .pages-grid {
+            display: grid;
+            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            padding-bottom: 4rem;
+        }
+
+        .page-thumb-wrapper {
+            position: relative;
+            background: var(--bg-soft);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.2s, border-color 0.2s;
+            cursor: grab;
+        }
+
+        .page-thumb-wrapper.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+            border-color: var(--accent);
+        }
+
+        .page-thumb-wrapper:hover {
+            border-color: var(--accent);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .page-canvas {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid var(--border-subtle);
+            background: #fff;
+            pointer-events: none;
+        }
+
+        .page-info {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px dashed var(--border-subtle);
+        }
+
+        .page-num {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--fg-muted);
+        }
+
+        /* Action Buttons on each thumbnail */
+        .thumb-actions {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .action-icon {
+            background: transparent;
+            border: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+            opacity: 0.5;
+            padding: 0.15rem;
+            border-radius: 4px;
+        }
+
+        .action-icon:hover {
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .action-icon.trash:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        /* Hidden inputs */
+        #actionArea {
+            display: none;
+        }
+    </style>
+
+    <!-- PDF.js for rendering thumbnails -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <!-- PDF-LIB for actual save/rotate logic -->
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+</head>
+
+<body>
+
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+            <div class="header-actions"><a href="../index.html" class="btn-ghost btn-small">Back to Tools</a></div>
+        </div>
+    </header>
+
+    <div class="workspace">
+        <div class="upload-box" id="uploadBox">
+            <h2>👁️ Visually Organize PDF</h2>
+            <p style="color:var(--fg-muted)">Upload a PDF to view thumbnails. Drag to reorder, click to rotate or
+                delete.</p>
+            <input type="file" id="fileInput" accept="application/pdf" hidden>
+        </div>
+
+        <div id="actionArea">
+
+            <div class="sticky-toolbar">
+                <div class="view-controls">
+                    <span style="font-weight:600" id="fileTitle">Document</span>
+                    <span style="color:var(--fg-muted); margin-left:1rem; font-size:0.9rem;" id="pageCountLabel"></span>
+                </div>
+                <div style="display:flex; gap: 1rem; align-items:center;">
+                    <span id="statusMsg" style="font-size:0.9rem; color:#22c55e;"></span>
+                    <button class="btn-primary" id="saveBtn">💾 Save Organized PDF</button>
+                </div>
+            </div>
+
+            <div class="pages-grid" id="pagesGrid">
+                <!-- Thumbnails injected here -->
+            </div>
+
+        </div>
+    </div>
+
+    <!-- BOTTOM AD -->
+    <div class="ad-banner-section bottom-ad">
+        <div class="ad-placeholder square"><span>Google Ads - 300x250</span></div>
+    </div>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        const fileInput = document.getElementById('fileInput');
+        const uploadBox = document.getElementById('uploadBox');
+        const actionArea = document.getElementById('actionArea');
+        const pagesGrid = document.getElementById('pagesGrid');
+        const fileTitle = document.getElementById('fileTitle');
+        const pageCountLabel = document.getElementById('pageCountLabel');
+        const saveBtn = document.getElementById('saveBtn');
+        const statusMsg = document.getElementById('statusMsg');
+
+        // State Variables
+        let originalPdfBytes = null;
+        let fileName = '';
+        // Let's keep an array of "pages" metadata. 
+        // e.g. [{ originalIndex: 1, rotation: 0, deleted: false }, ...]
+        let pagesData = [];
+
+        uploadBox.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                fileName = file.name;
+                originalPdfBytes = await file.arrayBuffer();
+
+                uploadBox.style.display = 'none';
+                actionArea.style.display = 'block';
+                fileTitle.innerText = fileName;
+
+                statusMsg.innerText = "Extracting pages...";
+                await renderThumbnails();
+                statusMsg.innerText = "";
+            }
+        });
+
+        async function renderThumbnails() {
+            pagesGrid.innerHTML = '';
+            pagesData = [];
+
+            const doc = await pdfjsLib.getDocument({ data: new Uint8Array(originalPdfBytes) }).promise;
+            const numPages = doc.numPages;
+            pageCountLabel.innerText = `${numPages} Pages`;
+
+            for (let i = 1; i <= numPages; i++) {
+                pagesData.push({ id: `page_${i}`, originalIndex: i, rotation: 0, deleted: false });
+
+                const page = await doc.getPage(i);
+                // Render at a small scale for thumbnail
+                const viewport = page.getViewport({ scale: 0.5 });
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'page-thumb-wrapper';
+                wrapper.draggable = true;
+                wrapper.dataset.index = i - 1; // index in array
+
+                const canvas = document.createElement('canvas');
+                canvas.className = 'page-canvas';
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                const ctx = canvas.getContext('2d');
+
+                await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+
+                // Tools info
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'page-info';
+
+                const numSpan = document.createElement('span');
+                numSpan.className = 'page-num';
+                numSpan.innerText = i;
+
+                const actDiv = document.createElement('div');
+                actDiv.className = 'thumb-actions';
+
+                const rotateBtn = document.createElement('button');
+                rotateBtn.className = 'action-icon rotate';
+                rotateBtn.innerText = '↻';
+                rotateBtn.title = "Rotate Right";
+                rotateBtn.onclick = (ev) => {
+                    ev.stopPropagation();
+                    let pData = pagesData[wrapper.dataset.index];
+                    pData.rotation = (pData.rotation + 90) % 360;
+                    canvas.style.transform = `rotate(${pData.rotation}deg)`;
+                };
+
+                const trashBtn = document.createElement('button');
+                trashBtn.className = 'action-icon trash';
+                trashBtn.innerText = '🗑';
+                trashBtn.title = "Delete Page";
+                trashBtn.onclick = (ev) => {
+                    ev.stopPropagation();
+                    pagesData[wrapper.dataset.index].deleted = true;
+                    wrapper.style.display = 'none'; // hide from view
+                    updatePageCount();
+                };
+
+                actDiv.appendChild(rotateBtn);
+                actDiv.appendChild(trashBtn);
+
+                infoDiv.appendChild(numSpan);
+                infoDiv.appendChild(actDiv);
+
+                wrapper.appendChild(canvas);
+                wrapper.appendChild(infoDiv);
+
+                // Drag logic setup
+                setupDragListeners(wrapper);
+
+                pagesGrid.appendChild(wrapper);
+            }
+        }
+
+        function updatePageCount() {
+            const visibleCount = pagesData.filter(p => !p.deleted).length;
+            pageCountLabel.innerText = `${visibleCount} Pages`;
+        }
+
+        /* ==== DRAG AND DROP REORDER LOGIC ==== */
+        let draggedItem = null;
+
+        function setupDragListeners(el) {
+            el.addEventListener('dragstart', function (e) {
+                draggedItem = this;
+                setTimeout(() => this.classList.add('dragging'), 0);
+            });
+
+            el.addEventListener('dragend', function () {
+                this.classList.remove('dragging');
+                draggedItem = null;
+                updateArrayFromDOM();
+            });
+
+            el.addEventListener('dragover', function (e) { e.preventDefault(); });
+
+            el.addEventListener('dragenter', function (e) { e.preventDefault(); });
+
+            el.addEventListener('drop', function () {
+                if (this !== draggedItem) {
+                    // Swap DOM placement
+                    let allItems = Array.from(pagesGrid.querySelectorAll('.page-thumb-wrapper'));
+                    let draggedIndex = allItems.indexOf(draggedItem);
+                    let dropIndex = allItems.indexOf(this);
+
+                    if (draggedIndex < dropIndex) {
+                        this.parentNode.insertBefore(draggedItem, this.nextSibling);
+                    } else {
+                        this.parentNode.insertBefore(draggedItem, this);
+                    }
+                }
+            });
+        }
+
+        function updateArrayFromDOM() {
+            // We need to re-sync `pagesData` order to match DOM order, so we save correctly.
+            const newOrderElements = Array.from(pagesGrid.querySelectorAll('.page-thumb-wrapper'));
+            const newPagesData = [];
+            // We read the original index from the dataset, grab the matching data object, push it to new sorted array
+            newOrderElements.forEach((el, newDomIndex) => {
+                let originalArrayIndex = el.dataset.index;
+                let dataObj = pagesData[originalArrayIndex];
+                newPagesData.push(dataObj);
+                // update the dataset index to match the new array position
+                el.dataset.index = newDomIndex;
+            });
+            pagesData = newPagesData;
+
+            // Re-number visuals safely
+            let pNum = 1;
+            newOrderElements.forEach((el) => {
+                if (!pagesData[el.dataset.index].deleted) {
+                    el.querySelector('.page-num').innerText = pNum++;
+                }
+            });
+        }
+
+        /* ==== SAVE PDF LOGIC USING PDF-LIB ==== */
+        saveBtn.addEventListener('click', async () => {
+            try {
+                saveBtn.disabled = true;
+                saveBtn.innerText = "Processing...";
+                statusMsg.innerText = "Building PDF...";
+
+                const { PDFDocument, degrees } = PDFLib;
+                const sourceDoc = await PDFDocument.load(originalPdfBytes);
+                const newPdf = await PDFDocument.create();
+
+                // Map pagesData logically:
+                // Filter out deleted.
+                const finalPages = pagesData.filter(p => !p.deleted);
+
+                if (finalPages.length === 0) {
+                    alert("You cannot save an empty document. Undelete or refresh.");
+                    saveBtn.disabled = false;
+                    saveBtn.innerText = "💾 Save Organized PDF";
+                    statusMsg.innerText = "";
+                    return;
+                }
+
+                // We pull the specific original indices from sourceDoc in the exact order of finalPages array
+                const indicesToCopy = finalPages.map(p => p.originalIndex - 1); // zero-indexed
+
+                const copiedPagesArr = await newPdf.copyPages(sourceDoc, indicesToCopy);
+
+                // Loop through our array, add it to new PDF, and apply any rotations
+                finalPages.forEach((pData, i) => {
+                    let page = copiedPagesArr[i];
+                    // original rotation + added rotation
+                    let currentRot = page.getRotation().angle;
+                    page.setRotation(degrees(currentRot + pData.rotation));
+                    newPdf.addPage(page);
+                });
+
+                const newPdfBytes = await newPdf.save();
+
+                const blob = new Blob([newPdfBytes], { type: 'application/pdf' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `Organized_${fileName}`;
+                link.click();
+
+                statusMsg.innerText = "Saved successfully!";
+                saveBtn.innerText = "💾 Save Organized PDF";
+                saveBtn.disabled = false;
+
+                setTimeout(() => { statusMsg.innerText = "" }, 3000);
+            } catch (err) {
+                console.error(err);
+                alert("Failed to organize document. See console.");
+                saveBtn.disabled = false;
+                saveBtn.innerText = "💾 Save Organized PDF";
+                statusMsg.innerText = "";
+            }
+        });
+
+    </script>
+</body>
+
+</html>
