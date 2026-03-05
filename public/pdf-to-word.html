@@ -35,8 +35,8 @@
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211" crossorigin="anonymous"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211"
+        crossorigin="anonymous"></script>
 </head>
 
 <body>
@@ -49,7 +49,6 @@
     <div class="ad-banner-section">
         <div class="ad-placeholder"><span>Google Ads - 728x90 Top placement</span></div>
     </div>
-
     <div class="workspace">
         <h1>PDF to Word DOCX</h1>
         <p>Extract all text locally into a Microsoft Word readable format.</p>
@@ -63,11 +62,9 @@
             <p id="statusMsg" style="margin-top: 1rem; color: #a855f7;"></p>
         </div>
     </div>
-
     <div class="ad-banner-section bottom-ad">
         <div class="ad-placeholder square"><span>Google Ads - 300x250</span></div>
     </div>
-
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
@@ -92,16 +89,31 @@
                 fileInfo.innerText = `Source: ${file.name}`;
 
                 try {
-                    statusMsg.innerText = "Extracting formatting... please wait.";
+                    statusMsg.innerText = "Extracting formatting... please wait. This relies on native PDF structure.";
                     const arrayBuffer = await file.arrayBuffer();
                     const doc = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
 
-                    let fullText = "<html><body>";
+                    let fullText = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'></head><body>";
+
                     for (let i = 1; i <= doc.numPages; i++) {
                         const page = await doc.getPage(i);
                         const content = await page.getTextContent();
-                        const strings = content.items.map(item => item.str);
-                        fullText += `<h2>--- Page ${i} ---</h2><p>` + strings.join(" ") + "</p><br>";
+
+                        let lines = {};
+                        content.items.forEach(item => {
+                            let y = Math.round((item.transform[5] || 0) / 10) * 10;
+                            if (!lines[y]) lines[y] = [];
+                            lines[y].push(item);
+                        });
+
+                        const sortedYs = Object.keys(lines).map(Number).sort((a, b) => b - a);
+
+                        fullText += `<h2 style='page-break-before:always;'>--- Page ${i} ---</h2>`;
+                        for (let y of sortedYs) {
+                            const lineItems = lines[y].sort((a, b) => (a.transform[4] || 0) - (b.transform[4] || 0));
+                            const lineStr = lineItems.map(t => t.str).join(" ");
+                            if (lineStr.trim() !== "") fullText += `<p style="margin:5px 0; font-family:Arial,sans-serif;">${lineStr}</p>`;
+                        }
                     }
                     fullText += "</body></html>";
                     extractedText = fullText;

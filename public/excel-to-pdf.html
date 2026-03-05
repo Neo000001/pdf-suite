@@ -165,12 +165,12 @@
             win.document.write(`<!DOCTYPE html>
 <html><head><title>Excel to PDF</title>
 <style>
-  body { font-family: Arial, sans-serif; font-size: 10pt; margin: 1.5cm; color:#000; }
-  table { border-collapse: collapse; width: 100%; }
-  td, th { border: 1px solid #ccc; padding: 4px 8px; font-size:10pt; }
-  th { background: #dcfce7; font-weight: bold; }
-  tr:nth-child(even) td { background: #f0fdf4; }
-  @media print { body { margin: 1cm; } }
+  @page { size: A4 landscape; margin: 1cm; }
+  body { font-family: 'Calibri', Arial, sans-serif; font-size: 9pt; margin: 0; padding: 0; color:#000; }
+  table { border-collapse: collapse; width: max-content; min-width: 100%; }
+  td, th { border: 1px solid #ccc; padding: 4px 8px; font-size:9pt; white-space: nowrap; }
+  th { background: #e2e8f0; font-weight: bold; }
+  tr:nth-child(even) td { background: #f8fafc; }
 </style></head><body>${tableHtml}</body></html>`);
             win.document.close();
             setTimeout(() => win.print(), 400);

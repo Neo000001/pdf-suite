@@ -277,6 +277,8 @@
             outline: none;
             font-family: inherit;
             cursor: move;
+            user-select: none;
+            -webkit-user-drag: none;
         }
 
         .anno-text:hover {
@@ -432,6 +434,16 @@
             gap: 0.75rem;
             margin-top: 1rem;
             justify-content: flex-end;
+            align-items: center;
+        }
+
+        .all-pages-lbl {
+            margin-right: auto;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            color: var(--fg);
         }
 
         .btn-modal-sec {
@@ -632,6 +644,9 @@
             <h3>Draw Your Signature</h3>
             <canvas class="sig-canvas" id="sigCanvas" width="432" height="200"></canvas>
             <div class="modal-actions">
+                <label class="all-pages-lbl">
+                    <input type="checkbox" id="sigAllPages"> Apply to ALL pages
+                </label>
                 <button class="btn-modal-sec" id="clearSigBtn">Clear</button>
                 <button class="btn-modal-sec" id="closeSigBtn">Cancel</button>
                 <button class="btn-modal-pri" id="applySigBtn">Place Signature</button>
@@ -650,6 +665,7 @@
         const annos = {}; // per-page annotation store: { textItems:[], highlightItems:[], drawData:[], signatures:[] }
         const drawHistory = {}; // draw canvas per-page image data
         let undoStack = [];
+        let activeTextBox = null;
 
         // ========== ELEMENTS ==========
         const fileInput = document.getElementById('fileInput');
@@ -733,6 +749,8 @@
 
         // ========== PAGE NAV ==========
         function pageTo(n) {
+            saveCurrentAnnotations();
+            saveDrawing();
             currentPage = n;
             renderPage(n);
         }
@@ -758,11 +776,27 @@
             else if (currentTool === 'highlight') annotLayer.classList.add('tool-highlight');
         }
 
+        // ========== LIVE FONT SIZE UPDATE ==========
+        document.getElementById('fontSize').addEventListener('input', function () {
+            if (activeTextBox) {
+                activeTextBox.style.fontSize = this.value + 'px';
+                activeTextBox.dataset.fs = this.value;
+            }
+        });
+        document.getElementById('textColor').addEventListener('input', function () {
+            if (activeTextBox) {
+                activeTextBox.style.color = this.value;
+                activeTextBox.dataset.col = this.value;
+            }
+        });
+
         // ========== CLICK TO ADD TEXT ==========
         annotLayer.addEventListener('click', function (e) {
             if (currentTool === 'text') {
-                if (e.target !== annotLayer) return;
-                addTextBox(e.offsetX, e.offsetY);
+                if (e.target !== annotLayer && !e.target.classList.contains('anno-text')) return;
+                if (e.target === annotLayer) {
+                    addTextBox(e.offsetX, e.offsetY);
+                }
             }
         });
 
@@ -785,6 +819,12 @@
             const span = document.createElement('span');
             span.contentEditable = true;
             span.innerText = 'Text';
+            span.addEventListener('focus', () => {
+                activeTextBox = wrap;
+                document.getElementById('fontSize').value = wrap.dataset.fs;
+                document.getElementById('textColor').value = wrap.dataset.col || '#000000';
+            });
+            span.addEventListener('blur', () => { activeTextBox = null; });
             wrap.appendChild(span);
 
             makeDraggable(wrap);
@@ -845,6 +885,12 @@
         pdfWrap.addEventListener('mousedown', function (e) {
             if (currentTool !== 'draw') return;
             isDrawing = true;
+            // Save state for undo
+            const tempC = document.createElement('canvas');
+            tempC.width = drawCanvas.width; tempC.height = drawCanvas.height;
+            tempC.getContext('2d').drawImage(drawCanvas, 0, 0);
+            undoStack.push({ type: 'draw', state: tempC });
+
             const rect = drawCanvas.getBoundingClientRect();
             lastX = e.clientX - rect.left;
             lastY = e.clientY - rect.top;
@@ -873,6 +919,12 @@
         pdfWrap.addEventListener('touchstart', function (e) {
             if (currentTool !== 'draw') return;
             e.preventDefault();
+
+            const tempC = document.createElement('canvas');
+            tempC.width = drawCanvas.width; tempC.height = drawCanvas.height;
+            tempC.getContext('2d').drawImage(drawCanvas, 0, 0);
+            undoStack.push({ type: 'draw', state: tempC });
+
             const t = e.touches[0];
             const rect = drawCanvas.getBoundingClientRect();
             lastX = t.clientX - rect.left;
@@ -953,18 +1005,42 @@
 
         document.getElementById('applySigBtn').addEventListener('click', () => {
             const dataUrl = sigCanvas.toDataURL();
+            const allPages = document.getElementById('sigAllPages').checked;
             sigModal.classList.remove('open');
-            placeSignature(dataUrl);
+            placeSignature(dataUrl, allPages);
+            document.getElementById('sigAllPages').checked = false; // reset
         });
 
-        function placeSignature(dataUrl) {
-            const img = document.createElement('img');
-            img.src = dataUrl;
-            img.className = 'anno-text'; // reuse draggable style
-            img.style.cssText = 'position:absolute; left:60px; top:60px; width:160px; height:70px; cursor:move; border:1px dashed rgba(37,99,235,0.4); pointer-events:auto;';
-            makeDraggable(img);
-            annotLayer.appendChild(img);
-            undoStack.push({ type: 'sig', el: img });
+        function placeSignature(dataUrl, toAllPages) {
+            if (toAllPages) {
+                // We add it to every page's stored annotations
+                for (let p = 1; p <= pdfDoc.numPages; p++) {
+                    if (!pageAnnotations[p]) pageAnnotations[p] = [];
+                    // normX, normY based on a default center or top position
+                    pageAnnotations[p].push({
+                        html: `<img src="${dataUrl}" class="anno-text" style="position:absolute; left:0; top:0; width:160px; height:70px;">`,
+                        type: 'img', normX: 60 / scale, normY: 60 / scale, normW: 160 / scale, normH: 70 / scale
+                    });
+                }
+                // Also add to current view
+                const img = document.createElement('img');
+                img.src = dataUrl;
+                img.setAttribute('draggable', 'false');
+                img.className = 'anno-text';
+                img.style.cssText = `position:absolute; left:60px; top:60px; width:160px; height:70px; cursor:move; border:1px dashed rgba(37,99,235,0.4); pointer-events:auto;`;
+                makeDraggable(img);
+                annotLayer.appendChild(img);
+                undoStack.push({ type: 'sig', el: img, allPages: true });
+            } else {
+                const img = document.createElement('img');
+                img.src = dataUrl;
+                img.setAttribute('draggable', 'false');
+                img.className = 'anno-text';
+                img.style.cssText = `position:absolute; left:60px; top:60px; width:160px; height:70px; cursor:move; border:1px dashed rgba(37,99,235,0.4); pointer-events:auto;`;
+                makeDraggable(img);
+                annotLayer.appendChild(img);
+                undoStack.push({ type: 'sig', el: img });
+            }
         }
 
         // ========== DRAGGABLE ==========
@@ -992,8 +1068,8 @@
         }
 
         // ========== ZOOM ==========
-        document.getElementById('zoomIn').addEventListener('click', () => { scale = Math.min(scale + 0.2, 3); updateZoom(); });
-        document.getElementById('zoomOut').addEventListener('click', () => { scale = Math.max(scale - 0.2, 0.4); updateZoom(); });
+        document.getElementById('zoomIn').addEventListener('click', () => { saveCurrentAnnotations(); saveDrawing(); scale = Math.min(scale + 0.2, 3); updateZoom(); });
+        document.getElementById('zoomOut').addEventListener('click', () => { saveCurrentAnnotations(); saveDrawing(); scale = Math.max(scale - 0.2, 0.4); updateZoom(); });
         function updateZoom() {
             document.getElementById('zoomLabel').innerText = Math.round(scale * 100) + '%';
             renderPage(currentPage);
@@ -1002,7 +1078,14 @@
         // ========== UNDO ==========
         document.getElementById('undoBtn').addEventListener('click', () => {
             const last = undoStack.pop();
-            if (last && last.el && last.el.parentNode) last.el.remove();
+            if (last) {
+                if (last.type === 'draw') {
+                    drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+                    drawCtx.drawImage(last.state, 0, 0);
+                } else if (last.el && last.el.parentNode) {
+                    last.el.remove();
+                }
+            }
         });
 
         // ========== CLEAR PAGE ==========
@@ -1022,7 +1105,12 @@
         function saveCurrentAnnotations() {
             pageAnnotations[currentPage] = Array.from(annotLayer.children).map(el => ({
                 html: el.outerHTML,
-                type: el.tagName === 'IMG' ? 'img' : 'div'
+                type: el.tagName === 'IMG' ? 'img' : 'div',
+                normX: parseFloat(el.style.left) / scale,
+                normY: parseFloat(el.style.top) / scale,
+                normW: parseFloat(el.style.width) / scale,
+                normH: parseFloat(el.style.height) / scale,
+                normFs: parseFloat(el.dataset.fs || '16') / scale
             }));
         }
 
@@ -1033,9 +1121,31 @@
                 const tmp = document.createElement('div');
                 tmp.innerHTML = item.html;
                 const el = tmp.firstChild;
+                if (!el) return;
+
+                if (!isNaN(item.normX)) el.style.left = (item.normX * scale) + 'px';
+                if (!isNaN(item.normY)) el.style.top = (item.normY * scale) + 'px';
+                if (!isNaN(item.normW)) el.style.width = (item.normW * scale) + 'px';
+                if (!isNaN(item.normH)) el.style.height = (item.normH * scale) + 'px';
+
+                if (!isNaN(item.normFs) && el.classList.contains('anno-text')) {
+                    const newFs = item.normFs * scale;
+                    el.style.fontSize = Math.round(newFs) + 'px';
+                    el.dataset.fs = Math.round(newFs);
+                }
+
                 if (el.querySelector) {
                     const del = el.querySelector('.delete-handle');
                     if (del) del.addEventListener('click', ev => { ev.stopPropagation(); el.remove(); });
+                    const span = el.querySelector('span');
+                    if (span) {
+                        span.addEventListener('focus', () => {
+                            activeTextBox = el;
+                            document.getElementById('fontSize').value = el.dataset.fs;
+                            document.getElementById('textColor').value = el.dataset.col || '#000000';
+                        });
+                        span.addEventListener('blur', () => { activeTextBox = null; });
+                    }
                 }
                 makeDraggable(el);
                 annotLayer.appendChild(el);
@@ -1044,13 +1154,18 @@
 
         function saveDrawing() {
             if (!drawCanvas.width) return;
-            drawHistory[currentPage] = drawCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
+            const tempC = document.createElement('canvas');
+            tempC.width = drawCanvas.width;
+            tempC.height = drawCanvas.height;
+            tempC.getContext('2d').drawImage(drawCanvas, 0, 0);
+            drawHistory[currentPage] = tempC;
         }
 
         function restoreDrawing(num) {
-            const imgData = drawHistory[num];
-            if (imgData && imgData.width === drawCanvas.width && imgData.height === drawCanvas.height) {
-                drawCtx.putImageData(imgData, 0, 0);
+            const savedC = drawHistory[num];
+            if (savedC) {
+                drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+                drawCtx.drawImage(savedC, 0, 0, drawCanvas.width, drawCanvas.height);
             }
         }
 
@@ -1105,15 +1220,12 @@
                     const { height } = page.getSize();
 
                     // 1) Embed draw canvas
-                    const imgData = drawHistory[p];
-                    if (imgData) {
-                        const tmpC = document.createElement('canvas');
-                        tmpC.width = imgData.width; tmpC.height = imgData.height;
-                        tmpC.getContext('2d').putImageData(imgData, 0, 0);
-                        const pngDataUrl = tmpC.toDataURL('image/png');
+                    const savedC = drawHistory[p];
+                    if (savedC) {
+                        const pngDataUrl = savedC.toDataURL('image/png');
                         const pngBytes = await fetch(pngDataUrl).then(r => r.arrayBuffer());
                         const embeddedPng = await pdfLibDoc.embedPng(pngBytes);
-                        page.drawImage(embeddedPng, { x: 0, y: 0, width: imgData.width / scale, height: imgData.height / scale });
+                        page.drawImage(embeddedPng, { x: 0, y: 0, width: savedC.width / scale, height: savedC.height / scale });
                     }
 
                     // 2) Embed text annotations

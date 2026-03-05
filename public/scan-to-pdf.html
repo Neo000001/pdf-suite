@@ -64,12 +64,37 @@
             border: 1px solid var(--border-subtle);
             min-height: 120px;
             margin-bottom: 2rem;
+            align-items: center;
+        }
+
+        .img-wrap {
+            position: relative;
+            display: inline-block;
         }
 
         .scanned-img {
             height: 100px;
             border-radius: 4px;
             border: 2px solid var(--accent);
+            display: block;
+        }
+
+        .remove-img {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ef4444;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
         }
 
         .btn-large {
@@ -81,12 +106,11 @@
     </style>
 
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211" crossorigin="anonymous"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211"
+        crossorigin="anonymous"></script>
 </head>
 
 <body>
-
     <header class="site-header">
         <div class="header-inner">
             <a href="../index.html" class="logo">PDF<span>Suite</span></a>
@@ -130,7 +154,7 @@
         const statusMsg = document.getElementById('statusMsg');
 
         let stream = null;
-        let images = []; // Base64 data URLs
+        let images = []; // Array of { id, data }
 
         startCamBtn.addEventListener('click', async () => {
             try {
@@ -147,6 +171,30 @@
         });
 
         captureBtn.addEventListener('click', () => {
+            // UI Flash
+            const flash = document.createElement('div');
+            flash.style.cssText = 'position:absolute;inset:0;background:white;z-index:100;opacity:1;transition:opacity 0.2s; pointer-events:none;';
+            video.parentElement.appendChild(flash);
+            setTimeout(() => flash.style.opacity = '0', 50);
+            setTimeout(() => flash.remove(), 250);
+
+            // Shutter Sound
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (AudioContext) {
+                const actx = new AudioContext();
+                const osc = actx.createOscillator();
+                const gain = actx.createGain();
+                osc.connect(gain);
+                gain.connect(actx.destination);
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(800, actx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(300, actx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, actx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, actx.currentTime + 0.1);
+                osc.start();
+                osc.stop(actx.currentTime + 0.1);
+            }
+
             // Set canvas to actual video resolution
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
@@ -154,12 +202,30 @@
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
             const imgData = canvas.toDataURL('image/jpeg', 0.85);
-            images.push(imgData);
+
+            const imgId = Date.now().toString();
+            images.push({ id: imgId, data: imgData });
+
+            const wrap = document.createElement('div');
+            wrap.className = 'img-wrap';
+            wrap.dataset.id = imgId;
 
             const imgEl = document.createElement('img');
             imgEl.src = imgData;
             imgEl.className = 'scanned-img';
-            gallery.appendChild(imgEl);
+
+            const rmBtn = document.createElement('button');
+            rmBtn.className = 'remove-img';
+            rmBtn.innerHTML = '×';
+            rmBtn.onclick = () => {
+                images = images.filter(i => i.id !== imgId);
+                wrap.remove();
+                if (images.length === 0) finishPdfBtn.disabled = true;
+            };
+
+            wrap.appendChild(imgEl);
+            wrap.appendChild(rmBtn);
+            gallery.appendChild(wrap);
 
             finishPdfBtn.disabled = false;
         });
@@ -174,8 +240,8 @@
                 const { PDFDocument } = PDFLib;
                 const pdfDoc = await PDFDocument.create();
 
-                for (const b64 of images) {
-                    const imgBytes = await fetch(b64).then(res => res.arrayBuffer());
+                for (const imgObj of images) {
+                    const imgBytes = await fetch(imgObj.data).then(res => res.arrayBuffer());
                     const pdfImage = await pdfDoc.embedJpg(imgBytes);
                     const { width, height } = pdfImage.scale(1);
                     const page = pdfDoc.addPage([width, height]);

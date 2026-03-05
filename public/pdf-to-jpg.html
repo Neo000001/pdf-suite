@@ -40,9 +40,9 @@
         #image-output {
             margin-top: 2rem;
             display: flex;
-            flex-direction: column;
+            flex-wrap: wrap;
             gap: 1rem;
-            align-items: center;
+            justify-content: center;
         }
 
         .pdf-page-img {
@@ -50,18 +50,13 @@
             border: 1px solid var(--border-subtle);
             border-radius: 8px;
         }
-
-        .download-link {
-            color: #f59e0b;
-            text-decoration: none;
-            font-size: 0.9rem;
-            margin-top: 0.25rem;
-        }
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211" crossorigin="anonymous"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211"
+        crossorigin="anonymous"></script>
 </head>
 
 <body>
@@ -129,14 +124,16 @@
             try {
                 convertBtn.disabled = true;
                 statusMsg.innerText = "Extracting images... Parsing document...";
+                statusMsg.style.color = "#f59e0b";
                 imageOutput.innerHTML = '';
 
                 const doc = await pdfjsLib.getDocument({ data: new Uint8Array(pdfDocBytes) }).promise;
+                const zip = new JSZip();
 
                 for (let i = 1; i <= doc.numPages; i++) {
                     statusMsg.innerText = `Extracting page ${i} of ${doc.numPages}...`;
                     const page = await doc.getPage(i);
-                    const viewport = page.getViewport({ scale: 2.0 }); // High quality 2.0 scale
+                    const viewport = page.getViewport({ scale: 2.0 });
 
                     const canvas = document.createElement('canvas');
                     canvas.width = viewport.width;
@@ -145,29 +142,29 @@
 
                     await page.render({ canvasContext: ctx, viewport: viewport }).promise;
 
-                    const imgDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                    if (i <= 3) {
+                        const img = document.createElement('img');
+                        img.src = canvas.toDataURL('image/jpeg', 0.8);
+                        img.className = 'pdf-page-img';
+                        img.style.maxHeight = '200px';
+                        img.style.objectFit = 'contain';
+                        imageOutput.appendChild(img);
+                    } else if (i === 4) {
+                        const text = document.createElement('p');
+                        text.innerText = "... and " + (doc.numPages - 3) + " more pages.";
+                        imageOutput.appendChild(text);
+                    }
 
-                    const container = document.createElement('div');
-                    container.style.display = 'flex';
-                    container.style.flexDirection = 'column';
-
-                    const img = document.createElement('img');
-                    img.src = imgDataUrl;
-                    img.className = 'pdf-page-img';
-
-                    const dlLink = document.createElement('a');
-                    dlLink.href = imgDataUrl;
-                    dlLink.download = `${fileName}_page_${i}.jpg`;
-                    dlLink.innerText = `â¬‡ Download Page ${i} JPG`;
-                    dlLink.className = 'download-link';
-
-                    container.appendChild(img);
-                    container.appendChild(dlLink);
-                    imageOutput.appendChild(container);
+                    const imgData = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
+                    zip.file(`Page_${i}.jpg`, imgData, { base64: true });
                 }
 
-                statusMsg.innerText = "Success! All pages converted to JPG.";
-                statusMsg.style.color = "#22c55e";
+                statusMsg.innerText = "Zipping images...";
+                const content = await zip.generateAsync({ type: "blob" });
+
+                const url = window.URL.createObjectURL(content);
+                statusMsg.innerHTML = `<br><a href="${url}" download="${fileName}_Images.zip" class="btn-primary btn-large" style="text-decoration:none; display:inline-block; max-width:400px; background:#f59e0b;">Download All Images in ZIP</a><br><button class="btn-ghost" style="margin-top:1rem;" onclick="location.reload()">Convert Another</button>`;
+
                 convertBtn.style.display = 'none';
 
             } catch (err) {
