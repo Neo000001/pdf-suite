@@ -40,7 +40,7 @@
 
     <!-- Auto Theme Detector -->
     <script>
-        (function() {
+        (function () {
             const savedTheme = localStorage.getItem('pdfsuite-theme');
             if (savedTheme) {
                 document.documentElement.setAttribute('data-theme', savedTheme);
@@ -61,15 +61,14 @@
         </div>
     </header>
     <div class="ad-banner-section">
-        
-    <div class="ad-container" style="text-align: center; margin: 1rem 0;">
-      <ins class="adsbygoogle"
-           style="display:inline-block;width:728px;height:90px"
-           data-ad-client="ca-pub-7048088905906211"></ins>
-      <script>
-           (adsbygoogle = window.adsbygoogle || []).push({});
-      </script>
-    </div>
+
+        <div class="ad-container" style="text-align: center; margin: 1rem 0;">
+            <ins class="adsbygoogle" style="display:inline-block;width:728px;height:90px"
+                data-ad-client="ca-pub-7048088905906211"></ins>
+            <script>
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
 
     </div>
     <div class="workspace">
@@ -86,15 +85,14 @@
         </div>
     </div>
     <div class="ad-banner-section bottom-ad">
-        
-    <div class="ad-container" style="text-align: center; margin: 1rem 0;">
-      <ins class="adsbygoogle"
-           style="display:inline-block;width:300px;height:250px"
-           data-ad-client="ca-pub-7048088905906211"></ins>
-      <script>
-           (adsbygoogle = window.adsbygoogle || []).push({});
-      </script>
-    </div>
+
+        <div class="ad-container" style="text-align: center; margin: 1rem 0;">
+            <ins class="adsbygoogle" style="display:inline-block;width:300px;height:250px"
+                data-ad-client="ca-pub-7048088905906211"></ins>
+            <script>
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
 
     </div>
     <script>
@@ -139,12 +137,19 @@
                         });
 
                         const sortedYs = Object.keys(lines).map(Number).sort((a, b) => b - a);
-
                         fullText += `<h2 style='page-break-before:always;'>--- Page ${i} ---</h2>`;
                         for (let y of sortedYs) {
                             const lineItems = lines[y].sort((a, b) => (a.transform[4] || 0) - (b.transform[4] || 0));
-                            const lineStr = lineItems.map(t => t.str).join(" ");
-                            if (lineStr.trim() !== "") fullText += `<p style="margin:5px 0; font-family:Arial,sans-serif;">${lineStr}</p>`;
+                            let pContent = "";
+                            let lastEdge = 0;
+                            lineItems.forEach(item => {
+                                const x = item.transform[4] || 0;
+                                const gap = Math.max(0, x - lastEdge);
+                                pContent += `<span style="margin-left:${gap}px;">${item.str}</span>`;
+                                lastEdge = x + (item.width || item.str.length * 5);
+                            });
+                            if (pContent.replace(/<[^>]+>/g, '').trim())
+                                fullText += `<p style="margin:2px 0; font-family:Arial,sans-serif; white-space:nowrap;">${pContent}</p>`;
                         }
                     }
                     fullText += "</body></html>";

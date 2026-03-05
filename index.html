@@ -68,6 +68,19 @@
       </nav>
 
       <div class="header-actions">
+        <!-- Donate & Feedback always visible on mobile -->
+        <a href="#donate" class="mobile-nav-btn" title="Donate"
+          style="display:none; align-items:center; gap:4px; font-size:0.82rem; font-weight:600; color:#22c55e; text-decoration:none; padding:6px 10px; border:1px solid rgba(34,197,94,0.3); border-radius:8px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#22c55e" stroke="none">
+            <path
+              d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+          </svg>
+          Donate
+        </a>
+        <a href="#" onclick="openFeedbackModal(event)" class="mobile-nav-btn" title="Feedback"
+          style="display:none; align-items:center; gap:4px; font-size:0.82rem; font-weight:600; color:var(--fg-muted); text-decoration:none; padding:6px 10px; border:1px solid var(--border-subtle); border-radius:8px;">
+          Feedback
+        </a>
         <button class="theme-toggle" id="themeToggleBtn" aria-label="Toggle Theme">
           <svg id="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2">
@@ -402,7 +415,7 @@
       <h3 style="margin:0 0 0.25rem 0; font-size:1.2rem; color:var(--fg);">Scan to Donate</h3>
       <p style="color:var(--fg-muted); font-size:0.85rem; margin-bottom:1.5rem;">Scan with any UPI app on your phone</p>
       <div style="background:#fff; padding:1rem; border-radius:12px; display:inline-block; margin-bottom:1.25rem;">
-        <img src="../src/upi-qr.png" width="200" height="200" alt="UPI QR Code - abhilashr204@oksbi"
+        <img src="./src/upi-qr.png" width="200" height="200" alt="UPI QR Code - abhilashr204@oksbi"
           style="display:block; border-radius:4px;">
       </div>
       <div
@@ -635,6 +648,22 @@
 
     .modal-close:hover {
       color: #ef4444;
+    }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+
+      .mobile-nav-btn {
+        display: inline-flex !important;
+      }
+
+      .footer-inner {
+        flex-direction: column;
+        gap: 0.4rem;
+        align-items: flex-start;
+      }
     }
 
     .popup {

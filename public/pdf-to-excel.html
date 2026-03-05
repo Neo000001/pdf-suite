@@ -81,7 +81,7 @@
 
     <!-- Auto Theme Detector -->
     <script>
-        (function() {
+        (function () {
             const savedTheme = localStorage.getItem('pdfsuite-theme');
             if (savedTheme) {
                 document.documentElement.setAttribute('data-theme', savedTheme);
@@ -102,15 +102,14 @@
         </div>
     </header>
     <div class="ad-banner-section">
-        
-    <div class="ad-container" style="text-align: center; margin: 1rem 0;">
-      <ins class="adsbygoogle"
-           style="display:inline-block;width:728px;height:90px"
-           data-ad-client="ca-pub-7048088905906211"></ins>
-      <script>
-           (adsbygoogle = window.adsbygoogle || []).push({});
-      </script>
-    </div>
+
+        <div class="ad-container" style="text-align: center; margin: 1rem 0;">
+            <ins class="adsbygoogle" style="display:inline-block;width:728px;height:90px"
+                data-ad-client="ca-pub-7048088905906211"></ins>
+            <script>
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
 
     </div>
 
@@ -138,15 +137,14 @@
     </div>
 
     <div class="ad-banner-section bottom-ad">
-        
-    <div class="ad-container" style="text-align: center; margin: 1rem 0;">
-      <ins class="adsbygoogle"
-           style="display:inline-block;width:300px;height:250px"
-           data-ad-client="ca-pub-7048088905906211"></ins>
-      <script>
-           (adsbygoogle = window.adsbygoogle || []).push({});
-      </script>
-    </div>
+
+        <div class="ad-container" style="text-align: center; margin: 1rem 0;">
+            <ins class="adsbygoogle" style="display:inline-block;width:300px;height:250px"
+                data-ad-client="ca-pub-7048088905906211"></ins>
+            <script>
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
 
     </div>
 
@@ -190,18 +188,30 @@
                 const page = await doc.getPage(i);
                 const content = await page.getTextContent();
 
-                // Group items by approximate Y position (row detection)
+                // Group by Y within 10px bands
                 const rowMap = {};
                 content.items.forEach(item => {
-                    const y = Math.round(item.transform[5]);
+                    const y = Math.round((item.transform[5] || 0) / 10) * 10;
                     if (!rowMap[y]) rowMap[y] = [];
-                    rowMap[y].push(item.str);
+                    rowMap[y].push(item);
                 });
 
                 const sortedYs = Object.keys(rowMap).map(Number).sort((a, b) => b - a);
                 sortedYs.forEach(y => {
-                    const rowText = rowMap[y].join('\t');
-                    if (rowText.trim()) allRows.push(rowMap[y]);
+                    const lineItems = rowMap[y].sort((a, b) => (a.transform[4] || 0) - (b.transform[4] || 0));
+                    let columns = [], colStr = "", lastX = -1;
+                    lineItems.forEach(item => {
+                        const x = item.transform[4] || 0;
+                        if (lastX !== -1 && (x - lastX) > 20) {
+                            columns.push(colStr.trim());
+                            colStr = item.str;
+                        } else {
+                            colStr += (colStr && !colStr.endsWith(" ") ? " " : "") + item.str;
+                        }
+                        lastX = x + (item.width || item.str.length * 5);
+                    });
+                    if (colStr.trim()) columns.push(colStr.trim());
+                    if (columns.length > 0) allRows.push(columns);
                 });
             }
 
