@@ -346,11 +346,7 @@ html[data-theme="light"] .floating-card {
   font-size: 0.85rem;
 }
 
-/* Layout Hacks */
-@media (max-width: 768px) {
-  .hero-visual {
-    display: none;
-  }
+
 
   .hero-inner {
     grid-template-columns: 1fr;
@@ -400,3 +396,66 @@ html[data-theme="light"] .floating-card {
   max-width: 300px;
   height: 250px;
 }
+
+
+/* ========= DASHBOARD MOBILE FIX ========= */
+@media (max-width: 768px) {
+  .hero-visual {
+    display: none;
+  }
+
+  .hero-inner {
+    grid-template-columns: 1fr;
+  }
+
+  .tools-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.75rem;
+  }
+
+  .glass-hero {
+    padding: 3rem 1rem;
+  }
+
+  .hero-stats {
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .quick-tools-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.5rem;
+  }
+
+  .ad-banner-section {
+    padding: 1rem;
+  }
+
+  .ad-container ins {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .section {
+    padding: 2.5rem 1rem;
+  }
+
+  .footer-inner {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .tools-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .quick-tools-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  h1 { font-size: 1.75rem !important; }
+  h2 { font-size: 1.4rem !important; }
+}
+
