@@ -541,6 +541,20 @@
             }
         }
     </style>
+
+    <!-- Auto Theme Detector -->
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('pdfsuite-theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else {
+                const hour = new Date().getHours();
+                const theme = (hour >= 6 && hour < 18) ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+        })();
+    </script>
 </head>
 
 <body>
@@ -647,6 +661,7 @@
                 <label class="all-pages-lbl">
                     <input type="checkbox" id="sigAllPages"> Apply to ALL pages
                 </label>
+                <button class="btn-modal-sec" id="sigUndoBtn">Undo</button>
                 <button class="btn-modal-sec" id="clearSigBtn">Clear</button>
                 <button class="btn-modal-sec" id="closeSigBtn">Cancel</button>
                 <button class="btn-modal-pri" id="applySigBtn">Place Signature</button>
@@ -821,10 +836,17 @@
             span.innerText = 'Text';
             span.addEventListener('focus', () => {
                 activeTextBox = wrap;
-                document.getElementById('fontSize').value = wrap.dataset.fs;
+                document.getElementById('fontSize').value = wrap.dataset.fs || 16;
                 document.getElementById('textColor').value = wrap.dataset.col || '#000000';
             });
-            span.addEventListener('blur', () => { activeTextBox = null; });
+            span.addEventListener('blur', () => {
+                setTimeout(() => {
+                    const active = document.activeElement;
+                    if (active !== document.getElementById('fontSize') && active !== document.getElementById('textColor')) {
+                        activeTextBox = null;
+                    }
+                }, 150);
+            });
             wrap.appendChild(span);
 
             makeDraggable(wrap);
@@ -955,16 +977,31 @@
         const sigCtx = sigCanvas.getContext('2d');
         let isSigning = false, sigLastX = 0, sigLastY = 0;
         let capturedSigDataUrl = null;
+        let sigUndoStack = [];
 
         function openSigModal() {
             sigModal.classList.add('open');
             sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+            sigUndoStack = [];
         }
 
         document.getElementById('closeSigBtn').addEventListener('click', () => sigModal.classList.remove('open'));
-        document.getElementById('clearSigBtn').addEventListener('click', () => sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height));
+        document.getElementById('clearSigBtn').addEventListener('click', () => {
+            sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+            sigUndoStack = [];
+        });
+
+        document.getElementById('sigUndoBtn').addEventListener('click', () => {
+            const last = sigUndoStack.pop();
+            sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+            if (last) sigCtx.drawImage(last, 0, 0);
+        });
 
         sigCanvas.addEventListener('mousedown', e => {
+            const tempC = document.createElement('canvas');
+            tempC.width = sigCanvas.width; tempC.height = sigCanvas.height;
+            tempC.getContext('2d').drawImage(sigCanvas, 0, 0);
+            sigUndoStack.push(tempC);
             isSigning = true;
             const r = sigCanvas.getBoundingClientRect();
             sigLastX = (e.clientX - r.left) * (sigCanvas.width / r.width);
@@ -986,6 +1023,11 @@
 
         sigCanvas.addEventListener('touchstart', e => {
             e.preventDefault();
+            const tempC = document.createElement('canvas');
+            tempC.width = sigCanvas.width; tempC.height = sigCanvas.height;
+            tempC.getContext('2d').drawImage(sigCanvas, 0, 0);
+            sigUndoStack.push(tempC);
+
             const t = e.touches[0], r = sigCanvas.getBoundingClientRect();
             sigLastX = (t.clientX - r.left) * (sigCanvas.width / r.width);
             sigLastY = (t.clientY - r.top) * (sigCanvas.height / r.height);
@@ -1141,10 +1183,17 @@
                     if (span) {
                         span.addEventListener('focus', () => {
                             activeTextBox = el;
-                            document.getElementById('fontSize').value = el.dataset.fs;
+                            document.getElementById('fontSize').value = el.dataset.fs || 16;
                             document.getElementById('textColor').value = el.dataset.col || '#000000';
                         });
-                        span.addEventListener('blur', () => { activeTextBox = null; });
+                        span.addEventListener('blur', () => {
+                            setTimeout(() => {
+                                const active = document.activeElement;
+                                if (active !== document.getElementById('fontSize') && active !== document.getElementById('textColor')) {
+                                    activeTextBox = null;
+                                }
+                            }, 150);
+                        });
                     }
                 }
                 makeDraggable(el);

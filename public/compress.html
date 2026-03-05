@@ -83,6 +83,20 @@
             margin-top: 2px;
         }
     </style>
+
+    <!-- Auto Theme Detector -->
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('pdfsuite-theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else {
+                const hour = new Date().getHours();
+                const theme = (hour >= 6 && hour < 18) ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+        })();
+    </script>
 </head>
 
 <body>
@@ -94,7 +108,16 @@
     </header>
 
     <div class="ad-banner-section">
-        <div class="ad-placeholder"><span>Google Ads - 728x90 Top placement</span></div>
+        
+    <div class="ad-container" style="text-align: center; margin: 1rem 0;">
+      <ins class="adsbygoogle"
+           style="display:inline-block;width:728px;height:90px"
+           data-ad-client="ca-pub-7048088905906211"></ins>
+      <script>
+           (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
+    </div>
+
     </div>
 
     <div class="workspace">
@@ -111,6 +134,52 @@
 
         <div id="actionArea" style="display:none;">
             <p id="fileInfo" style="margin-bottom:1rem; font-weight:600;"></p>
+
+            <div id="compressionOptions"
+                style="margin: 1.5rem 0; text-align: left; background: var(--bg); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-subtle);">
+                <h3 style="margin-top:0; font-size:1.05rem; margin-bottom:1rem;">Select Compression Level</h3>
+
+                <label
+                    style="display:flex; align-items:flex-start; gap:10px; margin-bottom:1rem; cursor:pointer; padding: 0.5rem; border-radius: 6px; border: 1px solid transparent; transition: background 0.2s;"
+                    onmouseover="this.style.background='var(--bg-soft)'"
+                    onmouseout="this.style.background='transparent'">
+                    <input type="radio" name="compLevel" value="hard"
+                        style="margin-top:4px; transform: scale(1.2); accent-color: #10b981;">
+                    <div>
+                        <strong style="display:block; color:var(--fg); font-size: 1rem;">Extreme Compression
+                            (Hard)</strong>
+                        <span style="font-size:0.85rem; color:var(--fg-muted);">Less quality, high compression. Best for
+                            tight email limits.</span>
+                    </div>
+                </label>
+
+                <label
+                    style="display:flex; align-items:flex-start; gap:10px; margin-bottom:1rem; cursor:pointer; padding: 0.5rem; border-radius: 6px; border: 1px solid transparent; transition: background 0.2s;"
+                    onmouseover="this.style.background='var(--bg-soft)'"
+                    onmouseout="this.style.background='transparent'">
+                    <input type="radio" name="compLevel" value="normal" checked
+                        style="margin-top:4px; transform: scale(1.2); accent-color: #10b981;">
+                    <div>
+                        <strong style="display:block; color:var(--fg); font-size: 1rem;">Recommended Compression
+                            (Normal)</strong>
+                        <span style="font-size:0.85rem; color:var(--fg-muted);">Good quality, good compression. Ideal
+                            for standard usage.</span>
+                    </div>
+                </label>
+
+                <label
+                    style="display:flex; align-items:flex-start; gap:10px; cursor:pointer; padding: 0.5rem; border-radius: 6px; border: 1px solid transparent; transition: background 0.2s;"
+                    onmouseover="this.style.background='var(--bg-soft)'"
+                    onmouseout="this.style.background='transparent'">
+                    <input type="radio" name="compLevel" value="low"
+                        style="margin-top:4px; transform: scale(1.2); accent-color: #10b981;">
+                    <div>
+                        <strong style="display:block; color:var(--fg); font-size: 1rem;">Less Compression (Low)</strong>
+                        <span style="font-size:0.85rem; color:var(--fg-muted);">High quality, less compression. Keeps
+                            maximum fidelity.</span>
+                    </div>
+                </label>
+            </div>
 
             <div class="stats-bar" id="statsBar" style="display:none;">
                 <div class="stat-item">
@@ -134,7 +203,16 @@
     </div>
 
     <div class="ad-banner-section bottom-ad">
-        <div class="ad-placeholder square"><span>Google Ads - 300x250</span></div>
+        
+    <div class="ad-container" style="text-align: center; margin: 1rem 0;">
+      <ins class="adsbygoogle"
+           style="display:inline-block;width:300px;height:250px"
+           data-ad-client="ca-pub-7048088905906211"></ins>
+      <script>
+           (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
+    </div>
+
     </div>
 
     <script>
@@ -178,20 +256,25 @@
                 processBtn.innerText = 'Compressing...';
                 statsBar.style.display = 'none';
 
+                const level = document.querySelector('input[name="compLevel"]:checked').value;
+
                 const { PDFDocument } = PDFLib;
                 const doc = await PDFDocument.load(currentPdfBytes, { updateMetadata: false });
 
-                // Strip all metadata (common source of bloat)
-                doc.setTitle(''); doc.setAuthor(''); doc.setSubject('');
-                doc.setCreator(''); doc.setProducer(''); doc.setKeywords([]);
+                if (level === 'normal' || level === 'hard') {
+                    doc.setTitle(''); doc.setAuthor(''); doc.setSubject('');
+                    doc.setCreator(''); doc.setProducer(''); doc.setKeywords([]);
+                }
 
-                const newPdfBytes = await doc.save({ useObjectStreams: true });
+                const useStreams = (level === 'normal' || level === 'hard');
+
+                const newPdfBytes = await doc.save({ useObjectStreams: useStreams });
                 const blob = new Blob([newPdfBytes], { type: 'application/pdf' });
                 const newSize = blob.size;
 
-                // Show stats
                 document.getElementById('origSize').innerText = fmtBytes(originalSize);
                 document.getElementById('newSize').innerText = fmtBytes(newSize);
+
                 const saved = ((originalSize - newSize) / originalSize * 100);
                 document.getElementById('savedPct').innerText = (saved > 0 ? saved.toFixed(1) + '%' : '0%');
                 statsBar.style.display = 'flex';

@@ -37,6 +37,20 @@
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211" crossorigin="anonymous"></script>
+
+    <!-- Auto Theme Detector -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('pdfsuite-theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else {
+                const hour = new Date().getHours();
+                const theme = (hour >= 6 && hour < 18) ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+        })();
+    </script>
 </head>
 
 <body>
@@ -47,7 +61,16 @@
         </div>
     </header>
     <div class="ad-banner-section">
-        <div class="ad-placeholder"><span>Google Ads - 728x90 Top placement</span></div>
+        
+    <div class="ad-container" style="text-align: center; margin: 1rem 0;">
+      <ins class="adsbygoogle"
+           style="display:inline-block;width:728px;height:90px"
+           data-ad-client="ca-pub-7048088905906211"></ins>
+      <script>
+           (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
+    </div>
+
     </div>
 
     <div class="workspace">
@@ -80,7 +103,16 @@
     </div>
 
     <div class="ad-banner-section bottom-ad">
-        <div class="ad-placeholder square"><span>Google Ads - 300x250</span></div>
+        
+    <div class="ad-container" style="text-align: center; margin: 1rem 0;">
+      <ins class="adsbygoogle"
+           style="display:inline-block;width:300px;height:250px"
+           data-ad-client="ca-pub-7048088905906211"></ins>
+      <script>
+           (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
+    </div>
+
     </div>
 
     <script>

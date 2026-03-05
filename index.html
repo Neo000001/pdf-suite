@@ -3,13 +3,27 @@
 
 <head>
   <meta charset="UTF-8" />
-  <title>PDFSuite â€“ The Ultimate All-in-One PDF Platform</title>
+  <title>PDFSuite - The Ultimate All-in-One PDF Platform</title>
   <meta name="description"
     content="PDFSuite is a free, powerful online PDF editor. Create, edit, sign, merge, compress, and use advanced AI tools on your PDFs securely in your browser." />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <link rel="stylesheet" href="src/css/base.css" />
   <link rel="stylesheet" href="src/css/dashboard.css" />
+
+  <!-- Auto Theme Detector -->
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem('pdfsuite-theme');
+      if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      } else {
+        const hour = new Date().getHours();
+        const theme = (hour >= 6 && hour < 18) ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+      }
+    })();
+  </script>
 
   <!-- Modern Font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -43,14 +57,14 @@
         <a href="#features">Features</a>
         <a href="#ai-tools">AI Powered</a>
         <a href="./public/premium.html" style="color: #f59e0b; font-weight: 600;">Remove Ads (PRO)</a>
-        <a href="#" style="color: #22c55e; display:inline-flex; align-items:center; gap:4px;">
+        <a href="#donate" style="color: #22c55e; display:inline-flex; align-items:center; gap:4px;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="#22c55e" stroke="none">
             <path
               d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
           </svg>
           Donate
         </a>
-        <a href="#">Feedback</a>
+        <a href="#" onclick="openFeedbackModal(event)">Feedback</a>
       </nav>
 
       <div class="header-actions">
@@ -103,38 +117,42 @@
       </div>
 
       <div class="hero-visual">
-        <div class="floating-card edit-card">
-          <div class="icon"><i data-lucide="edit"></i></div>
+        <a href="./public/compress.html" class="floating-card edit-card"
+          style="text-decoration: none; color: inherit; cursor: pointer; display: flex;">
+          <div class="icon"><i data-lucide="minimize"></i></div>
           <div class="info">
-            <strong>Smart Editor</strong>
-            <span>Edit text directly</span>
+            <strong>Compress PDF</strong>
+            <span>Reduce file size fast</span>
           </div>
-        </div>
-        <div class="floating-card sign-card">
-          <div class="icon"><i data-lucide="pen-tool"></i></div>
+        </a>
+        <a href="./public/merge.html" class="floating-card sign-card"
+          style="text-decoration: none; color: inherit; cursor: pointer; display: flex;">
+          <div class="icon"><i data-lucide="link"></i></div>
           <div class="info">
-            <strong>E-Signatures</strong>
-            <span>Sign in seconds</span>
+            <strong>Merge PDF</strong>
+            <span>Combine documents</span>
           </div>
-        </div>
-        <div class="floating-card ai-card">
-          <div class="icon"><i data-lucide="bot"></i></div>
+        </a>
+        <a href="./public/pdf-to-word.html" class="floating-card ai-card"
+          style="text-decoration: none; color: inherit; cursor: pointer; display: flex;">
+          <div class="icon"><i data-lucide="file-text"></i></div>
           <div class="info">
-            <strong>AI Summarizer</strong>
-            <span>Read 100 pages in 1 min</span>
+            <strong>PDF to Word</strong>
+            <span>Convert to editable text</span>
           </div>
-        </div>
+        </a>
       </div>
     </div>
   </section>
 
   <!-- ================= SECTION: TOP AD ================= -->
   <section class="ad-banner-section">
-    <div class="ad-container">
-      <!-- Google Adsense Insert Here -->
-      <div class="ad-placeholder">
-        <span>Advertisement Placement - 728x90</span>
-      </div>
+    <div class="ad-container" style="text-align: center; margin: 1rem 0;">
+      <ins class="adsbygoogle" style="display:inline-block;width:728px;height:90px"
+        data-ad-client="ca-pub-7048088905906211"></ins>
+      <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
     </div>
   </section>
 
@@ -309,15 +327,90 @@
     </div>
   </section>
 
+  <!-- ================= DONATE SECTION ================= -->
+  <section id="donate"
+    style="padding:6rem 2rem; position:relative; overflow:hidden; border-top:1px solid var(--border-subtle);">
+
+    <div
+      style="position:absolute; top:0; left:0; right:0; bottom:0; background:radial-gradient(ellipse at 50% 100%, rgba(16,185,129,0.04) 0%, transparent 70%); pointer-events:none;">
+    </div>
+
+    <div style="max-width:500px; margin:0 auto; text-align:center; position:relative; z-index:2;">
+
+      <p
+        style="font-size:0.8rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#10b981; margin-bottom:1rem;">
+        Support the Project</p>
+      <h2 style="font-size:2.25rem; font-weight:800; margin:0 0 1rem 0; letter-spacing:-0.5px; color:var(--fg);">Keep
+        PDFSuite Free</h2>
+      <p style="color:var(--fg-muted); line-height:1.7; margin-bottom:3rem; font-size:0.95rem;">PDFSuite is
+        independently built and offered completely free of charge. If these tools have saved you time, consider a small
+        contribution to support continued development.</p>
+
+      <div
+        style="background:var(--bg-soft); border:1px solid var(--border-subtle); border-radius:20px; padding:2.5rem 2rem; position:relative; overflow:hidden;">
+
+        <!-- Top gradient line -->
+        <div
+          style="position:absolute; top:0; left:0; width:100%; height:3px; background:linear-gradient(90deg, #10b981, #3b82f6);">
+        </div>
+
+        <p
+          style="font-size:0.78rem; text-transform:uppercase; letter-spacing:1.5px; color:var(--fg-muted); font-weight:600; margin:0 0 1.25rem 0;">
+          UPI Payment ID</p>
+
+        <!-- UPI Copy Row -->
+        <div
+          style="display:flex; align-items:center; background:var(--bg); border:1px solid var(--border-subtle); border-radius:10px; overflow:hidden; margin-bottom:2rem;">
+          <span
+            style="flex:1; padding:0.9rem 1.25rem; font-size:1.05rem; font-weight:600; font-family:'Courier New', monospace; color:var(--fg); letter-spacing:0.5px; text-align:left;">abhilashr204@oksbi</span>
+          <button onclick="copyUPI()" id="copyUPIGlow"
+            style="background:#10b981; color:#fff; border:none; padding:0.9rem 1.4rem; display:flex; align-items:center; gap:6px; cursor:pointer; font-weight:600; font-size:0.85rem; white-space:nowrap; transition:background 0.2s; border-left:1px solid rgba(16,185,129,0.3);">
+            <i data-lucide="copy" style="width:15px; height:15px;"></i>
+            <span id="copyUPIText">Copy ID</span>
+          </button>
+        </div>
+
+        <!-- App compatibility row -->
+        <div
+          style="display:flex; align-items:center; justify-content:center; gap:2rem; color:var(--fg-muted); font-size:0.82rem; letter-spacing:0.3px;">
+          <span>GPay</span>
+          <span
+            style="width:3px; height:3px; border-radius:50%; background:var(--border-subtle); display:inline-block;"></span>
+          <span>PhonePe</span>
+          <span
+            style="width:3px; height:3px; border-radius:50%; background:var(--border-subtle); display:inline-block;"></span>
+          <span>Paytm</span>
+          <span
+            style="width:3px; height:3px; border-radius:50%; background:var(--border-subtle); display:inline-block;"></span>
+          <span>Any UPI App</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    function copyUPI() {
+      navigator.clipboard.writeText("abhilashr204@oksbi").then(() => {
+        const btn = document.getElementById("copyUPIGlow");
+        const txt = document.getElementById("copyUPIText");
+        btn.style.background = "#059669";
+        txt.innerText = "Copied!";
+        setTimeout(() => {
+          btn.style.background = "#10b981";
+          txt.innerText = "Copy ID";
+        }, 2000);
+      });
+    }
+  </script>
+
   <!-- ================= SECTION: BOTTOM AD ================= -->
   <section class="ad-banner-section bottom-ad">
-    <div class="ad-container">
-      <div class="ad-placeholder square">
-        <span>Advertisement - 300x250</span>
-      </div>
-      <div class="ad-placeholder square">
-        <span>Advertisement - 300x250</span>
-      </div>
+    <div class="ad-container" style="text-align: center; margin: 1rem 0;">
+      <ins class="adsbygoogle" style="display:inline-block;width:300px;height:250px"
+        data-ad-client="ca-pub-7048088905906211"></ins>
+      <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
     </div>
   </section>
 
@@ -357,9 +450,26 @@
     const htmlEl = document.documentElement;
     const moonIcon = document.getElementById('moon-icon');
 
+    // Initial icon state
+    if (htmlEl.getAttribute('data-theme') === 'light') {
+      moonIcon.innerHTML = `<circle cx="12" cy="12" r="5"></circle>
+  <line x1="12" y1="1" x2="12" y2="3"></line>
+  <line x1="12" y1="21" x2="12" y2="23"></line>
+  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+  <line x1="1" y1="12" x2="3" y2="12"></line>
+  <line x1="21" y1="12" x2="23" y2="12"></line>
+  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>`;
+    }
+
     toggleBtn.addEventListener('click', () => {
-      if (htmlEl.getAttribute('data-theme') === 'dark') {
-        htmlEl.setAttribute('data-theme', 'light');
+      const isDark = htmlEl.getAttribute('data-theme') === 'dark';
+      const newTheme = isDark ? 'light' : 'dark';
+      htmlEl.setAttribute('data-theme', newTheme);
+      localStorage.setItem('pdfsuite-theme', newTheme);
+
+      if (newTheme === 'light') {
         moonIcon.innerHTML = `<circle cx="12" cy="12" r="5"></circle>
   <line x1="12" y1="1" x2="12" y2="3"></line>
   <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -370,12 +480,186 @@
   <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
   <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>`;
       } else {
-        htmlEl.setAttribute('data-theme', 'dark');
         moonIcon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
       }
     });
+
+    // Feedback logic
+    function openFeedbackModal(e) {
+      if (e) e.preventDefault();
+      document.getElementById('feedbackModal').style.display = 'flex';
+    }
+
+    function closeFeedbackModal() {
+      document.getElementById('feedbackModal').style.display = 'none';
+    }
+
+    document.getElementById('feedbackModal').addEventListener('click', function (e) {
+      if (e.target === this) {
+        closeFeedbackModal();
+      }
+    });
+
+    document.getElementById('feedbackForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const submitBtn = this.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = 'Sending...';
+      submitBtn.disabled = true;
+
+      try {
+        const response = await fetch("https://formspree.io/f/xwvnlraq", {
+          method: "POST",
+          body: formData,
+          headers: { 'Accept': 'application/json' }
+        });
+
+        if (response.ok) {
+          closeFeedbackModal();
+          const popup = document.getElementById('feedbackPopup');
+          popup.style.display = 'block';
+          setTimeout(() => popup.style.display = 'none', 3000);
+          this.reset();
+        } else {
+          alert("There was a problem sending your feedback.");
+        }
+      } catch (error) {
+        alert("There was a problem sending your feedback. Please try again.");
+      } finally {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+      }
+    });
+
   </script>
 
-</body>
+  <style>
+    /* Feedback Modal Styles */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(0, 0, 0, 0.5);
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-content {
+      background: #fff;
+      border-radius: 12px;
+      padding: 2rem;
+      width: 90%;
+      max-width: 450px;
+      position: relative;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      color: #0f172a;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-soft);
+      color: var(--fg);
+    }
+
+    [data-theme="dark"] .modal-content h2,
+    [data-theme="dark"] .modal-content label {
+      color: var(--fg);
+    }
+
+    [data-theme="dark"] .modal-content p {
+      color: var(--fg-muted);
+    }
+
+    [data-theme="dark"] .modal-content input,
+    [data-theme="dark"] .modal-content textarea {
+      background: var(--bg);
+      color: var(--fg);
+      border-color: var(--border-subtle);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      font-size: 1.5rem;
+      color: #94a3b8;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .modal-close:hover {
+      color: #ef4444;
+    }
+
+    .popup {
+      display: none;
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #10b981;
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      font-weight: 500;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      z-index: 10000;
+      animation: popUp 0.3s ease-out forwards;
+    }
+
+    @keyframes popUp {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, 1rem);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+    }
+  </style>
+
+  <!-- Feedback Modal HTML -->
+  <div id="feedbackModal" class="modal-overlay">
+    <div class="modal-content">
+      <span class="modal-close" onclick="closeFeedbackModal()">&times;</span>
+      <div style="text-align: center; margin-bottom: 1.5rem;">
+        <h2 style="margin:0 0 0.5rem 0; font-size:1.75rem;">Give Feedback</h2>
+        <p style="margin:0; font-size:0.95rem;">Help us improve PDFSuite by sharing your thoughts.</p>
+      </div>
+      <form id="feedbackForm">
+        <div style="margin-bottom: 1rem;">
+          <label style="display:block; font-size:0.9rem; font-weight:600; margin-bottom:0.5rem; text-align: left;">Name
+            (Optional)</label>
+          <input type="text" name="Name" placeholder="Your name"
+            style="width:100%; box-sizing:border-box; padding:0.75rem; border:1px solid #cbd5e1; border-radius:8px; font-family:inherit; font-size:1rem; outline:none; transition: border-color 0.2s;"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border-subtle)'">
+        </div>
+        <div style="margin-bottom: 1rem;">
+          <label style="display:block; font-size:0.9rem; font-weight:600; margin-bottom:0.5rem; text-align: left;">Email
+            (Optional)</label>
+          <input type="email" name="Email" placeholder="your@email.com"
+            style="width:100%; box-sizing:border-box; padding:0.75rem; border:1px solid #cbd5e1; border-radius:8px; font-family:inherit; font-size:1rem; outline:none; transition: border-color 0.2s;"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border-subtle)'">
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+          <label
+            style="display:block; font-size:0.9rem; font-weight:600; margin-bottom:0.5rem; text-align: left;">Feedback
+            *</label>
+          <textarea name="Message" rows="4" placeholder="What can we do better?" required
+            style="width:100%; box-sizing:border-box; padding:0.75rem; border:1px solid #cbd5e1; border-radius:8px; font-family:inherit; font-size:1rem; outline:none; resize:vertical; transition: border-color 0.2s;"
+            onfocus="this.style.borderColor='var(--accent)'"
+            onblur="this.style.borderColor='var(--border-subtle)'"></textarea>
+        </div>
+        <input type="hidden" name="Type" value="Feedback Form">
+        <button type="submit" class="btn-primary"
+          style="width:100%; padding:1rem; font-size:1rem; border:none; cursor:pointer;">Send Feedback</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="feedbackPopup" class="popup">Feedback sent successfully <span style="font-weight: bold;">&#10003;</span>
+  </div>
 
 </html>

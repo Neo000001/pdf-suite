@@ -60,6 +60,20 @@
             line-height: 1.8;
         }
     </style>
+
+    <!-- Auto Theme Detector -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('pdfsuite-theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else {
+                const hour = new Date().getHours();
+                const theme = (hour >= 6 && hour < 18) ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+        })();
+    </script>
 </head>
 
 <body>
@@ -70,7 +84,16 @@
         </div>
     </header>
     <div class="ad-banner-section">
-        <div class="ad-placeholder"><span>Advertisement - 728x90</span></div>
+        
+    <div class="ad-container" style="text-align: center; margin: 1rem 0;">
+      <ins class="adsbygoogle"
+           style="display:inline-block;width:728px;height:90px"
+           data-ad-client="ca-pub-7048088905906211"></ins>
+      <script>
+           (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
+    </div>
+
     </div>
 
     <div class="workspace">
@@ -109,8 +132,53 @@
         </div>
     </div>
 
+    <!-- .DOC Help Modal -->
+    <div id="docHelpModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:999; align-items:center; justify-content:center; padding:1rem;">
+        <div style="background:var(--bg-soft); border:1px solid var(--border-subtle); border-radius:20px; padding:2.5rem 2rem; max-width:480px; width:100%; position:relative; box-shadow:0 24px 60px rgba(0,0,0,0.3);">
+            <button onclick="document.getElementById('docHelpModal').style.display='none'" style="position:absolute; top:1rem; right:1rem; background:transparent; border:none; color:var(--fg-muted); cursor:pointer; font-size:1.4rem; line-height:1;">&times;</button>
+            <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1.25rem;">
+                <div style="width:40px; height:40px; background:rgba(251,191,36,0.1); border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                    <i data-lucide="alert-triangle" style="width:20px; height:20px; color:#f59e0b;"></i>
+                </div>
+                <div>
+                    <h3 style="margin:0; font-size:1.1rem; color:var(--fg);">Legacy .doc File Detected</h3>
+                    <p style="margin:0; font-size:0.82rem; color:var(--fg-muted);">This format cannot be processed directly in the browser</p>
+                </div>
+            </div>
+            <p style="color:var(--fg-muted); font-size:0.9rem; line-height:1.65; margin-bottom:1.5rem;">Old <strong style="color:var(--fg);">.doc</strong> files require a desktop application to read. Please convert to <strong style="color:var(--fg);">.docx</strong> first, then upload it here. It only takes 30 seconds.</p>
+            <div style="background:var(--bg); border-radius:12px; padding:1.25rem; margin-bottom:1.5rem;">
+                <p style="font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:var(--fg-muted); margin:0 0 1rem 0;">How to convert</p>
+                <div style="display:flex; align-items:flex-start; gap:0.75rem; margin-bottom:0.9rem;">
+                    <span style="min-width:22px; height:22px; background:#3b82f6; color:#fff; border-radius:50%; font-size:0.75rem; font-weight:700; display:flex; align-items:center; justify-content:center;">1</span>
+                    <p style="margin:0; font-size:0.88rem; color:var(--fg); line-height:1.5;">Go to <a href="https://docs.google.com" target="_blank" style="color:#3b82f6; text-decoration:none; font-weight:600;">Google Docs</a> and open your .doc file by dragging it in</p>
+                </div>
+                <div style="display:flex; align-items:flex-start; gap:0.75rem; margin-bottom:0.9rem;">
+                    <span style="min-width:22px; height:22px; background:#3b82f6; color:#fff; border-radius:50%; font-size:0.75rem; font-weight:700; display:flex; align-items:center; justify-content:center;">2</span>
+                    <p style="margin:0; font-size:0.88rem; color:var(--fg); line-height:1.5;">Click <strong>File &rarr; Download &rarr; Microsoft Word (.docx)</strong></p>
+                </div>
+                <div style="display:flex; align-items:flex-start; gap:0.75rem;">
+                    <span style="min-width:22px; height:22px; background:#10b981; color:#fff; border-radius:50%; font-size:0.75rem; font-weight:700; display:flex; align-items:center; justify-content:center;">3</span>
+                    <p style="margin:0; font-size:0.88rem; color:var(--fg); line-height:1.5;">Come back here and upload the downloaded <strong>.docx</strong> file</p>
+                </div>
+            </div>
+            <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
+                <button onclick="document.getElementById('docHelpModal').style.display='none'" style="background:transparent; border:1px solid var(--border-subtle); color:var(--fg); padding:0.6rem 1.25rem; border-radius:8px; cursor:pointer; font-size:0.88rem;">Close</button>
+                <a href="https://docs.google.com" target="_blank" style="background:#3b82f6; color:#fff; padding:0.6rem 1.25rem; border-radius:8px; text-decoration:none; font-size:0.88rem; font-weight:600;">Open Google Docs</a>
+            </div>
+        </div>
+    </div>
+
     <div class="ad-banner-section bottom-ad">
-        <div class="ad-placeholder square"><span>Advertisement - 300x250</span></div>
+        
+    <div class="ad-container" style="text-align: center; margin: 1rem 0;">
+      <ins class="adsbygoogle"
+           style="display:inline-block;width:300px;height:250px"
+           data-ad-client="ca-pub-7048088905906211"></ins>
+      <script>
+           (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
+    </div>
+
     </div>
 
     <script src="https://unpkg.com/mammoth@1.6.0/mammoth.browser.min.js"></script>
@@ -131,6 +199,15 @@
         fileInput.addEventListener('change', async e => {
             const file = e.target.files[0];
             if (!file) return;
+
+            // Detect legacy .doc (not .docx) and show help popup
+            if (file.name.toLowerCase().endsWith('.doc') && !file.name.toLowerCase().endsWith('.docx')) {
+                fileInput.value = '';
+                const modal = document.getElementById('docHelpModal');
+                modal.style.display = 'flex';
+                lucide.createIcons();
+                return;
+            }
 
             fileInfo.innerText = `Selected: ${file.name}`;
             statusMsg.innerText = 'Parsing document...';

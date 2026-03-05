@@ -76,6 +76,20 @@
             color: #333;
         }
     </style>
+
+    <!-- Auto Theme Detector -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('pdfsuite-theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else {
+                const hour = new Date().getHours();
+                const theme = (hour >= 6 && hour < 18) ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+        })();
+    </script>
 </head>
 
 <body>
@@ -86,7 +100,16 @@
         </div>
     </header>
     <div class="ad-banner-section">
-        <div class="ad-placeholder"><span>Advertisement - 728x90</span></div>
+        
+    <div class="ad-container" style="text-align: center; margin: 1rem 0;">
+      <ins class="adsbygoogle"
+           style="display:inline-block;width:728px;height:90px"
+           data-ad-client="ca-pub-7048088905906211"></ins>
+      <script>
+           (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
+    </div>
+
     </div>
 
     <div class="workspace">
@@ -115,7 +138,16 @@
     </div>
 
     <div class="ad-banner-section bottom-ad">
-        <div class="ad-placeholder square"><span>Advertisement - 300x250</span></div>
+        
+    <div class="ad-container" style="text-align: center; margin: 1rem 0;">
+      <ins class="adsbygoogle"
+           style="display:inline-block;width:300px;height:250px"
+           data-ad-client="ca-pub-7048088905906211"></ins>
+      <script>
+           (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
+    </div>
+
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
