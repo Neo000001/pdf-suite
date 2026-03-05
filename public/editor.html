@@ -654,10 +654,64 @@
 
     <!-- SIGNATURE MODAL -->
     <div class="modal-backdrop" id="sigModal">
-        <div class="modal">
-            <h3>Draw Your Signature</h3>
-            <canvas class="sig-canvas" id="sigCanvas" width="432" height="200"></canvas>
-            <div class="modal-actions">
+        <div class="modal" style="width:520px;">
+            <h3 style="margin-bottom:0.75rem;">Add Signature</h3>
+
+            <!-- Tabs -->
+            <div
+                style="display:flex; gap:0; border:1px solid var(--border-subtle); border-radius:10px; overflow:hidden; margin-bottom:1.25rem;">
+                <button class="sig-tab active" id="tabDraw" onclick="switchSigTab('draw')"
+                    style="flex:1; padding:0.6rem; background:var(--accent); color:#fff; border:none; cursor:pointer; font-size:0.85rem; font-weight:600;">Draw</button>
+                <button class="sig-tab" id="tabType" onclick="switchSigTab('type')"
+                    style="flex:1; padding:0.6rem; background:transparent; color:var(--fg); border:none; cursor:pointer; font-size:0.85rem; font-weight:600; border-left:1px solid var(--border-subtle);">Type</button>
+                <button class="sig-tab" id="tabUpload" onclick="switchSigTab('upload')"
+                    style="flex:1; padding:0.6rem; background:transparent; color:var(--fg); border:none; cursor:pointer; font-size:0.85rem; font-weight:600; border-left:1px solid var(--border-subtle);">Upload
+                    Image</button>
+            </div>
+
+            <!-- Draw Tab -->
+            <div id="sigPaneDraw">
+                <canvas class="sig-canvas" id="sigCanvas" width="432" height="180"></canvas>
+            </div>
+
+            <!-- Type Tab -->
+            <div id="sigPaneType" style="display:none;">
+                <input id="sigTypeInput" type="text" placeholder="Type your name here..."
+                    style="width:100%; box-sizing:border-box; padding:0.8rem 1rem; border:1px solid var(--border-subtle); border-radius:8px; font-size:1rem; background:var(--bg); color:var(--fg); margin-bottom:0.75rem;">
+                <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.75rem;">
+                    <label style="font-size:0.8rem; color:var(--fg-muted); align-self:center;">Style:</label>
+                    <button onclick="setSigFont('Dancing Script')"
+                        style="font-family:'Dancing Script',cursive; padding:4px 12px; border:1px solid var(--border-subtle); border-radius:6px; background:var(--bg); color:var(--fg); cursor:pointer; font-size:1rem;">Cursive</button>
+                    <button onclick="setSigFont('serif')"
+                        style="font-family:serif; padding:4px 12px; border:1px solid var(--border-subtle); border-radius:6px; background:var(--bg); color:var(--fg); cursor:pointer; font-size:1rem;">Serif</button>
+                    <button onclick="setSigFont('Arial')"
+                        style="font-family:Arial; padding:4px 12px; border:1px solid var(--border-subtle); border-radius:6px; background:var(--bg); color:var(--fg); cursor:pointer; font-size:1rem;">Print</button>
+                </div>
+                <canvas id="sigTypePreview" width="432" height="120"
+                    style="width:100%; background:#fff; border:1px solid var(--border-subtle); border-radius:8px; display:block;"></canvas>
+            </div>
+
+            <!-- Upload Tab -->
+            <div id="sigPaneUpload" style="display:none;">
+                <div id="sigUploadBox"
+                    style="border:2px dashed var(--border-subtle); border-radius:10px; padding:2rem; text-align:center; cursor:pointer; margin-bottom:0.75rem; transition:border-color 0.2s;"
+                    onclick="document.getElementById('sigFileInput').click()"
+                    onmouseover="this.style.borderColor='var(--accent)'"
+                    onmouseout="this.style.borderColor='var(--border-subtle)'">
+                    <p style="margin:0 0 0.4rem 0; font-weight:600; color:var(--fg);">Click to upload signature image
+                    </p>
+                    <p style="margin:0; font-size:0.82rem; color:var(--fg-muted);">PNG, JPG, WebP supported</p>
+                    <input type="file" id="sigFileInput" accept="image/*" hidden>
+                </div>
+                <canvas id="sigUploadPreview" width="432" height="150"
+                    style="width:100%; background:#fff; border:1px solid var(--border-subtle); border-radius:8px; display:none;"></canvas>
+                <p style="font-size:0.8rem; color:var(--fg-muted); margin:0.75rem 0 0 0;">
+                    Don't have a PNG? <a href="./jpg-to-pdf.html" target="_blank"
+                        style="color:var(--accent); font-weight:600;">Convert your image to PNG here</a>
+                </p>
+            </div>
+
+            <div class="modal-actions" style="margin-top:1rem;">
                 <label class="all-pages-lbl">
                     <input type="checkbox" id="sigAllPages"> Apply to ALL pages
                 </label>
@@ -978,11 +1032,81 @@
         let isSigning = false, sigLastX = 0, sigLastY = 0;
         let capturedSigDataUrl = null;
         let sigUndoStack = [];
+        let currentSigTab = 'draw';
+        let currentSigFont = 'Dancing Script';
+
+        // Load cursive font for typed signatures
+        const fontLink = document.createElement('link');
+        fontLink.rel = 'stylesheet';
+        fontLink.href = 'https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&display=swap';
+        document.head.appendChild(fontLink);
+
+        function switchSigTab(tab) {
+            currentSigTab = tab;
+            document.getElementById('sigPaneDraw').style.display = tab === 'draw' ? 'block' : 'none';
+            document.getElementById('sigPaneType').style.display = tab === 'type' ? 'block' : 'none';
+            document.getElementById('sigPaneUpload').style.display = tab === 'upload' ? 'block' : 'none';
+            // Tab button styles
+            ['draw', 'type', 'upload'].forEach(t => {
+                const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
+                btn.style.background = t === tab ? 'var(--accent)' : 'transparent';
+                btn.style.color = t === tab ? '#fff' : 'var(--fg)';
+            });
+            // Undo/Clear only relevant for draw
+            document.getElementById('sigUndoBtn').style.display = tab === 'draw' ? 'inline-flex' : 'none';
+            document.getElementById('clearSigBtn').style.display = tab === 'draw' ? 'inline-flex' : 'none';
+        }
+
+        function setSigFont(font) {
+            currentSigFont = font;
+            renderTypedSig();
+        }
+
+        function renderTypedSig() {
+            const canvas = document.getElementById('sigTypePreview');
+            const ctx = canvas.getContext('2d');
+            const text = document.getElementById('sigTypeInput').value || 'Your Signature';
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#111';
+            ctx.font = `48px '${currentSigFont}', cursive, serif`;
+            ctx.textBaseline = 'middle';
+            ctx.textAlign = 'center';
+            ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+        }
+
+        document.getElementById('sigTypeInput').addEventListener('input', renderTypedSig);
+
+        // Upload PNG/image handler
+        document.getElementById('sigFileInput').addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.getElementById('sigUploadPreview');
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = '#fff';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    // Draw scaled to fit
+                    const ratio = Math.min(canvas.width / img.width, canvas.height / img.height);
+                    const w = img.width * ratio, h = img.height * ratio;
+                    ctx.drawImage(img, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
+                    canvas.style.display = 'block';
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
 
         function openSigModal() {
             sigModal.classList.add('open');
             sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
             sigUndoStack = [];
+            switchSigTab('draw');
         }
 
         document.getElementById('closeSigBtn').addEventListener('click', () => sigModal.classList.remove('open'));
@@ -1027,7 +1151,6 @@
             tempC.width = sigCanvas.width; tempC.height = sigCanvas.height;
             tempC.getContext('2d').drawImage(sigCanvas, 0, 0);
             sigUndoStack.push(tempC);
-
             const t = e.touches[0], r = sigCanvas.getBoundingClientRect();
             sigLastX = (t.clientX - r.left) * (sigCanvas.width / r.width);
             sigLastY = (t.clientY - r.top) * (sigCanvas.height / r.height);
@@ -1046,11 +1169,25 @@
         }, { passive: false });
 
         document.getElementById('applySigBtn').addEventListener('click', () => {
-            const dataUrl = sigCanvas.toDataURL();
+            let dataUrl = null;
+            if (currentSigTab === 'draw') {
+                dataUrl = sigCanvas.toDataURL();
+            } else if (currentSigTab === 'type') {
+                renderTypedSig();
+                dataUrl = document.getElementById('sigTypePreview').toDataURL();
+            } else if (currentSigTab === 'upload') {
+                const canvas = document.getElementById('sigUploadPreview');
+                if (canvas.style.display === 'none') {
+                    alert('Please upload an image first.');
+                    return;
+                }
+                dataUrl = canvas.toDataURL();
+            }
+            if (!dataUrl) return;
             const allPages = document.getElementById('sigAllPages').checked;
             sigModal.classList.remove('open');
             placeSignature(dataUrl, allPages);
-            document.getElementById('sigAllPages').checked = false; // reset
+            document.getElementById('sigAllPages').checked = false;
         });
 
         function placeSignature(dataUrl, toAllPages) {
