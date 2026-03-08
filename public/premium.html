@@ -131,24 +131,27 @@
                     Ads:</strong> Clean, distraction-free environment.</li>
         </ul>
 
-        <button class="btn-upgrade" onclick="alert('Stripe Checkout / Subscription logic would open here.')">Upgrade to
-            PDFSuite PRO - $9/mo</button>
+        <button class="btn-upgrade" id="rzp-button1">Upgrade to PDFSuite PRO - ₹99/mo</button>
     </div>
+
+    <!-- Razorpay Link Redirect -->
+    <script>
+        document.getElementById('rzp-button1').onclick = function (e) {
+            e.preventDefault();
+            // Since there is no backend, grant PRO locally upon clicking link as a temporary flow
+            localStorage.setItem("pdfsuite_pro", "true");
+            window.open('https://razorpay.me/@eebii', '_blank');
+        };
+    </script>
 
     <!-- BOTTOM AD -->
     <div class="ad-banner-section bottom-ad">
-        
-    <div class="ad-container" style="text-align: center; margin: 1rem 0;">
-      <ins class="adsbygoogle"
-           style="display:inline-block;width:300px;height:250px"
-           data-ad-client="ca-pub-7048088905906211"></ins>
-      <script>
-           (adsbygoogle = window.adsbygoogle || []).push({});
-      </script>
+        <div class="ad-container" style="text-align: center; margin: 1rem 0;">
+            <ins class="adsbygoogle" style="display:inline-block;width:300px;height:250px"
+                data-ad-client="ca-pub-7048088905906211"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
     </div>
-
-    </div>
-
 </body>
 
 </html>
