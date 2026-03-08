@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remove Image Background Online | PDFSuite</title>
+    <meta name="description"
+        content="Click to easily remove the white or solid color background from images, signatures, and documents. 100% private, no uploads to server.">
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211"
+        crossorigin="anonymous"></script>
+    <script>
+        (function () {
+            const s = localStorage.getItem('pdfsuite-theme');
+            if (s) { document.documentElement.setAttribute('data-theme', s); }
+            else { const h = new Date().getHours(); document.documentElement.setAttribute('data-theme', (h >= 6 && h < 18) ? 'light' : 'dark'); }
+        })();
+    </script>
+    <style>
+        .workspace {
+            max-width: 800px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background: var(--bg-soft);
+            border-radius: 20px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .upload-zone {
+            border: 2px dashed #ec4899;
+            border-radius: 14px;
+            padding: 3rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            background: rgba(236, 72, 153, 0.04);
+            transition: all 0.2s;
+        }
+
+        .upload-zone:hover,
+        .drag-over {
+            background: rgba(236, 72, 153, 0.1) !important;
+            border-color: #db2777 !important;
+        }
+
+        .upload-zone i {
+            color: #ec4899;
+            width: 48px !important;
+            height: 48px !important;
+            margin-bottom: 0.75rem;
+            display: block;
+            margin: 0 auto 0.75rem;
+        }
+
+        .result-section {
+            display: none;
+        }
+
+        .checkerboard {
+            background-color: #e5e5f7;
+            background-image: repeating-linear-gradient(45deg, #c5c5db 25%, transparent 25%, transparent 75%, #c5c5db 75%, #c5c5db), repeating-linear-gradient(45deg, #c5c5db 25%, #e5e5f7 25%, #e5e5f7 75%, #c5c5db 75%, #c5c5db);
+            background-position: 0 0, 10px 10px;
+            background-size: 20px 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 250px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .checkerboard canvas {
+            max-width: 100%;
+            max-height: 400px;
+            display: block;
+        }
+
+        .controls-card {
+            background: var(--bg);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 0.75rem;
+        }
+
+        .bg-slider {
+            flex: 1;
+            accent-color: #ec4899;
+        }
+
+        .btn-dl {
+            width: 100%;
+            padding: 0.95rem;
+            background: #ec4899;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-dl:hover {
+            background: #db2777;
+        }
+
+        .btn-sec {
+            width: 100%;
+            margin-top: 0.5rem;
+            padding: 0.7rem;
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+            color: var(--fg-muted);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width:480px) {
+            .workspace {
+                padding: 1.25rem;
+                margin: 1.5rem 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+            <div class="header-actions">
+                <a href="./image-tools.html" class="btn-ghost btn-small">Image Tools</a>
+            </div>
+        </div>
+    </header>
+    <div class="ad-banner-section">
+        <div class="ad-container" style="text-align:center;"><ins class="adsbygoogle"
+                style="display:inline-block;width:728px;height:90px" data-ad-client="ca-pub-7048088905906211"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </div>
+
+    <div class="workspace">
+        <a href="./image-tools.html"
+            style="display:inline-flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--accent);text-decoration:none;margin-bottom:1.25rem;"><i
+                data-lucide="arrow-left" style="width:14px;height:14px;"></i> All Image Tools</a>
+        <h1 style="margin:0 0 0.4rem;font-size:1.8rem;">Remove Signature Background</h1>
+        <p style="color:var(--fg-muted);margin:0 0 1.5rem;font-size:0.9rem;">Perfect for extracting scanned signatures
+            or documents. Instantly makes the white background transparent. 100% private.</p>
+
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileIn').click()">
+            <i data-lucide="eraser"></i>
+            <h3 style="margin:0 0 0.3rem;">Drop image here or click to upload</h3>
+            <p style="color:var(--fg-muted);margin:0;font-size:0.85rem;">JPG, PNG, WEBP — up to 20MB</p>
+            <input type="file" id="fileIn" accept="image/*" hidden>
+        </div>
+
+        <div class="result-section" id="resultSec">
+            <div class="checkerboard" id="canvasContainer">
+                <canvas id="previewCanvas"></canvas>
+            </div>
+
+            <div class="controls-card">
+                <label style="font-weight:700; color:var(--fg); font-size:1rem; display:block;">Removal
+                    Intensity</label>
+                <p style="font-size:0.8rem; color:var(--fg-muted); margin:0.25rem 0 0;">Slide to adjust how strictly the
+                    background is removed.</p>
+                <div class="slider-row">
+                    <span style="font-size:0.8rem; color:var(--fg-muted);">Low</span>
+                    <input type="range" class="bg-slider" id="toleranceSlider" min="0" max="255" value="180">
+                    <span style="font-size:0.8rem; color:var(--fg-muted);">High</span>
+                </div>
+
+                <label
+                    style="display:flex; align-items:center; gap:0.5rem; margin-top:1.25rem; font-size:0.9rem; color:var(--fg); cursor:pointer;">
+                    <input type="checkbox" id="convertBlack" checked
+                        style="accent-color:#ec4899; transform:scale(1.2);"> Make remaining strokes pure black
+                </label>
+                <p style="font-size:0.8rem; color:var(--fg-muted); margin:0.25rem 0 0 1.7rem;">Ideal for signatures
+                    written in blue or faded ink.</p>
+            </div>
+
+            <button class="btn-dl" id="downloadBtn">Download Transparent PNG</button>
+            <button class="btn-sec" onclick="resetTool()">Upload Another Image</button>
+        </div>
+    </div>
+
+    <div class="ad-banner-section bottom-ad">
+        <div class="ad-container" style="text-align:center;"><ins class="adsbygoogle"
+                style="display:inline-block;width:300px;height:250px" data-ad-client="ca-pub-7048088905906211"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const uploadZone = document.getElementById('uploadZone');
+        const fileIn = document.getElementById('fileIn');
+        const canvas = document.getElementById('previewCanvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+        let origImg = null;
+        let fileName = 'signature';
+
+        uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+        uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+        uploadZone.addEventListener('drop', e => { e.preventDefault(); uploadZone.classList.remove('drag-over'); handleFile(e.dataTransfer.files[0]); });
+        fileIn.addEventListener('change', e => handleFile(e.target.files[0]));
+
+        function handleFile(file) {
+            if (!file || !file.type.startsWith('image/')) return;
+            fileName = file.name.replace(/\.[^.]+$/, '');
+            const url = URL.createObjectURL(file);
+
+            origImg = new Image();
+            origImg.onload = () => {
+                uploadZone.style.display = 'none';
+                document.getElementById('resultSec').style.display = 'block';
+                processImage();
+            };
+            origImg.src = url;
+        }
+
+        function processImage() {
+            if (!origImg) return;
+            canvas.width = origImg.naturalWidth;
+            canvas.height = origImg.naturalHeight;
+            ctx.drawImage(origImg, 0, 0);
+
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imgData.data;
+            const tolerance = parseInt(document.getElementById('toleranceSlider').value);
+            const makeBlack = document.getElementById('convertBlack').checked;
+
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i], g = data[i + 1], b = data[i + 2];
+
+                // Average lightness
+                const brightness = (r + g + b) / 3;
+
+                if (brightness > tolerance) {
+                    data[i + 3] = 0; // Make transparent
+                } else if (makeBlack) {
+                    // If it's part of the stroke and the checkbox is checked, force black
+                    data[i] = 0;
+                    data[i + 1] = 0;
+                    data[i + 2] = 0;
+                    // Add an anti-aliasing curve based on how close it was to the tolerance
+                    const alpha = Math.max(0, Math.min(255, 255 - ((brightness / tolerance) * 255)));
+                    data[i + 3] = alpha;
+                }
+            }
+            ctx.putImageData(imgData, 0, 0);
+        }
+
+        document.getElementById('toleranceSlider').addEventListener('input', processImage);
+        document.getElementById('convertBlack').addEventListener('change', processImage);
+
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            canvas.toBlob(blob => {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `${fileName}_transparent.png`;
+                a.click();
+            }, 'image/png');
+        });
+
+        function resetTool() {
+            origImg = null;
+            uploadZone.style.display = 'block';
+            document.getElementById('resultSec').style.display = 'none';
+            fileIn.value = '';
+        }
+    </script>
+</body>
+
+</html>

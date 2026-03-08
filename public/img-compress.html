@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Compressor - Reduce Image Size Free | PDFSuite</title>
+    <meta name="description"
+        content="Compress JPG, PNG, WEBP images online for free. Reduce image file size without losing quality. 100% private, no server uploads.">
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211"
+        crossorigin="anonymous"></script>
+    <script>
+        (function () {
+            const s = localStorage.getItem('pdfsuite-theme');
+            if (s) { document.documentElement.setAttribute('data-theme', s); }
+            else { const h = new Date().getHours(); document.documentElement.setAttribute('data-theme', (h >= 6 && h < 18) ? 'light' : 'dark'); }
+        })();
+    </script>
+    <style>
+        .workspace {
+            max-width: 720px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background: var(--bg-soft);
+            border-radius: 20px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .upload-zone {
+            border: 2px dashed #3b82f6;
+            border-radius: 14px;
+            padding: 3rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            background: rgba(59, 130, 246, 0.04);
+            transition: all 0.2s;
+        }
+
+        .upload-zone:hover,
+        .drag-over {
+            background: rgba(59, 130, 246, 0.1) !important;
+            border-color: #2563eb !important;
+        }
+
+        .upload-zone i {
+            color: #3b82f6;
+            width: 48px !important;
+            height: 48px !important;
+            margin-bottom: 0.75rem;
+            display: block;
+            margin: 0 auto 0.75rem;
+        }
+
+        .result-section {
+            display: none;
+        }
+
+        .compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .compare-box {
+            background: var(--bg);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .compare-box img {
+            max-width: 100%;
+            max-height: 180px;
+            object-fit: contain;
+            border-radius: 6px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .compare-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--fg-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .compare-stat {
+            font-size: 0.82rem;
+            margin: 0.35rem 0 0;
+        }
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.25rem 0;
+        }
+
+        .quality-slider {
+            flex: 1;
+            accent-color: #3b82f6;
+        }
+
+        .saving-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .saving-good {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+        }
+
+        .saving-bad {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+        }
+
+        .btn-dl {
+            width: 100%;
+            padding: 0.95rem;
+            background: #10b981;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-dl:hover {
+            background: #059669;
+        }
+
+        @media (max-width:480px) {
+            .compare-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .workspace {
+                padding: 1.25rem;
+                margin: 1.5rem 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+            <div class="header-actions">
+                <a href="./image-tools.html" class="btn-ghost btn-small">Image Tools</a>
+                <a href="../index.html" class="btn-ghost btn-small">PDF Tools</a>
+            </div>
+        </div>
+    </header>
+    <div class="ad-banner-section">
+        <div class="ad-container" style="text-align:center;"><ins class="adsbygoogle"
+                style="display:inline-block;width:728px;height:90px" data-ad-client="ca-pub-7048088905906211"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </div>
+
+    <div class="workspace">
+        <a href="./image-tools.html"
+            style="display:inline-flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--accent);text-decoration:none;margin-bottom:1.25rem;"><i
+                data-lucide="arrow-left" style="width:14px;height:14px;"></i> All Image Tools</a>
+        <h1 style="margin:0 0 0.4rem;font-size:1.8rem;">Image Compressor</h1>
+        <p style="color:var(--fg-muted);margin:0 0 1.5rem;font-size:0.9rem;">Reduce image file size while keeping good
+            quality. JPG, PNG, WEBP supported. 100% private.</p>
+
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileIn').click()">
+            <i data-lucide="image-plus"></i>
+            <h3 style="margin:0 0 0.3rem;">Drop image here or click to upload</h3>
+            <p style="color:var(--fg-muted);margin:0;font-size:0.85rem;">JPG, PNG, WEBP — up to 20MB</p>
+            <input type="file" id="fileIn" accept="image/*" hidden>
+        </div>
+
+        <div class="result-section" id="resultSec">
+            <div class="compare-grid">
+                <div class="compare-box">
+                    <p class="compare-label">Original</p>
+                    <img id="origImg" alt="Original">
+                    <p class="compare-stat" id="origStat" style="color:var(--fg-muted);"></p>
+                </div>
+                <div class="compare-box">
+                    <p class="compare-label">Compressed</p>
+                    <img id="compImg" alt="Compressed">
+                    <p class="compare-stat" id="compStat" style="color:var(--fg-muted);"></p>
+                    <span id="savingBadge" class="saving-badge saving-good" style="margin-top:0.4rem;"></span>
+                </div>
+            </div>
+
+            <div class="slider-row">
+                <label style="font-size:0.85rem;color:var(--fg-muted);white-space:nowrap;">Quality: <strong
+                        id="qualityVal">75</strong>%</label>
+                <input type="range" min="10" max="100" value="75" class="quality-slider" id="qualitySlider">
+            </div>
+            <p style="font-size:0.8rem;color:var(--fg-muted);margin:0 0 1rem;">Lower quality = smaller file. For most
+                photos, 60–80% is a good balance.</p>
+
+            <button class="btn-dl" id="downloadBtn">Download Compressed Image</button>
+            <button onclick="resetTool()"
+                style="width:100%;margin-top:0.5rem;padding:0.7rem;background:transparent;border:1px solid var(--border-subtle);color:var(--fg-muted);border-radius:10px;cursor:pointer;font-size:0.9rem;">Compress
+                Another</button>
+        </div>
+    </div>
+
+    <div class="ad-banner-section bottom-ad">
+        <div class="ad-container" style="text-align:center;"><ins class="adsbygoogle"
+                style="display:inline-block;width:300px;height:250px" data-ad-client="ca-pub-7048088905906211"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const uploadZone = document.getElementById('uploadZone');
+        const fileIn = document.getElementById('fileIn');
+        let origFile = null, origUrl = null, origSize = 0, fileName = 'image', fileType = 'image/jpeg';
+
+        uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+        uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+        uploadZone.addEventListener('drop', e => { e.preventDefault(); uploadZone.classList.remove('drag-over'); handleFile(e.dataTransfer.files[0]); });
+        fileIn.addEventListener('change', e => handleFile(e.target.files[0]));
+
+        function handleFile(file) {
+            if (!file) return;
+            origFile = file;
+            origSize = file.size;
+            fileName = file.name.replace(/\.[^.]+$/, '');
+            fileType = file.type || 'image/jpeg';
+            origUrl = URL.createObjectURL(file);
+            document.getElementById('origImg').src = origUrl;
+            document.getElementById('origStat').textContent = formatSize(origSize);
+            uploadZone.style.display = 'none';
+            document.getElementById('resultSec').style.display = 'block';
+            compress(75);
+        }
+
+        function compress(quality) {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                // For PNG, we still use jpeg for compression (user can choose)
+                const mimeOut = fileType === 'image/png' ? 'image/png' : 'image/jpeg';
+                canvas.toBlob(blob => {
+                    const compUrl = URL.createObjectURL(blob);
+                    document.getElementById('compImg').src = compUrl;
+                    document.getElementById('compStat').textContent = formatSize(blob.size);
+                    const saving = ((origSize - blob.size) / origSize * 100);
+                    const badge = document.getElementById('savingBadge');
+                    if (saving > 0) {
+                        badge.textContent = `${saving.toFixed(0)}% smaller`;
+                        badge.className = 'saving-badge saving-good';
+                    } else {
+                        badge.textContent = `${Math.abs(saving).toFixed(0)}% larger`;
+                        badge.className = 'saving-badge saving-bad';
+                    }
+                    document.getElementById('downloadBtn').onclick = () => {
+                        const a = document.createElement('a');
+                        a.href = compUrl;
+                        a.download = fileName + '_compressed.' + (mimeOut === 'image/png' ? 'png' : 'jpg');
+                        a.click();
+                    };
+                }, mimeOut, quality / 100);
+            };
+            img.src = origUrl;
+        }
+
+        document.getElementById('qualitySlider').addEventListener('input', e => {
+            document.getElementById('qualityVal').textContent = e.target.value;
+            compress(parseInt(e.target.value));
+        });
+
+        function formatSize(bytes) {
+            if (bytes > 1024 * 1024) return (bytes / 1024 / 1024).toFixed(2) + ' MB';
+            return (bytes / 1024).toFixed(1) + ' KB';
+        }
+
+        function resetTool() {
+            uploadZone.style.display = 'block';
+            document.getElementById('resultSec').style.display = 'none';
+            fileIn.value = '';
+            origFile = null;
+        }
+    </script>
+</body>
+
+</html>

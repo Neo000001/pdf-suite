@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resize Image Online Free | PDFSuite</title>
+    <meta name="description"
+        content="Resize images to any width and height online for free. Change image dimensions, maintain aspect ratio. JPG, PNG, WEBP supported.">
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211"
+        crossorigin="anonymous"></script>
+    <script>
+        (function () {
+            const s = localStorage.getItem('pdfsuite-theme');
+            if (s) document.documentElement.setAttribute('data-theme', s);
+            else { const h = new Date().getHours(); document.documentElement.setAttribute('data-theme', (h >= 6 && h < 18) ? 'light' : 'dark'); }
+        })();
+    </script>
+    <style>
+        .workspace {
+            max-width: 720px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background: var(--bg-soft);
+            border-radius: 20px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .upload-zone {
+            border: 2px dashed #10b981;
+            border-radius: 14px;
+            padding: 3rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            background: rgba(16, 185, 129, 0.04);
+            transition: all 0.2s;
+        }
+
+        .upload-zone:hover,
+        .drag-over {
+            background: rgba(16, 185, 129, 0.1) !important;
+            border-color: #059669 !important;
+        }
+
+        .result-section {
+            display: none;
+        }
+
+        .dim-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .dim-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            background: var(--bg);
+            color: var(--fg);
+            font-size: 1rem;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .preset-btns {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.25rem;
+        }
+
+        .preset-btn {
+            padding: 6px 14px;
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            background: var(--bg);
+            color: var(--fg-muted);
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.15s;
+        }
+
+        .preset-btn:hover {
+            border-color: var(--accent);
+            color: var(--fg);
+        }
+
+        .preview-wrap {
+            background: #fff;
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            margin-bottom: 1.25rem;
+            border: 1px solid var(--border-subtle);
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-wrap img {
+            max-width: 100%;
+            max-height: 250px;
+            display: block;
+            object-fit: contain;
+        }
+
+        .btn-resize {
+            width: 100%;
+            padding: 0.95rem;
+            background: #10b981;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-resize:hover {
+            background: #059669;
+        }
+
+        @media (max-width:480px) {
+            .dim-row {
+                flex-wrap: wrap;
+            }
+
+            .workspace {
+                padding: 1.25rem;
+                margin: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+            <div class="header-actions">
+                <a href="./image-tools.html" class="btn-ghost btn-small">Image Tools</a>
+            </div>
+        </div>
+    </header>
+    <div class="ad-banner-section">
+        <div class="ad-container" style="text-align:center;"><ins class="adsbygoogle"
+                style="display:inline-block;width:728px;height:90px" data-ad-client="ca-pub-7048088905906211"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </div>
+
+    <div class="workspace">
+        <a href="./image-tools.html"
+            style="display:inline-flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--accent);text-decoration:none;margin-bottom:1.25rem;"><i
+                data-lucide="arrow-left" style="width:14px;height:14px;"></i> All Image Tools</a>
+        <h1 style="margin:0 0 0.4rem;font-size:1.8rem;">Resize Image</h1>
+        <p style="color:var(--fg-muted);margin:0 0 1.5rem;font-size:0.9rem;">Change image dimensions to any width and
+            height. Supports JPG, PNG, WEBP. Processed in your browser.</p>
+
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileIn').click()">
+            <i data-lucide="image-plus"
+                style="color:#10b981;width:48px;height:48px;display:block;margin:0 auto 0.75rem;"></i>
+            <h3 style="margin:0 0 0.3rem;">Drop image or click to upload</h3>
+            <p style="color:var(--fg-muted);margin:0;font-size:0.85rem;">JPG, PNG, WEBP supported</p>
+            <input type="file" id="fileIn" accept="image/*" hidden>
+        </div>
+
+        <div class="result-section" id="resultSec">
+            <div
+                style="background:var(--bg);border:1px solid var(--border-subtle);border-radius:10px;padding:1rem;margin-bottom:1.25rem;">
+                <p
+                    style="font-size:0.78rem;color:var(--fg-muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:0 0 0.75rem;">
+                    Original Size: <span id="origDim" style="color:var(--fg);"></span></p>
+                <div class="dim-row">
+                    <div style="flex:1;">
+                        <label style="font-size:0.8rem;color:var(--fg-muted);display:block;margin-bottom:4px;">Width
+                            (px)</label>
+                        <input type="number" id="newW" class="dim-input" placeholder="Width">
+                    </div>
+                    <div style="color:var(--fg-muted);padding-top:1.25rem;">×</div>
+                    <div style="flex:1;">
+                        <label style="font-size:0.8rem;color:var(--fg-muted);display:block;margin-bottom:4px;">Height
+                            (px)</label>
+                        <input type="number" id="newH" class="dim-input" placeholder="Height">
+                    </div>
+                </div>
+                <label
+                    style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:var(--fg-muted);margin-bottom:1rem;cursor:pointer;">
+                    <input type="checkbox" id="lockRatio" checked> Lock aspect ratio
+                </label>
+            </div>
+
+            <!-- Presets -->
+            <p
+                style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--fg-muted);margin:0 0 0.5rem;">
+                Quick Presets</p>
+            <div class="preset-btns">
+                <button class="preset-btn" onclick="applyPreset(1280,720)">HD 1280×720</button>
+                <button class="preset-btn" onclick="applyPreset(1920,1080)">FHD 1920×1080</button>
+                <button class="preset-btn" onclick="applyPreset(800,600)">800×600</button>
+                <button class="preset-btn" onclick="applyPreset(600,600)">Square 600×600</button>
+                <button class="preset-btn" onclick="applyPreset(1080,1080)">Instagram 1080×1080</button>
+                <button class="preset-btn" onclick="applyPreset(1280,720)">YT Thumbnail</button>
+                <button class="preset-btn" onclick="applyPreset(413,531)">Passport</button>
+            </div>
+
+            <div class="preview-wrap" id="previewWrap">
+                <p style="color:var(--fg-muted);font-size:0.9rem;">Set dimensions above and click Resize</p>
+            </div>
+
+            <button class="btn-resize" id="resizeBtn">Resize & Download</button>
+            <button onclick="resetTool()"
+                style="width:100%;margin-top:0.5rem;padding:0.7rem;background:transparent;border:1px solid var(--border-subtle);color:var(--fg-muted);border-radius:10px;cursor:pointer;font-size:0.9rem;">Upload
+                Another</button>
+        </div>
+    </div>
+
+    <div class="ad-banner-section bottom-ad">
+        <div class="ad-container" style="text-align:center;"><ins class="adsbygoogle"
+                style="display:inline-block;width:300px;height:250px" data-ad-client="ca-pub-7048088905906211"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        let origImg = null, origW = 0, origH = 0, fileName = 'image', fileType = 'image/jpeg';
+        const wInput = document.getElementById('newW'), hInput = document.getElementById('newH');
+
+        document.getElementById('fileIn').addEventListener('change', e => handleFile(e.target.files[0]));
+        const uz = document.getElementById('uploadZone');
+        uz.addEventListener('dragover', e => { e.preventDefault(); uz.classList.add('drag-over'); });
+        uz.addEventListener('dragleave', () => uz.classList.remove('drag-over'));
+        uz.addEventListener('drop', e => { e.preventDefault(); uz.classList.remove('drag-over'); handleFile(e.dataTransfer.files[0]); });
+
+        function handleFile(file) {
+            if (!file) return;
+            fileName = file.name.replace(/\.[^.]+$/, '');
+            fileType = file.type || 'image/jpeg';
+            const url = URL.createObjectURL(file);
+            origImg = new Image();
+            origImg.onload = () => {
+                origW = origImg.naturalWidth; origH = origImg.naturalHeight;
+                document.getElementById('origDim').textContent = `${origW} × ${origH} px`;
+                wInput.value = origW; hInput.value = origH;
+                document.getElementById('uploadZone').style.display = 'none';
+                document.getElementById('resultSec').style.display = 'block';
+                showPreview(origW, origH);
+            };
+            origImg.src = url;
+        }
+
+        wInput.addEventListener('input', () => {
+            if (document.getElementById('lockRatio').checked && origW) {
+                hInput.value = Math.round(parseInt(wInput.value) * origH / origW);
+            }
+            showPreview(parseInt(wInput.value), parseInt(hInput.value));
+        });
+        hInput.addEventListener('input', () => {
+            if (document.getElementById('lockRatio').checked && origH) {
+                wInput.value = Math.round(parseInt(hInput.value) * origW / origH);
+            }
+            showPreview(parseInt(wInput.value), parseInt(hInput.value));
+        });
+
+        function applyPreset(w, h) {
+            wInput.value = w; hInput.value = h;
+            document.getElementById('lockRatio').checked = false;
+            showPreview(w, h);
+        }
+
+        function showPreview(w, h) {
+            if (!origImg || !w || !h) return;
+            const c = document.createElement('canvas'); c.width = w; c.height = h;
+            c.getContext('2d').drawImage(origImg, 0, 0, w, h);
+            const pw = document.getElementById('previewWrap');
+            pw.innerHTML = '';
+            const img = document.createElement('img');
+            img.src = c.toDataURL(fileType);
+            img.style.maxHeight = '250px';
+            pw.appendChild(img);
+            const info = document.createElement('p');
+            info.style.cssText = 'font-size:0.78rem;color:var(--fg-muted);margin:0.5rem 0 0;text-align:center;';
+            info.textContent = `${w} × ${h} px`;
+            pw.appendChild(info);
+        }
+
+        document.getElementById('resizeBtn').addEventListener('click', () => {
+            const w = parseInt(wInput.value), h = parseInt(hInput.value);
+            if (!origImg || !w || !h) return;
+            const c = document.createElement('canvas'); c.width = w; c.height = h;
+            c.getContext('2d').drawImage(origImg, 0, 0, w, h);
+            c.toBlob(blob => {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `${fileName}_${w}x${h}.${fileType === 'image/png' ? 'png' : 'jpg'}`;
+                a.click();
+            }, fileType);
+        });
+
+        function resetTool() {
+            document.getElementById('uploadZone').style.display = 'block';
+            document.getElementById('resultSec').style.display = 'none';
+            document.getElementById('fileIn').value = '';
+            origImg = null;
+        }
+    </script>
+</body>
+
+</html>

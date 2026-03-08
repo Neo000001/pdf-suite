@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convert WebP to JPG Online | PDFSuite</title>
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211"
+        crossorigin="anonymous"></script>
+    <style>
+        .workspace {
+            max-width: 800px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background: var(--bg-soft);
+            border-radius: 20px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .upload-zone {
+            border: 2px dashed #10b981;
+            border-radius: 14px;
+            padding: 3rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .upload-zone:hover,
+        .drag-over {
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .action-area {
+            display: none;
+            text-align: center;
+        }
+
+        .btn-convert {
+            width: 100%;
+            padding: 1rem;
+            background: #10b981;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+            <div class="header-actions"><a href="./image-tools.html" class="btn-ghost btn-small">Image Tools</a></div>
+        </div>
+    </header>
+    <div class="workspace">
+        <a href="./image-tools.html"
+            style="color:var(--accent); text-decoration:none; display:inline-block; margin-bottom:1rem; font-size:0.9rem;">&larr;
+            Back to Image Tools</a>
+        <h1>Convert WEBP to JPG</h1>
+        <p style="color:var(--fg-muted)">Make WebP images compatible by converting them to JPG. 100% private in-browser
+            conversion.</p>
+
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileIn').click()">
+            <i data-lucide="file-image" style="width:48px;height:48px;color:#10b981;margin:0 auto 1rem;"></i>
+            <h3>Select WebP images</h3>
+            <p>Or drop them here</p>
+            <input type="file" id="fileIn" accept="image/webp" multiple hidden>
+        </div>
+
+        <div class="action-area" id="actionArea">
+            <p id="fileInfo" style="font-weight:600; margin-bottom:1rem;"></p>
+            <button class="btn-convert" id="convertBtn">Convert to JPG</button>
+            <button onclick="location.reload()"
+                style="background:transparent; border:none; color:var(--fg-muted); margin-top:1rem; cursor:pointer;">Cancel</button>
+        </div>
+    </div>
+    <script>
+        lucide.createIcons();
+        const uploadZone = document.getElementById('uploadZone');
+        const fileIn = document.getElementById('fileIn');
+        const actionArea = document.getElementById('actionArea');
+        let filesList = [];
+
+        uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+        uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+        uploadZone.addEventListener('drop', e => { e.preventDefault(); handleFiles(e.dataTransfer.files); });
+        fileIn.addEventListener('change', e => handleFiles(e.target.files));
+
+        function handleFiles(files) {
+            filesList = Array.from(files).filter(f => f.type === 'image/webp' || f.name.endsWith('.webp'));
+            if (filesList.length === 0) return alert('Please select WebP files only');
+            uploadZone.style.display = 'none';
+            actionArea.style.display = 'block';
+            document.getElementById('fileInfo').innerText = `${filesList.length} WebP file(s) selected`;
+        }
+
+        document.getElementById('convertBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('convertBtn');
+            btn.innerText = 'Converting...';
+            btn.disabled = true;
+
+            for (let file of filesList) {
+                const url = URL.createObjectURL(file);
+                const img = new Image();
+                img.src = url;
+                await new Promise(r => img.onload = r);
+
+                const canvas = document.createElement('canvas');
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
+
+                canvas.toBlob(blob => {
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = file.name.replace(/\.webp$/i, '') + '.jpg';
+                    a.click();
+                }, 'image/jpeg', 0.9);
+            }
+            btn.innerText = 'Done! Check Downloads';
+            setTimeout(() => location.reload(), 3000);
+        });
+    </script>
+</body>
+
+</html>

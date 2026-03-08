@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate QR Code | PDFSuite</title>
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        .workspace {
+            max-width: 800px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background: var(--bg-soft);
+            border-radius: 20px;
+            border: 1px solid var(--border-subtle);
+            text-align: center;
+        }
+
+        input[type=text] {
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            background: var(--bg);
+            color: var(--fg);
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        #qrWrap {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 16px;
+            display: inline-block;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .btn-dl {
+            padding: 1rem 2rem;
+            background: #10b981;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 1.05rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+            <div class="header-actions"><a href="./image-tools.html" class="btn-ghost btn-small">Image Tools</a></div>
+        </div>
+    </header>
+    <div class="workspace">
+        <a href="./image-tools.html"
+            style="color:var(--accent); text-decoration:none; display:inline-block; margin-bottom:1rem; font-size:0.9rem;">&larr;
+            Back to Image Tools</a>
+        <h1>Create QR Code</h1>
+        <p style="color:var(--fg-muted);margin-bottom:2rem;">Type any URL or text to instantly generate a scannable QR
+            Code image.</p>
+
+        <input type="text" id="qrText" placeholder="Enter URL or text here (e.g. https://google.com)"
+            value="https://pdfsuite.eebii.com">
+
+        <div id="qrWrap">
+            <div id="qrCode"></div>
+        </div>
+        <br>
+        <button class="btn-dl" id="downloadBtn">Download QR Code (PNG)</button>
+    </div>
+    <script>
+        lucide.createIcons();
+        const qrCodeEl = document.getElementById('qrCode');
+        const qrWrap = document.getElementById('qrWrap');
+        let qrcode = new QRCode(qrCodeEl, {
+            text: document.getElementById('qrText').value,
+            width: 256,
+            height: 256,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+
+        document.getElementById('qrText').addEventListener('input', e => {
+            if (!e.target.value) return;
+            qrcode.clear();
+            qrcode.makeCode(e.target.value);
+        });
+
+        document.getElementById('downloadBtn').onclick = () => {
+            const img = qrCodeEl.querySelector('img');
+            const canvas = qrCodeEl.querySelector('canvas');
+
+            // If the library generated a dataURL on the img tag, use it, otherwise fall back to canvas
+            const src = img.getAttribute('src') || canvas.toDataURL("image/png");
+
+            const a = document.createElement('a');
+            a.href = src;
+            a.download = `QR_Code.png`;
+            a.click();
+        };
+    </script>
+</body>
+
+</html>

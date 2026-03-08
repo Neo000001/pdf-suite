@@ -346,13 +346,6 @@ html[data-theme="light"] .floating-card {
   font-size: 0.85rem;
 }
 
-
-
-  .hero-inner {
-    grid-template-columns: 1fr;
-  }
-}
-
 /* ================= AD PLACEMENTS ================= */
 .ad-banner-section {
   display: flex;
@@ -455,7 +448,11 @@ html[data-theme="light"] .floating-card {
     grid-template-columns: 1fr !important;
   }
 
-  h1 { font-size: 1.75rem !important; }
-  h2 { font-size: 1.4rem !important; }
-}
+  h1 {
+    font-size: 1.75rem !important;
+  }
 
+  h2 {
+    font-size: 1.4rem !important;
+  }
+}

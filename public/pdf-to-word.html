@@ -148,11 +148,13 @@
                             lineItems.forEach(item => {
                                 const x = item.transform[4] || 0;
                                 const gap = Math.max(0, x - lastEdge);
-                                pContent += `<span style="margin-left:${gap}px;">${item.str}</span>`;
+                                const spacesCount = Math.floor(gap / 5.5);
+                                const spaces = spacesCount > 0 ? `<span style="mso-spacerun:yes">` + "&nbsp;".repeat(spacesCount) + `</span>` : "";
+                                pContent += spaces + `<span style="font-size:${item.height}px;">${item.str}</span>`;
                                 lastEdge = x + (item.width || item.str.length * 5);
                             });
-                            if (pContent.replace(/<[^>]+>/g, '').trim())
-                                fullText += `<p style="margin:2px 0; font-family:Arial,sans-serif; white-space:nowrap;">${pContent}</p>`;
+                            if (pContent.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, '').trim())
+                                fullText += `<p style="margin:2px 0; font-family:Arial,sans-serif; white-space:pre-wrap;">${pContent}</p>`;
                         }
                     }
                     fullText += "</body></html>";

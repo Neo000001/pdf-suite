@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Watermark to Image | PDFSuite</title>
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .workspace {
+            max-width: 860px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background: var(--bg-soft);
+            border-radius: 20px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .upload-zone {
+            border: 2px dashed #6366f1;
+            border-radius: 14px;
+            padding: 3rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .result-section {
+            display: none;
+        }
+
+        .editor-container {
+            background: var(--bg);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1.25rem;
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .col-left {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .col-right {
+            flex: 2;
+            min-width: 300px;
+            text-align: center;
+        }
+
+        canvas {
+            max-width: 100%;
+            max-height: 480px;
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+            background: url('data:image/png;base64,...');
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 1rem;
+            background: #6366f1;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+            text-align: left;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--fg);
+            margin-bottom: 0.25rem;
+            display: block;
+        }
+
+        input[type=text],
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            background: var(--bg-soft);
+            color: var(--fg);
+        }
+
+        input[type=range] {
+            width: 100%;
+            accent-color: #6366f1;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+            <div class="header-actions"><a href="./image-tools.html" class="btn-ghost btn-small">Image Tools</a></div>
+        </div>
+    </header>
+    <div class="workspace">
+        <a href="./image-tools.html"
+            style="color:var(--accent); text-decoration:none; display:inline-block; margin-bottom:1rem; font-size:0.9rem;">&larr;
+            Back to Image Tools</a>
+        <h1>Add Watermark</h1>
+
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileIn').click()">
+            <i data-lucide="stamp" style="width:48px;height:48px;color:#6366f1;margin:0 auto 1rem;"></i>
+            <h3>Select Base Image</h3>
+            <input type="file" id="fileIn" accept="image/*" hidden>
+        </div>
+
+        <div class="result-section" id="resultSec">
+            <div class="editor-container">
+                <div class="col-left">
+                    <div class="form-group">
+                        <label>Watermark Text</label>
+                        <input type="text" id="wmText" value="CONFIDENTIAL" oninput="render()">
+                    </div>
+                    <div class="form-group">
+                        <label>Font Size</label>
+                        <input type="range" id="wmSize" min="10" max="300" value="72" oninput="render()">
+                    </div>
+                    <div class="form-group">
+                        <label>Opacity</label>
+                        <input type="range" id="wmOpacity" min="0.1" max="1" step="0.1" value="0.5" oninput="render()">
+                    </div>
+                    <div class="form-group">
+                        <label>Position</label>
+                        <select id="wmPos" onchange="render()">
+                            <option value="center">Center</option>
+                            <option value="bottomRight">Bottom Right</option>
+                            <option value="topLeft">Top Left</option>
+                            <option value="tiled">Tiled Diagonal</option>
+                        </select>
+                        <label style="margin-top:10px;">Color</label>
+                        <select id="wmColor" onchange="render()">
+                            <option value="#ffffff">White</option>
+                            <option value="#000000">Black</option>
+                            <option value="#ff0000">Red</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-right">
+                    <canvas id="previewCanvas"></canvas>
+                </div>
+            </div>
+            <button class="btn-action" id="downloadBtn">Download Watermarked Image</button>
+        </div>
+    </div>
+    <script>
+        lucide.createIcons();
+        const canvas = document.getElementById('previewCanvas');
+        const ctx = canvas.getContext('2d');
+        let img = new Image();
+        let fileName = 'watermarked';
+        let fileType = 'image/jpeg';
+
+        document.getElementById('fileIn').addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (!file) return;
+            fileName = file.name.replace(/\.[^.]+$/, '');
+            fileType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+            img.onload = () => {
+                document.getElementById('uploadZone').style.display = 'none';
+                document.getElementById('resultSec').style.display = 'block';
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
+                render();
+            };
+            img.src = URL.createObjectURL(file);
+        });
+
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+
+            const text = document.getElementById('wmText').value;
+            const size = document.getElementById('wmSize').value;
+            const opacity = document.getElementById('wmOpacity').value;
+            const pos = document.getElementById('wmPos').value;
+            const color = document.getElementById('wmColor').value;
+
+            if (!text) return;
+
+            ctx.globalAlpha = parseFloat(opacity);
+            ctx.fillStyle = color;
+            ctx.font = `bold ${size}px Arial, sans-serif`;
+            ctx.textBaseline = 'middle';
+            ctx.textAlign = 'center';
+
+            const txtMetrics = ctx.measureText(text);
+
+            if (pos === 'tiled') {
+                ctx.save();
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.rotate(-45 * Math.PI / 180);
+                for (let x = -canvas.width * 2; x < canvas.width * 2; x += txtMetrics.width + 100) {
+                    for (let y = -canvas.height * 2; y < canvas.height * 2; y += size * 2.5) {
+                        ctx.fillText(text, x, y);
+                    }
+                }
+                ctx.restore();
+            } else {
+                let x = canvas.width / 2;
+                let y = canvas.height / 2;
+
+                if (pos === 'bottomRight') {
+                    ctx.textAlign = 'right';
+                    ctx.textBaseline = 'bottom';
+                    x = canvas.width - 40;
+                    y = canvas.height - 40;
+                } else if (pos === 'topLeft') {
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'top';
+                    x = 40;
+                    y = 40;
+                }
+                ctx.fillText(text, x, y);
+            }
+            ctx.globalAlpha = 1.0;
+        }
+
+        document.getElementById('downloadBtn').onclick = () => {
+            canvas.toBlob(b => {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(b);
+                a.download = `${fileName}_wm.${fileType === 'image/png' ? 'png' : 'jpg'}`;
+                a.click();
+            }, fileType, 0.95);
+        };
+    </script>
+</body>
+
+</html>

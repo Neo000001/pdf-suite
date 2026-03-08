@@ -74,11 +74,9 @@ a {
   top: 0;
   z-index: 40;
   backdrop-filter: blur(16px);
-  background: linear-gradient(
-    to right,
-    rgba(3, 7, 18, 0.96),
-    rgba(15, 23, 42, 0.9)
-  );
+  background: linear-gradient(to right,
+      rgba(3, 7, 18, 0.96),
+      rgba(15, 23, 42, 0.9));
   border-bottom: 1px solid rgba(148, 163, 184, 0.4);
 }
 
@@ -491,16 +489,6 @@ html[data-theme="light"] .site-footer {
 }
 
 
-  .nav-links {
-    display: none;
-  }
-
-  .footer-inner {
-    flex-direction: column;
-    gap: 0.4rem;
-    align-items: flex-start;
-  }
-}
 
 /* ========= MOBILE RESPONSIVE ========= */
 @media (max-width: 768px) {
@@ -540,4 +528,3 @@ html[data-theme="light"] .site-footer {
     padding: 5px 8px !important;
   }
 }
-

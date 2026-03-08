@@ -704,10 +704,14 @@
                     <input type="file" id="sigFileInput" accept="image/*" hidden>
                 </div>
                 <canvas id="sigUploadPreview" width="432" height="150"
-                    style="width:100%; background:#fff; border:1px solid var(--border-subtle); border-radius:8px; display:none;"></canvas>
+                    style="width:100%; background:transparent; border:1px solid var(--border-subtle); border-radius:8px; display:none;"></canvas>
+                <label id="sigRemoveBgLabel"
+                    style="display:none;font-size:0.85rem;color:var(--fg);margin-top:0.75rem;align-items:center;gap:0.5rem;cursor:pointer;">
+                    <input type="checkbox" id="sigRemoveBg" checked> Remove background (make transparent)
+                </label>
                 <p style="font-size:0.8rem; color:var(--fg-muted); margin:0.75rem 0 0 0;">
-                    Don't have a PNG? <a href="./jpg-to-pdf.html" target="_blank"
-                        style="color:var(--accent); font-weight:600;">Convert your image to PNG here</a>
+                    Don't have a PNG? <a href="./img-jpg-to-png.html" target="_blank"
+                        style="color:var(--accent); font-weight:600;">Convert your image to PNG here &rarr;</a>
                 </p>
             </div>
 
@@ -1067,8 +1071,6 @@
             const ctx = canvas.getContext('2d');
             const text = document.getElementById('sigTypeInput').value || 'Your Signature';
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#fff';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = '#111';
             ctx.font = `48px '${currentSigFont}', cursive, serif`;
             ctx.textBaseline = 'middle';
@@ -1079,28 +1081,51 @@
         document.getElementById('sigTypeInput').addEventListener('input', renderTypedSig);
 
         // Upload PNG/image handler
+        let uploadedSigImg = null;
         document.getElementById('sigFileInput').addEventListener('change', e => {
             const file = e.target.files[0];
             if (!file) return;
             const reader = new FileReader();
             reader.onload = ev => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.getElementById('sigUploadPreview');
-                    const ctx = canvas.getContext('2d');
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    ctx.fillStyle = '#fff';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    // Draw scaled to fit
-                    const ratio = Math.min(canvas.width / img.width, canvas.height / img.height);
-                    const w = img.width * ratio, h = img.height * ratio;
-                    ctx.drawImage(img, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
-                    canvas.style.display = 'block';
+                uploadedSigImg = new Image();
+                uploadedSigImg.onload = () => {
+                    document.getElementById('sigRemoveBgLabel').style.display = 'flex';
+                    renderUploadedSig();
                 };
-                img.src = ev.target.result;
+                uploadedSigImg.src = ev.target.result;
             };
             reader.readAsDataURL(file);
         });
+
+        document.getElementById('sigRemoveBg').addEventListener('change', () => {
+            if (uploadedSigImg) renderUploadedSig();
+        });
+
+        function renderUploadedSig() {
+            const canvas = document.getElementById('sigUploadPreview');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const ratio = Math.min(canvas.width / uploadedSigImg.width, canvas.height / uploadedSigImg.height);
+            const w = uploadedSigImg.width * ratio, h = uploadedSigImg.height * ratio;
+            const dx = (canvas.width - w) / 2, dy = (canvas.height - h) / 2;
+
+            ctx.drawImage(uploadedSigImg, dx, dy, w, h);
+
+            if (document.getElementById('sigRemoveBg').checked) {
+                const imgData = ctx.getImageData(dx, dy, w, h);
+                const data = imgData.data;
+                for (let i = 0; i < data.length; i += 4) {
+                    const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
+                    // Very simple white background removal threshold
+                    if (r > 200 && g > 200 && b > 200) {
+                        data[i + 3] = 0; // Set alpha to 0
+                    }
+                }
+                ctx.putImageData(imgData, dx, dy);
+            }
+            canvas.style.display = 'block';
+        }
 
         function openSigModal() {
             sigModal.classList.add('open');
@@ -1191,13 +1216,14 @@
         });
 
         function placeSignature(dataUrl, toAllPages) {
+            const sigStyle = `position:absolute; left:60px; top:60px; width:160px; height:auto; cursor:move; border:1px dashed rgba(37,99,235,0.4); pointer-events:auto; resize:both; overflow:hidden; min-width:50px; min-height:30px; z-index:100;`;
             if (toAllPages) {
                 // We add it to every page's stored annotations
                 for (let p = 1; p <= pdfDoc.numPages; p++) {
                     if (!pageAnnotations[p]) pageAnnotations[p] = [];
                     // normX, normY based on a default center or top position
                     pageAnnotations[p].push({
-                        html: `<img src="${dataUrl}" class="anno-text" style="position:absolute; left:0; top:0; width:160px; height:70px;">`,
+                        html: `<img src="${dataUrl}" class="anno-text" style="${sigStyle}">`,
                         type: 'img', normX: 60 / scale, normY: 60 / scale, normW: 160 / scale, normH: 70 / scale
                     });
                 }
@@ -1206,7 +1232,7 @@
                 img.src = dataUrl;
                 img.setAttribute('draggable', 'false');
                 img.className = 'anno-text';
-                img.style.cssText = `position:absolute; left:60px; top:60px; width:160px; height:70px; cursor:move; border:1px dashed rgba(37,99,235,0.4); pointer-events:auto;`;
+                img.style.cssText = sigStyle;
                 makeDraggable(img);
                 annotLayer.appendChild(img);
                 undoStack.push({ type: 'sig', el: img, allPages: true });
@@ -1215,7 +1241,7 @@
                 img.src = dataUrl;
                 img.setAttribute('draggable', 'false');
                 img.className = 'anno-text';
-                img.style.cssText = `position:absolute; left:60px; top:60px; width:160px; height:70px; cursor:move; border:1px dashed rgba(37,99,235,0.4); pointer-events:auto;`;
+                img.style.cssText = sigStyle;
                 makeDraggable(img);
                 annotLayer.appendChild(img);
                 undoStack.push({ type: 'sig', el: img });
@@ -1226,6 +1252,12 @@
         function makeDraggable(el) {
             let startX, startY, origLeft, origTop;
             el.addEventListener('mousedown', function (e) {
+                if (window.getComputedStyle(el).resize && window.getComputedStyle(el).resize !== 'none') {
+                    const rect = el.getBoundingClientRect();
+                    if (e.clientX > rect.right - 20 && e.clientY > rect.bottom - 20) {
+                        return;
+                    }
+                }
                 if (currentTool !== 'select' && !el.classList.contains('anno-text') && e.target !== el) return;
                 if (e.target.classList && e.target.classList.contains('delete-handle')) return;
                 e.stopPropagation();
@@ -1348,9 +1380,9 @@
         }
 
         function restoreDrawing(num) {
+            drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
             const savedC = drawHistory[num];
             if (savedC) {
-                drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
                 drawCtx.drawImage(savedC, 0, 0, drawCanvas.width, drawCanvas.height);
             }
         }

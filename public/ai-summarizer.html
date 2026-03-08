@@ -92,7 +92,7 @@
 
     <!-- Auto Theme Detector -->
     <script>
-        (function() {
+        (function () {
             const savedTheme = localStorage.getItem('pdfsuite-theme');
             if (savedTheme) {
                 document.documentElement.setAttribute('data-theme', savedTheme);
@@ -129,170 +129,232 @@
             </p>
 
             <div class="upload-box" id="uploadBox">
-                <h3 style="margin-top:0">Drop PDF to Summarize</h3>
-                <input type="file" id="fileInput" accept="application/pdf" hidden>
-            </div>
-            <p id="fileStatus" style="font-size:0.9rem; color:#a855f7; display:none; margin-bottom:2rem;">Extracting PDF
-                text...</p>
+                </head>
 
-            <div>
-                <label style="font-size:0.85rem; color:var(--fg-muted); display:block; margin-bottom:0.5rem">Provide
-                    OpenAI API Key (Optional) - Leave blank for Free Local Native Extractive AI Summary:</label>
-                <input type="password" class="api-key-input" id="apiKey" placeholder="sk-...">
-            </div>
-            <button class="btn-primary" style="width: 100%;" id="generateBtn" disabled>Generate Summary</button>
-        </div>
+                <body>
 
-        <div class="right-col">
-            <div class="chat-box" id="chatBox">
-                <div class="msg bot">Hello! Upload a PDF on the left. Leave API Key blank for a free, fast, local
-                    summary, or enter an OpenAI Key for deep conversational AI insight.</div>
-            </div>
-        </div>
+                    <header class="site-header">
+                        <div class="header-inner">
+                            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+                            <div class="header-actions"><a href="../index.html" class="btn-ghost btn-small">Back to
+                                    Tools</a></div>
+                        </div>
+                    </header>
 
-    </div>
+                    <div class="ad-banner-section">
+                        <div class="ad-container">
+                            <div class="ad-placeholder"><span>Google Ads Placement - Top</span></div>
+                        </div>
+                    </div>
 
-    <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+                    <div class="workspace">
 
-        const uploadBox = document.getElementById('uploadBox');
-        const fileInput = document.getElementById('fileInput');
-        const apiKeyInput = document.getElementById('apiKey');
-        const generateBtn = document.getElementById('generateBtn');
-        const chatBox = document.getElementById('chatBox');
-        const fileStatus = document.getElementById('fileStatus');
+                        <div class="left-col">
+                            <h2>AI Summarizer</h2>
+                            <p style="color:var(--fg-muted); margin-bottom:2rem; font-size:0.9rem">
+                                Analyze and chat with your PDF securely. Your file never leaves your browser.
+                            </p>
 
-        let extractedText = "";
+                            <div class="upload-box" id="uploadBox">
+                                <h3 style="margin-top:0">Drop PDF to Summarize</h3>
+                                <input type="file" id="fileInput" accept="application/pdf" hidden>
+                            </div>
+                            <p id="fileStatus"
+                                style="font-size:0.9rem; color:#a855f7; display:none; margin-bottom:2rem;">Extracting
+                                PDF
+                                text...</p>
 
-        uploadBox.addEventListener('click', () => fileInput.click());
+                            <div
+                                style="background:rgba(168,85,247,0.1); border:1px solid rgba(168,85,247,0.2); border-radius:8px; padding:1.2rem; margin-bottom:1.5rem;">
+                                <label
+                                    style="font-weight:700; font-size:0.9rem; color:var(--fg); display:block; margin-bottom:0.5rem">Select
+                                    Summary Engine</label>
+                                <select id="summaryMethod"
+                                    style="width:100%; padding:0.8rem; border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg); color:var(--fg); cursor:pointer; font-size:0.9rem;">
+                                    <option value="extractive">Fast Extractive (Pulls key sentences from PDF)</option>
+                                    <option value="generative">True Local AI (~140MB download once) - Deep Summary
+                                    </option>
+                                </select>
+                                <p
+                                    style="font-size:0.8rem; color:var(--fg-muted); margin:0.75rem 0 0 0; line-height:1.4;">
+                                    <strong>Privacy Guard:</strong> Both options run entirely on your browser. Your PDF
+                                    is absolutely never uploaded to any server. Open API key requirement has been
+                                    removed!
+                                </p>
+                            </div>
+                            <button class="btn-primary" style="width: 100%;" id="generateBtn" disabled>Generate
+                                Summary</button>
+                        </div>
 
-        fileInput.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (file && file.type === 'application/pdf') {
-                uploadBox.innerText = `Selected: ${file.name}`;
-                fileStatus.style.display = 'block';
-                generateBtn.disabled = true;
+                        <div class="right-col">
+                            <div class="chat-box" id="chatBox">
+                                <div class="msg bot">Hello! Upload a PDF on the left. I am your 100% Private, serverless
+                                    AI Summarizer. I can extract key sentences instantly, or you can download my local
+                                    AI model to generate deep summaries directly on your device. What would you like to
+                                    analyze today?</div>
+                            </div>
+                        </div>
 
-                try {
-                    const arrayBuffer = await file.arrayBuffer();
-                    const doc = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
+                    </div>
 
-                    let fullText = "";
-                    for (let i = 1; i <= doc.numPages; i++) {
-                        fileStatus.innerText = `Extracting PDF text... (Page ${i}/${doc.numPages})`;
-                        const page = await doc.getPage(i);
-                        const content = await page.getTextContent();
-                        const strings = content.items.map(item => item.str);
-                        fullText += strings.join(" ") + " \n";
-                    }
-                    extractedText = fullText;
-                    fileStatus.innerText = "PDF Text Extracted! Ready to summarize.";
-                    generateBtn.disabled = false;
+                    <script>
+                        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-                } catch (err) {
-                    fileStatus.innerText = "Failed to extract text.";
-                    console.error(err);
-                }
-            }
-        });
+                        const uploadBox = document.getElementById('uploadBox');
+                        const fileInput = document.getElementById('fileInput');
+                        const summaryMethod = document.getElementById('summaryMethod');
+                        const generateBtn = document.getElementById('generateBtn');
+                        const chatBox = document.getElementById('chatBox');
+                        const fileStatus = document.getElementById('fileStatus');
 
-        generateBtn.addEventListener('click', () => {
-            if (!extractedText) return;
-            generateSummary();
-        });
+                        let extractedText = "";
 
-        function addMessage(text, role) {
-            const el = document.createElement('div');
-            el.className = `msg ${role}`;
-            el.innerText = text;
-            chatBox.appendChild(el);
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
+                        uploadBox.addEventListener('click', () => fileInput.click());
 
-        // Native JS Extractive Summarizer
-        function localSummarizer(text) {
-            // Split sentences roughly
-            const sentences = text.match(/[^.!?]+[.!?]+/g) || text.split('\n');
-            const validSentences = sentences.map(s => s.trim()).filter(s => s.split(' ').length > 4);
+                        fileInput.addEventListener('change', async (e) => {
+                            const file = e.target.files[0];
+                            if (file && file.type === 'application/pdf') {
+                                uploadBox.innerText = `Selected: ${file.name}`;
+                                fileStatus.style.display = 'block';
+                                generateBtn.disabled = true;
 
-            if (validSentences.length <= 5) return text.substring(0, 1000);
+                                try {
+                                    const arrayBuffer = await file.arrayBuffer();
+                                    const doc = await pdfjsLib.getDocument({
+                                        data: new Uint8Array(arrayBuffer),
+                                        cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/cmaps/',
+                                        cMapPacked: true
+                                    }).promise;
 
-            // Compute word freqs
-            const wordFreqs = {};
-            const cleanText = text.toLowerCase().replace(/[^a-z0-9 ]/g, ' ');
-            const words = cleanText.split(/\s+/);
-            const stopWords = new Set(['the', 'and', 'to', 'of', 'a', 'in', 'is', 'it', 'you', 'that', 'for', 'on', 'with', 'as', 'this', 'by', 'be', 'are', 'from', 'at', 'or', 'an']);
+                                    let fullText = "";
+                                    for (let i = 1; i <= doc.numPages; i++) {
+                                        fileStatus.innerText = `Extracting PDF text... (Page ${i}/${doc.numPages})`;
+                                        const page = await doc.getPage(i);
+                                        const content = await page.getTextContent();
+                                        const strings = content.items.map(item => item.str);
+                                        fullText += strings.join(" ") + " \n";
+                                    }
+                                    extractedText = fullText;
+                                    fileStatus.innerText = "PDF Text Extracted! Ready to summarize.";
+                                    generateBtn.disabled = false;
 
-            words.forEach(w => {
-                if (w && !stopWords.has(w)) {
-                    wordFreqs[w] = (wordFreqs[w] || 0) + 1;
-                }
-            });
+                                } catch (err) {
+                                    fileStatus.innerText = "Failed to extract text.";
+                                    console.error(err);
+                                }
+                            }
+                        });
 
-            // Score sentences
-            const scores = validSentences.map((sentence, index) => {
-                let score = 0;
-                const sentWords = sentence.toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/);
-                sentWords.forEach(sw => {
-                    if (wordFreqs[sw]) score += wordFreqs[sw];
-                });
-                return { index, sentence, score };
-            });
+                        generateBtn.addEventListener('click', () => {
+                            if (!extractedText) return;
+                            generateSummary();
+                        });
 
-            // Get top 6 sentences
-            scores.sort((a, b) => b.score - a.score);
-            const top = scores.slice(0, 7);
-            top.sort((a, b) => a.index - b.index); // retain original order
+                        function addMessage(text, role) {
+                            const el = document.createElement('div');
+                            el.className = `msg ${role}`;
+                            el.innerText = text;
+                            chatBox.appendChild(el);
+                            chatBox.scrollTop = chatBox.scrollHeight;
+                        }
 
-            return "â¨ **Local Extractive Summary:**\n\nâ¢ " + top.map(t => t.sentence).join("\n\nâ¢ ");
-        }
+                        // Native JS Extractive Summarizer (Multi-lang support)
+                        function localSummarizer(text) {
+                            // Split sentences roughly including language specific punctuation
+                            const sentences = text.match(/[^.!?।]+[.!?।]+/g) || text.split('\n');
+                            const validSentences = sentences.map(s => s.trim()).filter(s => s.split(' ').length > 4);
 
-        async function generateSummary() {
-            const apiKey = apiKeyInput.value.trim();
+                            if (validSentences.length <= 5) return text.substring(0, 1000);
 
-            if (!apiKey) {
-                addMessage("Generating Native Local Summary...", "bot");
-                setTimeout(() => {
-                    const localSumm = localSummarizer(extractedText);
-                    addMessage(localSumm, "bot");
-                }, 500);
-                return;
-            }
+                            // Compute word freqs using Unicode \p{L} to support Malayalam, Hindi, Arabic, etc.
+                            const wordFreqs = {};
+                            const cleanText = text.toLowerCase().replace(/[^\p{L}\p{N} ]/gu, ' ');
+                            const words = cleanText.split(/\s+/);
+                            const stopWords = new Set(['the', 'and', 'to', 'of', 'a', 'in', 'is', 'it', 'you', 'that', 'for', 'on', 'with', 'as', 'this', 'by', 'be', 'are', 'from', 'at', 'or', 'an']);
 
-            addMessage("Analyzing document via OpenAI API...", "bot");
+                            words.forEach(w => {
+                                if (w && !stopWords.has(w)) {
+                                    wordFreqs[w] = (wordFreqs[w] || 0) + 1;
+                                }
+                            });
 
-            try {
-                const response = await fetch("https://api.openai.com/v1/chat/completions", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: "gpt-3.5-turbo",
-                        messages: [
-                            { role: "system", content: "You are an expert AI assistant. Summarize the following document accurately and comprehensively in bullet points." },
-                            { role: "user", content: extractedText.substring(0, 12000) } // truncate to avoid massive token limits visually
-                        ],
-                        temperature: 0.7
-                    })
-                });
+                            // Score sentences
+                            const scores = validSentences.map((sentence, index) => {
+                                let score = 0;
+                                const sentWords = sentence.toLowerCase().replace(/[^\p{L}\p{N} ]/gu, ' ').split(/\s+/);
+                                sentWords.forEach(sw => {
+                                    if (wordFreqs[sw]) score += wordFreqs[sw];
+                                });
+                                return { index, sentence, score };
+                            });
 
-                const data = await response.json();
+                            // Get top 6 sentences
+                            scores.sort((a, b) => b.score - a.score);
+                            const top = scores.slice(0, 7);
+                            top.sort((a, b) => a.index - b.index); // retain original order
 
-                if (data.error) {
-                    addMessage(`API Error: ${data.error.message}`, "bot");
-                    return;
-                }
+                            return "✨ **Fast Local Extractive Summary:**\n\n• " + top.map(t => t.sentence).join("\n\n• ");
+                        }
 
-                const reply = data.choices[0].message.content;
-                addMessage(reply, "bot");
+                        let localAiPipeline = null;
 
-            } catch (err) {
-                addMessage(`Network Error: ${err.message}`, "bot");
-            }
-        }
-    </script>
-</body>
+                        async function generateSummary() {
+                            const method = summaryMethod.value;
+
+                            if (method === 'extractive') {
+                                addMessage("Generating Fast Local Summary...", "bot");
+                                setTimeout(() => {
+                                    const localSumm = localSummarizer(extractedText);
+                                    addMessage(localSumm, "bot");
+                                }, 500);
+                                return;
+                            }
+
+                            if (method === 'generative') {
+                                generateBtn.disabled = true;
+                                addMessage("Initiating True Local AI. This relies on your device RAM to run privately...", "bot");
+
+                                try {
+                                    fileStatus.style.display = 'block';
+
+                                    if (!localAiPipeline) {
+                                        addMessage("Downloading lightweight AI model (~140MB)... This runs locally in your browser cache. Only needs to download once!", "bot");
+                                        // We dynamically import Transformers.js so it doesn't block the initial page load!
+                                        const hf = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.0');
+                                        hf.env.allowLocalModels = false;
+                                        if (hf.env.backends && hf.env.backends.onnx && hf.env.backends.onnx.wasm) hf.env.backends.onnx.wasm.numThreads = 1; // Prevent RAM overload
+
+                                        localAiPipeline = await hf.pipeline('summarization', 'Xenova/distilbart-cnn-12-6', {
+                                            progress_callback: x => {
+                                                if (x.status === 'progress') {
+                                                    fileStatus.innerText = `Caching AI Model: ${Math.round(x.progress)}%`;
+                                                }
+                                            }
+                                        });
+                                        addMessage("Local AI Model loaded perfectly into your browser RAM!", "bot");
+                                    }
+
+                                    fileStatus.innerText = "AI is thinking (Local CPU)...";
+                                    addMessage("AI is writing your summary...", "bot");
+
+                                    // Summarizer has text limit, chunk it slightly to prevent Out Of Memory exception in WASM
+                                    const aiInput = extractedText.substring(0, 3500);
+                                    const out = await localAiPipeline(aiInput, {
+                                        max_new_tokens: 150,
+                                        min_new_tokens: 30
+                                    });
+
+                                    addMessage("✨ **Deep AI Summary:**\n\n" + out[0].summary_text, "bot");
+                                    fileStatus.innerText = "Summary generated securely.";
+                                } catch (err) {
+                                    console.error(err);
+                                    addMessage(`Error generating local AI summary: ` + err.message, "bot");
+                                } finally {
+                                    generateBtn.disabled = false;
+                                }
+                            }
+                        }
+                    </script>
+                </body>
 
 </html>

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Tools - PDFSuite</title>
+    <meta name="description"
+        content="Free online image tools - compress, resize, convert, crop and edit images. JPG to PNG, WEBP, resize photos, reduce image size online.">
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211"
+        crossorigin="anonymous"></script>
+    <!-- Auto Theme Detector -->
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('pdfsuite-theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else {
+                const hour = new Date().getHours();
+                const theme = (hour >= 6 && hour < 18) ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+        })();
+    </script>
+    <style>
+        .image-tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .img-tool-card {
+            background: var(--bg-soft);
+            border: 1px solid var(--border-subtle);
+            border-radius: 14px;
+            padding: 1.5rem 1rem;
+            text-align: center;
+            text-decoration: none;
+            color: var(--fg);
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .img-tool-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.12);
+        }
+
+        .img-tool-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .img-tool-card h3 {
+            font-size: 0.9rem;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .img-tool-card p {
+            font-size: 0.78rem;
+            color: var(--fg-muted);
+            margin: 0;
+        }
+
+        .section-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .section-title {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .tools-section {
+            margin-bottom: 3rem;
+        }
+
+        @media (max-width: 600px) {
+            .image-tools-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+            <div class="header-actions">
+                <a href="../index.html" class="btn-ghost btn-small">PDF Tools</a>
+                <a href="../public/editor.html" class="btn-primary btn-small">Open Editor</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="ad-banner-section">
+        <div class="ad-container" style="text-align: center; margin: 1rem 0;">
+            <ins class="adsbygoogle" style="display:inline-block;width:728px;height:90px"
+                data-ad-client="ca-pub-7048088905906211"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </div>
+
+    <section style="max-width:1120px; margin:3rem auto; padding:0 1.5rem;">
+
+        <div style="text-align:center; margin-bottom:3rem;">
+            <p class="section-label">Image Tools</p>
+            <h1 style="font-size:2.5rem; font-weight:800; margin:0 0 1rem 0;">All-in-One Image Tools</h1>
+            <p style="color:var(--fg-muted); font-size:1rem;">Compress, resize, convert and edit images — 100% free,
+                privacy-first, no uploads to any server.</p>
+        </div>
+
+        <!-- Basic Tools -->
+        <div class="tools-section">
+            <p class="section-label">Basic Tools</p>
+            <div class="image-tools-grid">
+                <a href="img-compress.html" class="img-tool-card">
+                    <div class="img-tool-icon" style="background:rgba(59,130,246,0.1); color:#3b82f6;"><i
+                            data-lucide="minimize-2"></i></div>
+                    <h3>Image Compressor</h3>
+                    <p>Reduce image file size</p>
+                </a>
+                <a href="img-resize.html" class="img-tool-card">
+                    <div class="img-tool-icon" style="background:rgba(16,185,129,0.1); color:#10b981;"><i
+                            data-lucide="expand"></i></div>
+                    <h3>Resize Image</h3>
+                    <p>Change width & height</p>
+                </a>
+                <a href="img-crop.html" class="img-tool-card">
+                    <div class="img-tool-icon" style="background:rgba(139,92,246,0.1); color:#8b5cf6;"><i
+                            data-lucide="crop"></i></div>
+                    <h3>Crop Image</h3>
+                    <p>Trim & crop photos</p>
+                </a>
+                <a href="img-rotate.html" class="img-tool-card">
+                    <div class="img-tool-icon" style="background:rgba(245,158,11,0.1); color:#f59e0b;"><i
+                            data-lucide="rotate-cw"></i></div>
+                    <h3>Rotate / Flip</h3>
+                    <p>Rotate and mirror images</p>
+                </a>
+            </div>
+        </div>
+
+        <!-- Format Converters -->
+        <div class="tools-section">
+            <p class="section-label">Format Converters</p>
+            <div class="image-tools-grid">
+                <a href="img-jpg-to-png.html" class="img-tool-card">
+                    <div class="img-tool-icon" style="background:rgba(59,130,246,0.1); color:#3b82f6;"><i
+                            data-lucide="file-image"></i></div>
+                    <h3>JPG → PNG</h3>
+                    <p>Convert with transparency</p>
+                </a>
+                <a href="img-png-to-jpg.html" class="img-tool-card">
+                    <div class="img-tool-icon" style="background:rgba(234,88,12,0.1); color:#ea580c;"><i
+                            data-lucide="file-image"></i></div>
+                    <h3>PNG → JPG</h3>
+                    <p>Smaller file size</p>
+                </a>
+                <a href="img-webp-to-jpg.html" class="img-tool-card">
+                    <div class="img-tool-icon" style="background:rgba(16,185,129,0.1); color:#10b981;"><i
+                            data-lucide="file-image"></i></div>
+                    <h3>WEBP → JPG</h3>
+                    <p>Convert WebP images</p>
+                </a>
+                <a href="jpg-to-pdf.html" class="img-tool-card">
+                    <div class="img-tool-icon" style="background:rgba(239,68,68,0.1); color:#ef4444;"><i
+                            data-lucide="file-text"></i></div>
+                    <h3>Image → PDF</h3>
+                    <p>Bundle images as PDF</p>
+                </a>
+            </div>
+        </div>
+
+        <!-- Social Media -->
+        <div class="tools-section">
+            <p class="section-label">Social Media</p>
+            <div class="image-tools-grid">
+                <a href="img-passport.html" class="img-tool-card">
+                    <div class="img-tool-icon" style="background:rgba(99,102,241,0.1); color:#6366f1;"><i
+                            data-lucide="user"></i></div>
+                    <h3>Passport Photo</h3>
+                    <p>Resize to standard sizes</p>
+                </a>
+                <a href="img-social.html?preset=instagram" class="img-tool-card">
+                    <div class="img-tool-icon" style="background:rgba(236,72,153,0.1); color:#ec4899;"><i
+                            data-lucide="instagram"></i></div>
+                    <h3>Instagram Resizer</h3>
+                    <p>Resize for Instagram posts</p>
+                </a>
+                <a href="img-social.html?preset=youtube" class="img-tool-card">
+                    <div class="img-tool-icon" style="background:rgba(239,68,68,0.1); color:#ef4444;"><i
+                            data-lucide="youtube"></i></div>
+                    <h3>YouTube Thumbnail</h3>
+                    <p>1280×720 perfect size</p>
+                </a>
+                <a href="img-social.html?preset=whatsapp" class="img-tool-card">
+                    <div class="img-tool-icon" style="background:rgba(34,197,94,0.1); color:#22c55e;"><i
+                            data-lucide="message-circle"></i></div>
+                    <h3>WhatsApp Compressor</h3>
+                    <p>Optimize for WhatsApp</p>
+                </a>
+            </div>
+        </div>
+
+        <!-- Advanced -->
+        <div class="tools-section">
+            <p class="section-label">Advanced</p>
+            <div class="image-tools-grid">
+                <a href="img-watermark.html" class="img-tool-card">
+                    <div class="img-tool-icon" style="background:rgba(99,102,241,0.1); color:#6366f1;"><i
+                            data-lucide="stamp"></i></div>
+                    <h3>Add Watermark</h3>
+                    <p>Text or image watermark</p>
+                </a>
+                <a href="img-qr.html" class="img-tool-card">
+                    <div class="img-tool-icon" style="background:rgba(16,185,129,0.1); color:#10b981;"><i
+                            data-lucide="qr-code"></i></div>
+                    <h3>Generate QR Code</h3>
+                    <p>QR from text or URL</p>
+                </a>
+                <a href="./ocr.html" class="img-tool-card">
+                    <div class="img-tool-icon" style="background:rgba(245,158,11,0.1); color:#f59e0b;"><i
+                            data-lucide="scan-text"></i></div>
+                    <h3>OCR – Text from Image</h3>
+                    <p>Extract text from photos</p>
+                </a>
+                <a href="img-metadata.html" class="img-tool-card">
+                    <div class="img-tool-icon" style="background:rgba(148,163,184,0.1); color:#94a3b8;"><i
+                            data-lucide="info"></i></div>
+                    <h3>Image Metadata</h3>
+                    <p>View EXIF & file info</p>
+                </a>
+                <a href="img-remove-bg.html" class="img-tool-card" style="border-color:rgba(236,72,153,0.3);">
+                    <div class="img-tool-icon" style="background:rgba(236,72,153,0.1); color:#ec4899;"><i
+                            data-lucide="eraser"></i></div>
+                    <h3>Remove Background</h3>
+                    <p>Extract signs & signatures</p>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <div class="ad-banner-section bottom-ad">
+        <div class="ad-container" style="text-align: center; margin: 1rem 0;">
+            <ins class="adsbygoogle" style="display:inline-block;width:300px;height:250px"
+                data-ad-client="ca-pub-7048088905906211"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <div class="logo">PDF<span>Suite</span></div>
+                <p>Free image & PDF tools for everyone.</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; <span id="year"></span> PDFSuite. All rights reserved.</span>
+        </div>
+    </footer>
+    <script>
+        lucide.createIcons();
+        document.getElementById('year').textContent = new Date().getFullYear();
+    </script>
+</body>
+
+</html>

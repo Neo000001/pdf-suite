@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rotate Image Online | PDFSuite</title>
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .workspace {
+            max-width: 800px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background: var(--bg-soft);
+            border-radius: 20px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .upload-zone {
+            border: 2px dashed #f59e0b;
+            border-radius: 14px;
+            padding: 3rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-area {
+            display: none;
+            text-align: center;
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 1rem;
+            background: #f59e0b;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .toolbar button {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-subtle);
+            background: var(--bg);
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--fg);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .toolbar button:hover {
+            border-color: #f59e0b;
+            color: #f59e0b;
+        }
+
+        #canvasPreview {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+            display: block;
+            margin: auto;
+            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAAXNSR0IArs4c6QAAACVJREFUKFNjZCASMDKgAnv37v3PwsIShS/IqGkYBUM/mNEMhoYAt1kKxk7q2P8AAAAASUVORK5CYII=');
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+            <div class="header-actions"><a href="./image-tools.html" class="btn-ghost btn-small">Image Tools</a></div>
+        </div>
+    </header>
+    <div class="workspace">
+        <a href="./image-tools.html"
+            style="color:var(--accent); text-decoration:none; display:inline-block; margin-bottom:1rem; font-size:0.9rem;">&larr;
+            Back to Image Tools</a>
+        <h1>Rotate & Flip Image</h1>
+
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileIn').click()">
+            <i data-lucide="rotate-cw" style="width:48px;height:48px;color:#f59e0b;margin:0 auto 1rem;"></i>
+            <h3>Select Image</h3>
+            <input type="file" id="fileIn" accept="image/*" hidden>
+        </div>
+
+        <div class="action-area" id="actionArea">
+            <canvas id="canvasPreview"></canvas>
+
+            <div class="toolbar">
+                <button onclick="rotate(-90)"><i data-lucide="rotate-ccw"></i> Left</button>
+                <button onclick="rotate(90)"><i data-lucide="rotate-cw"></i> Right</button>
+                <button onclick="flip('h')"><i data-lucide="flip-horizontal"></i> Flip H</button>
+                <button onclick="flip('v')"><i data-lucide="flip-vertical"></i> Flip V</button>
+            </div>
+
+            <button class="btn-action" id="downloadBtn">Download Image</button>
+        </div>
+    </div>
+    <script>
+        lucide.createIcons();
+        const uploadZone = document.getElementById('uploadZone');
+        const fileIn = document.getElementById('fileIn');
+        const actionArea = document.getElementById('actionArea');
+        const canvas = document.getElementById('canvasPreview');
+        const ctx = canvas.getContext('2d');
+
+        let img = new Image();
+        let deg = 0;
+        let scaleX = 1;
+        let scaleY = 1;
+        let curFile = null;
+
+        fileIn.addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (!file) return;
+            curFile = file;
+            img.onload = () => {
+                uploadZone.style.display = 'none';
+                actionArea.style.display = 'block';
+                deg = 0; scaleX = 1; scaleY = 1;
+                draw();
+            };
+            img.src = URL.createObjectURL(file);
+        });
+
+        function rotate(ag) {
+            deg += ag;
+            draw();
+        }
+        function flip(d) {
+            if (d === 'h') scaleX *= -1;
+            else scaleY *= -1;
+            draw();
+        }
+
+        function draw() {
+            // compute bounds
+            const is90 = Math.abs(deg % 180) === 90;
+            canvas.width = is90 ? img.height : img.width;
+            canvas.height = is90 ? img.width : img.height;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            ctx.rotate(deg * Math.PI / 180);
+            ctx.scale(scaleX, scaleY);
+            ctx.drawImage(img, -img.width / 2, -img.height / 2);
+        }
+
+        document.getElementById('downloadBtn').onclick = () => {
+            canvas.toBlob(b => {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(b);
+                a.download = `rotated_${curFile.name}`;
+                a.click();
+            }, curFile.type);
+        };
+    </script>
+</body>
+
+</html>

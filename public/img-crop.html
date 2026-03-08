@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Image Online | Free Privacy-First Tool | PDFSuite</title>
+    <meta name="description"
+        content="Easily crop JPG, PNG, and WebP images online for free. Custom crop, 16:9, 4:3, square, and more. 100% private, processed in browser.">
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script>
+        (function () {
+            const s = localStorage.getItem('pdfsuite-theme');
+            if (s) { document.documentElement.setAttribute('data-theme', s); }
+            else { const h = new Date().getHours(); document.documentElement.setAttribute('data-theme', (h >= 6 && h < 18) ? 'light' : 'dark'); }
+        })();
+    </script>
+    <style>
+        .workspace {
+            max-width: 860px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background: var(--bg-soft);
+            border-radius: 20px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .upload-zone {
+            border: 2px dashed #f59e0b;
+            border-radius: 14px;
+            padding: 4rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            background: rgba(245, 158, 11, 0.04);
+            transition: all 0.2s;
+        }
+
+        .upload-zone:hover,
+        .drag-over {
+            background: rgba(245, 158, 11, 0.1) !important;
+            border-color: #d97706 !important;
+        }
+
+        .upload-zone i {
+            color: #f59e0b;
+            width: 54px !important;
+            height: 54px !important;
+            margin-bottom: 1rem;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .result-section {
+            display: none;
+        }
+
+        .editor-container {
+            background: var(--bg);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .img-wrapper {
+            width: 100%;
+            max-height: 500px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #1e1e1e;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .img-wrapper img {
+            max-width: 100%;
+            max-height: 500px;
+            display: block;
+        }
+
+        .ratio-btns {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 1rem 0;
+        }
+
+        .ratio-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            background: var(--bg);
+            color: var(--fg);
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ratio-btn:hover {
+            border-color: #f59e0b;
+            color: #f59e0b;
+        }
+
+        .ratio-btn.active {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: #f59e0b;
+            color: #f59e0b;
+            font-weight: 700;
+        }
+
+        .btn-crop {
+            width: 100%;
+            padding: 1rem;
+            background: #f59e0b;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-crop:hover {
+            background: #d97706;
+        }
+
+        .btn-secondary {
+            width: 100%;
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+            color: var(--fg-muted);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg);
+            color: var(--fg);
+        }
+
+        @media (max-width:480px) {
+            .workspace {
+                padding: 1.25rem;
+                margin: 1.5rem 1rem;
+            }
+
+            .img-wrapper {
+                max-height: 350px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+            <div class="header-actions">
+                <a href="./image-tools.html" class="btn-ghost btn-small">Image Tools</a>
+            </div>
+        </div>
+    </header>
+    <div class="ad-banner-section">
+        <div class="ad-container" style="text-align:center;"><ins class="adsbygoogle"
+                style="display:inline-block;width:728px;height:90px" data-ad-client="ca-pub-7048088905906211"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </div>
+
+    <div class="workspace">
+        <a href="./image-tools.html"
+            style="display:inline-flex;align-items:center;gap:4px;font-size:0.85rem;color:var(--accent);text-decoration:none;margin-bottom:1.25rem;"><i
+                data-lucide="arrow-left" style="width:14px;height:14px;"></i> All Image Tools</a>
+        <h1 style="margin:0 0 0.4rem;font-size:1.8rem;">Crop Image</h1>
+        <p style="color:var(--fg-muted);margin:0 0 1.5rem;font-size:0.9rem;">Easily cut away unwanted parts of your
+            image. 100% private, files never sent to a server.</p>
+
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileIn').click()">
+            <i data-lucide="crop"></i>
+            <h3 style="margin:0 0 0.4rem;font-size:1.2rem;">Drop image here or click to upload</h3>
+            <p style="color:var(--fg-muted);margin:0;font-size:0.9rem;">JPG, PNG, WEBP — up to 20MB</p>
+            <input type="file" id="fileIn" accept="image/jpeg, image/png, image/webp" hidden>
+        </div>
+
+        <div class="result-section" id="resultSec">
+            <div class="editor-container">
+                <div class="img-wrapper">
+                    <img id="imageToCrop" alt="Upload Image">
+                </div>
+
+                <p
+                    style="text-align:center; font-size:0.8rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--fg-muted); margin:1.5rem 0 0.5rem;">
+                    Aspect Ratios</p>
+                <div class="ratio-btns">
+                    <button class="ratio-btn active" data-ratio="NaN">Freeform</button>
+                    <button class="ratio-btn" data-ratio="1">1:1 Square</button>
+                    <button class="ratio-btn" data-ratio="1.77777777778">16:9 Standard</button>
+                    <button class="ratio-btn" data-ratio="1.33333333333">4:3 TV</button>
+                    <button class="ratio-btn" data-ratio="0.5625">9:16 Story</button>
+                </div>
+            </div>
+
+            <button class="btn-crop" id="cropDownloadBtn"><i data-lucide="download"></i> Download Cropped Image</button>
+            <button class="btn-secondary" onclick="resetTool()">Upload Another Image</button>
+        </div>
+    </div>
+
+    <div class="ad-banner-section bottom-ad">
+        <div class="ad-container" style="text-align:center;"><ins class="adsbygoogle"
+                style="display:inline-block;width:300px;height:250px" data-ad-client="ca-pub-7048088905906211"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const uploadZone = document.getElementById('uploadZone');
+        const fileIn = document.getElementById('fileIn');
+        const imageToCrop = document.getElementById('imageToCrop');
+        let cropper = null;
+        let fileName = 'image';
+        let fileType = 'image/jpeg';
+
+        uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+        uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+        uploadZone.addEventListener('drop', e => { e.preventDefault(); uploadZone.classList.remove('drag-over'); handleFile(e.dataTransfer.files[0]); });
+        fileIn.addEventListener('change', e => handleFile(e.target.files[0]));
+
+        function handleFile(file) {
+            if (!file || !file.type.startsWith('image/')) {
+                alert("Please select a valid image file.");
+                return;
+            }
+            fileName = file.name.replace(/\.[^.]+$/, '');
+            fileType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+
+            const url = URL.createObjectURL(file);
+            imageToCrop.src = url;
+
+            uploadZone.style.display = 'none';
+            document.getElementById('resultSec').style.display = 'block';
+
+            if (cropper) { cropper.destroy(); }
+
+            // Start cropper after image loads
+            imageToCrop.onload = () => {
+                cropper = new Cropper(imageToCrop, {
+                    viewMode: 1,
+                    dragMode: 'move',
+                    autoCropArea: 0.9,
+                    restore: false,
+                    guides: true,
+                    center: true,
+                    highlight: false,
+                    cropBoxMovable: true,
+                    cropBoxResizable: true,
+                    toggleDragModeOnDblclick: false,
+                });
+            };
+
+            // Reset active ratio button
+            document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('.ratio-btn[data-ratio="NaN"]').classList.add('active');
+        }
+
+        document.querySelectorAll('.ratio-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                if (!cropper) return;
+                document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const ratio = parseFloat(this.getAttribute('data-ratio'));
+                cropper.setAspectRatio(isNaN(ratio) ? NaN : ratio);
+            });
+        });
+
+        document.getElementById('cropDownloadBtn').addEventListener('click', () => {
+            if (!cropper) return;
+            const canvas = cropper.getCroppedCanvas({
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high',
+            });
+
+            canvas.toBlob(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${fileName}_cropped.${fileType === 'image/png' ? 'png' : 'jpg'}`;
+                a.click();
+            }, fileType, 0.92);
+        });
+
+        function resetTool() {
+            if (cropper) { cropper.destroy(); cropper = null; }
+            uploadZone.style.display = 'block';
+            document.getElementById('resultSec').style.display = 'none';
+            fileIn.value = '';
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JPG to PNG Converter - Free Online | PDFSuite</title>
+    <meta name="description"
+        content="Convert JPG images to PNG format online for free. Maintain transparency, no quality loss. 100% private - processed in your browser.">
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211"
+        crossorigin="anonymous"></script>
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('pdfsuite-theme');
+            if (savedTheme) { document.documentElement.setAttribute('data-theme', savedTheme); }
+            else { const hour = new Date().getHours(); document.documentElement.setAttribute('data-theme', (hour >= 6 && hour < 18) ? 'light' : 'dark'); }
+        })();
+    </script>
+    <style>
+        .workspace {
+            max-width: 700px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background: var(--bg-soft);
+            border-radius: 20px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .upload-zone {
+            border: 2px dashed #3b82f6;
+            border-radius: 14px;
+            padding: 3rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            background: rgba(59, 130, 246, 0.04);
+            transition: all 0.2s;
+        }
+
+        .upload-zone:hover,
+        .upload-zone.drag-over {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: #2563eb;
+        }
+
+        .upload-zone svg {
+            color: #3b82f6;
+            width: 48px;
+            height: 48px;
+            margin-bottom: 1rem;
+        }
+
+        .result-section {
+            display: none;
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .preview-box {
+            background: var(--bg);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .preview-box img {
+            max-width: 100%;
+            max-height: 180px;
+            object-fit: contain;
+            border-radius: 6px;
+        }
+
+        .preview-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--fg-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .btn-convert {
+            width: 100%;
+            padding: 1rem;
+            background: #3b82f6;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-convert:hover {
+            background: #2563eb;
+        }
+
+        .btn-download {
+            width: 100%;
+            padding: 0.9rem;
+            background: #10b981;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 0.75rem;
+        }
+
+        #back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.85rem;
+            color: var(--accent);
+            text-decoration: none;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 480px) {
+            .preview-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .workspace {
+                padding: 1.25rem;
+                margin: 1.5rem 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+            <div class="header-actions">
+                <a href="./image-tools.html" class="btn-ghost btn-small">Image Tools</a>
+                <a href="../index.html" class="btn-ghost btn-small">PDF Tools</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="ad-banner-section">
+        <div class="ad-container" style="text-align: center; margin: 1rem 0;">
+            <ins class="adsbygoogle" style="display:inline-block;width:728px;height:90px"
+                data-ad-client="ca-pub-7048088905906211"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </div>
+
+    <div class="workspace">
+        <a href="./image-tools.html" id="back-link"><i data-lucide="arrow-left" style="width:14px;height:14px;"></i> All
+            Image Tools</a>
+
+        <h1 style="margin:0 0 0.4rem 0; font-size:1.8rem;">JPG to PNG Converter</h1>
+        <p style="color:var(--fg-muted); margin:0 0 2rem 0; font-size:0.9rem;">Convert JPG/JPEG images to PNG format
+            with transparency support. 100% private — processed in your browser.</p>
+
+        <!-- Upload Zone -->
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+            <i data-lucide="image-plus"></i>
+            <h3 style="margin:0 0 0.4rem 0;">Drop your JPG image here</h3>
+            <p style="color:var(--fg-muted); margin:0; font-size:0.85rem;">or click to browse — JPG, JPEG, WEBP, BMP
+                supported</p>
+            <input type="file" id="fileInput" accept="image/*" hidden multiple>
+        </div>
+
+        <!-- Multi-file batch info -->
+        <div id="batchInfo"
+            style="display:none; margin-top:1rem; padding:0.75rem 1rem; background:rgba(59,130,246,0.08); border-radius:8px; font-size:0.9rem; color:var(--fg-muted);">
+        </div>
+
+        <!-- Single file result -->
+        <div class="result-section" id="resultSection">
+            <div class="preview-grid">
+                <div class="preview-box">
+                    <p class="preview-label">Original (JPG)</p>
+                    <img id="originalPreview" alt="Original">
+                    <p id="originalSize" style="font-size:0.78rem; color:var(--fg-muted); margin:0.5rem 0 0;"></p>
+                </div>
+                <div class="preview-box">
+                    <p class="preview-label">Converted (PNG)</p>
+                    <canvas id="outputCanvas"
+                        style="max-width:100%; max-height:180px; border-radius:6px; display:block; margin:0 auto;"></canvas>
+                    <p id="pngSize" style="font-size:0.78rem; color:var(--fg-muted); margin:0.5rem 0 0;"></p>
+                </div>
+            </div>
+
+            <button class="btn-download" id="downloadBtn">Download PNG</button>
+            <button onclick="resetTool()"
+                style="width:100%; margin-top:0.5rem; padding:0.7rem; background:transparent; border:1px solid var(--border-subtle); color:var(--fg-muted); border-radius:10px; cursor:pointer; font-size:0.9rem;">Convert
+                Another Image</button>
+        </div>
+    </div>
+
+    <!-- How it helps note for signatures -->
+    <div style="max-width:700px; margin:0 auto 2rem; padding:0 2rem;">
+        <div
+            style="background:rgba(99,102,241,0.06); border:1px solid rgba(99,102,241,0.2); border-radius:12px; padding:1rem 1.25rem;">
+            <p style="margin:0; font-size:0.85rem; color:var(--fg-muted);">
+                <strong style="color:var(--fg);">Tip:</strong> Need to add a signature to a PDF?
+                Convert your signature photo to PNG here, then use the
+                <a href="./editor.html" style="color:var(--accent); font-weight:600;">PDF Editor's Signature → Upload
+                    Image</a> feature.
+            </p>
+        </div>
+    </div>
+
+    <div class="ad-banner-section bottom-ad">
+        <div class="ad-container" style="text-align: center; margin: 1rem 0;">
+            <ins class="adsbygoogle" style="display:inline-block;width:300px;height:250px"
+                data-ad-client="ca-pub-7048088905906211"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const resultSection = document.getElementById('resultSection');
+        const outputCanvas = document.getElementById('outputCanvas');
+        const ctx = outputCanvas.getContext('2d');
+        let currentFileName = 'image';
+        let batchFiles = [];
+
+        // Drag & drop
+        uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+        uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+        uploadZone.addEventListener('drop', e => {
+            e.preventDefault();
+            uploadZone.classList.remove('drag-over');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', e => handleFiles(e.target.files));
+
+        function handleFiles(files) {
+            if (!files.length) return;
+            if (files.length > 1) {
+                // Batch mode
+                batchFiles = Array.from(files);
+                document.getElementById('batchInfo').style.display = 'block';
+                document.getElementById('batchInfo').innerHTML = `<strong>${files.length} images selected.</strong> Converting all to PNG... <span id="batchProgress">0 / ${files.length}</span>`;
+                uploadZone.style.display = 'none';
+                batchConvert(batchFiles);
+            } else {
+                processSingleFile(files[0]);
+            }
+        }
+
+        function processSingleFile(file) {
+            currentFileName = file.name.replace(/\.[^.]+$/, '');
+            const url = URL.createObjectURL(file);
+            document.getElementById('originalPreview').src = url;
+            document.getElementById('originalSize').textContent = `${(file.size / 1024).toFixed(1)} KB`;
+
+            const img = new Image();
+            img.onload = () => {
+                outputCanvas.width = img.naturalWidth;
+                outputCanvas.height = img.naturalHeight;
+                ctx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
+                ctx.drawImage(img, 0, 0);
+
+                outputCanvas.toBlob(blob => {
+                    document.getElementById('pngSize').textContent = `${(blob.size / 1024).toFixed(1)} KB`;
+                }, 'image/png');
+
+                uploadZone.style.display = 'none';
+                resultSection.style.display = 'block';
+            };
+            img.src = url;
+        }
+
+        async function batchConvert(files) {
+            const zip = [];
+            for (let i = 0; i < files.length; i++) {
+                document.getElementById('batchProgress').textContent = `${i + 1} / ${files.length}`;
+                await new Promise(resolve => {
+                    const file = files[i];
+                    const name = file.name.replace(/\.[^.]+$/, '');
+                    const url = URL.createObjectURL(file);
+                    const img = new Image();
+                    img.onload = () => {
+                        const c = document.createElement('canvas');
+                        c.width = img.naturalWidth; c.height = img.naturalHeight;
+                        c.getContext('2d').drawImage(img, 0, 0);
+                        c.toBlob(blob => {
+                            const link = document.createElement('a');
+                            link.href = URL.createObjectURL(blob);
+                            link.download = name + '.png';
+                            link.click();
+                            resolve();
+                        }, 'image/png');
+                    };
+                    img.src = url;
+                });
+                await new Promise(r => setTimeout(r, 300));
+            }
+            document.getElementById('batchInfo').innerHTML = `<strong style="color:#10b981;">✓ All ${files.length} images converted and downloaded!</strong>`;
+        }
+
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            outputCanvas.toBlob(blob => {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = currentFileName + '.png';
+                link.click();
+            }, 'image/png');
+        });
+
+        function resetTool() {
+            uploadZone.style.display = 'block';
+            resultSection.style.display = 'none';
+            document.getElementById('batchInfo').style.display = 'none';
+            fileInput.value = '';
+            ctx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
+        }
+    </script>
+</body>
+
+</html>

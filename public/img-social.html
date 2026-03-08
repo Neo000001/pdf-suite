@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media Image Resizer | PDFSuite</title>
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <style>
+        .workspace {
+            max-width: 860px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background: var(--bg-soft);
+            border-radius: 20px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .upload-zone {
+            border: 2px dashed #ec4899;
+            border-radius: 14px;
+            padding: 4rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .upload-zone:hover {
+            background: rgba(236, 72, 153, 0.05);
+        }
+
+        .result-section {
+            display: none;
+        }
+
+        .editor-container {
+            background: var(--bg);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .img-wrapper {
+            max-height: 500px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #1e1e1e;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .img-wrapper img {
+            max-height: 500px;
+            max-width: 100%;
+            display: block;
+        }
+
+        .btn-crop {
+            width: 100%;
+            padding: 1rem;
+            background: #ec4899;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 1.05rem;
+        }
+
+        select {
+            width: 100%;
+            padding: 0.8rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+            background: var(--bg-soft);
+            color: var(--fg);
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+            <div class="header-actions"><a href="./image-tools.html" class="btn-ghost btn-small">Image Tools</a></div>
+        </div>
+    </header>
+    <div class="workspace">
+        <a href="./image-tools.html"
+            style="color:var(--accent); text-decoration:none; display:inline-block; margin-bottom:1rem; font-size:0.9rem;">&larr;
+            Back to Image Tools</a>
+        <h1>Social Media Resizer</h1>
+        <p style="color:var(--fg-muted)">Perfect dimensions for Instagram, YouTube, and WhatsApp instantly.</p>
+
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileIn').click()">
+            <i data-lucide="instagram" style="width:48px;height:48px;color:#ec4899;margin:0 auto 1rem;"></i>
+            <h3>Select Image</h3>
+            <input type="file" id="fileIn" accept="image/*" hidden>
+        </div>
+
+        <div class="result-section" id="resultSec">
+            <div class="editor-container">
+                <select id="sizePresets">
+                    <option value="1">Instagram Post (1:1)</option>
+                    <option value="0.8">Instagram Portrait (4:5)</option>
+                    <option value="1.77777">YouTube Thumbnail (16:9)</option>
+                    <option value="0.5625">WhatsApp / IG Story (9:16)</option>
+                </select>
+                <div class="img-wrapper">
+                    <img id="imageToCrop">
+                </div>
+            </div>
+            <button class="btn-crop" id="downloadBtn">Export for Social</button>
+        </div>
+    </div>
+    <script>
+        lucide.createIcons();
+        let cropper = null;
+        let fileType = 'image/jpeg';
+        let fileName = 'social';
+
+        // Read query param
+        const urlParams = new URLSearchParams(window.location.search);
+        const preset = urlParams.get('preset');
+        if (preset === 'youtube') document.getElementById('sizePresets').value = "1.77777";
+        if (preset === 'whatsapp') document.getElementById('sizePresets').value = "0.5625";
+
+        document.getElementById('fileIn').addEventListener('change', e => {
+            const f = e.target.files[0];
+            if (!f) return;
+            fileName = f.name.replace(/\.[^.]+$/, '');
+            fileType = f.type === 'image/png' ? 'image/png' : 'image/jpeg';
+
+            document.getElementById('uploadZone').style.display = 'none';
+            document.getElementById('resultSec').style.display = 'block';
+
+            const img = document.getElementById('imageToCrop');
+            img.src = URL.createObjectURL(f);
+
+            img.onload = () => {
+                if (cropper) cropper.destroy();
+                cropper = new Cropper(img, {
+                    aspectRatio: parseFloat(document.getElementById('sizePresets').value),
+                    viewMode: 1,
+                    guides: true,
+                    autoCropArea: 1,
+                    dragMode: 'move'
+                });
+            };
+        });
+
+        document.getElementById('sizePresets').addEventListener('change', e => {
+            if (cropper) cropper.setAspectRatio(parseFloat(e.target.value));
+        });
+
+        document.getElementById('downloadBtn').onclick = () => {
+            if (!cropper) return;
+            // Best export logic for socials, cap at ~1080px to bypass aggressive compressions
+            let widthOutput = 1080;
+            const ratio = parseFloat(document.getElementById('sizePresets').value);
+            if (ratio === 1.77777) widthOutput = 1280; // YouTube
+
+            const canvas = cropper.getCroppedCanvas({ width: widthOutput, imageSmoothingEnabled: true, imageSmoothingQuality: 'high' });
+            canvas.toBlob(blob => {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `social_${fileName}.${fileType === 'image/png' ? 'png' : 'jpg'}`;
+                a.click();
+            }, fileType, 0.9);
+        };
+    </script>
+</body>
+
+</html>

@@ -202,7 +202,7 @@
                     let columns = [], colStr = "", lastX = -1;
                     lineItems.forEach(item => {
                         const x = item.transform[4] || 0;
-                        if (lastX !== -1 && (x - lastX) > 20) {
+                        if (lastX !== -1 && (x - lastX) > 12) {
                             columns.push(colStr.trim());
                             colStr = item.str;
                         } else {
@@ -231,7 +231,7 @@
             resultArea.style.display = 'block';
 
             // Generate CSV
-            const csvContent = allRows.map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(',')).join('\n');
+            const csvContent = "sep=,\n" + allRows.map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(',')).join('\n');
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);

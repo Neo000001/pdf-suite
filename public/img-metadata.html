@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Metadata & EXIF Viewer | PDFSuite</title>
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exifr/dist/lite.umd.js"></script>
+    <style>
+        .workspace {
+            max-width: 860px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background: var(--bg-soft);
+            border-radius: 20px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .upload-zone {
+            border: 2px dashed #94a3b8;
+            border-radius: 14px;
+            padding: 4rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .upload-zone:hover {
+            background: rgba(148, 163, 184, 0.05);
+        }
+
+        .result-section {
+            display: none;
+            margin-top: 1.5rem;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-subtle);
+            font-size: 0.9rem;
+        }
+
+        .table th,
+        .table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-subtle);
+            text-align: left;
+            word-break: break-all;
+        }
+
+        .table th {
+            width: 30%;
+            background: var(--bg-soft);
+            color: var(--fg-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+        }
+
+        .table tr:last-child td,
+        .table tr:last-child th {
+            border-bottom: none;
+        }
+
+        .no-data {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .thumb-preview {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            display: block;
+            margin: 0 auto 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+            <div class="header-actions"><a href="./image-tools.html" class="btn-ghost btn-small">Image Tools</a></div>
+        </div>
+    </header>
+    <div class="workspace">
+        <a href="./image-tools.html"
+            style="color:var(--accent); text-decoration:none; display:inline-block; margin-bottom:1rem; font-size:0.9rem;">&larr;
+            Back to Image Tools</a>
+        <h1>View Image Metadata (EXIF)</h1>
+        <p style="color:var(--fg-muted)">Extract camera details, date, location (GPS), and file structure blocks.
+            Processed 100% offline.</p>
+
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileIn').click()">
+            <i data-lucide="info" style="width:48px;height:48px;color:#94a3b8;margin:0 auto 1rem;"></i>
+            <h3>Select Image</h3>
+            <p style="color:var(--fg-muted);font-size:0.85rem">Supports JPG, TIFF, HEIC, PNG</p>
+            <input type="file" id="fileIn" accept="image/*" hidden>
+        </div>
+
+        <div class="result-section" id="resultSec">
+            <img class="thumb-preview" id="previewImg">
+            <div id="outputDiv"></div>
+            <br>
+            <button onclick="location.reload()"
+                style="padding:1rem 2rem; background:var(--bg); color:var(--fg); border:1px solid var(--border-subtle); border-radius:12px; font-weight:700; cursor:pointer;">Analyze
+                Another Image</button>
+        </div>
+    </div>
+    <script>
+        lucide.createIcons();
+
+        document.getElementById('fileIn').addEventListener('change', async e => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            document.getElementById('uploadZone').style.display = 'none';
+            document.getElementById('resultSec').style.display = 'block';
+            document.getElementById('previewImg').src = URL.createObjectURL(file);
+
+            const out = document.getElementById('outputDiv');
+            out.innerHTML = '<p>Analyzing EXIF metadata securely...</p>';
+
+            try {
+                // Parse EXIF
+                const exifData = await exifr.parse(file);
+
+                if (!exifData || Object.keys(exifData).length === 0) {
+                    out.innerHTML = '<div class="no-data"><i data-lucide="shield-alert"></i> No EXIF or hidden metadata found in this image. This image has been scrubbed or never contained EXIF data.</div>';
+                    lucide.createIcons();
+                    return;
+                }
+
+                let tableHtml = '<table class="table"><tbody>';
+                // Base file details
+                tableHtml += `<tr><th>File Name</th><td>${file.name}</td></tr>`;
+                tableHtml += `<tr><th>File Size</th><td>${(file.size / 1024 / 1024).toFixed(2)} MB</td></tr>`;
+
+                // Exif attributes
+                for (const [key, value] of Object.entries(exifData)) {
+                    // Filter out massive raw buffers
+                    if (typeof value === 'object' && value !== null && value.buffer) continue;
+
+                    let displayVal = value;
+                    if (value instanceof Date) displayVal = value.toLocaleString();
+                    if (Array.isArray(value)) displayVal = value.join(', ');
+
+                    tableHtml += `<tr><th>${key}</th><td>${displayVal}</td></tr>`;
+                }
+                tableHtml += '</tbody></table>';
+                out.innerHTML = tableHtml;
+
+            } catch (e) {
+                out.innerHTML = '<div class="no-data">Failed to parse image for metadata.</div>';
+                console.error(e);
+            }
+        });
+    </script>
+</body>
+
+</html>
