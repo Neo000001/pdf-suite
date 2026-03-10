@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms & Conditions - PDFSuite</title>
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .page-wrapper {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 4rem 1.5rem;
+        }
+
+        .reading-container {
+            max-width: 800px;
+            margin: 0 auto;
+            color: var(--fg);
+        }
+
+        .reading-container h1 {
+            font-size: 2.8rem;
+            margin-bottom: 2rem;
+            color: var(--fg);
+            letter-spacing: -0.5px;
+        }
+
+        .reading-container h2 {
+            font-size: 1.5rem;
+            margin-top: 3rem;
+            margin-bottom: 1.2rem;
+            color: var(--fg);
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 0.5rem;
+        }
+
+        .reading-container p,
+        .reading-container li {
+            line-height: 1.8;
+            color: var(--fg-muted);
+            font-size: 1.05rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .reading-container ul {
+            margin-bottom: 1.5rem;
+            padding-left: 1.5rem;
+        }
+    </style>
+    <!-- Auto Theme Detector -->
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('pdfsuite-theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else {
+                const hour = new Date().getHours();
+                const theme = (hour >= 6 && hour < 18) ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+        })();
+    </script>
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <header class="site-header">
+            <div class="header-inner">
+                <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+                <div class="header-actions">
+                    <button class="theme-toggle" id="themeToggleBtn" aria-label="Toggle Theme">
+                        <svg id="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg>
+                    </button>
+                    <a href="../index.html" class="btn-primary btn-small">Home</a>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="reading-container">
+                <h1>Terms & Conditions</h1>
+
+                <p><strong>Effective Date:</strong> October 2023</p>
+                <p>Welcome to PDFSuite. By accessing our web application, you agree to be bound by these Terms of
+                    Service. If you do not agree with any part of these terms, you are prohibited from using the
+                    platform.</p>
+
+                <h2>1. Permitted Use</h2>
+                <p>PDFSuite is designed completely for your convenience for free, personal, and commercial file
+                    processing tasks.</p>
+                <p>You may <strong>not</strong> attempt to reverse engineer our proprietary AI modules, automate massive
+                    bot usage against our client-side libraries that disrupt ad networks or the website hosting, or
+                    attempt to misrepresent the platform as your own creation. Accessing our internal APIs outside of
+                    normal web browser usage is strictly prohibited.</p>
+
+                <h2>2. Local Processing & Zero Warranty</h2>
+                <p>PDFSuite is provided on an "AS IS" and "AS AVAILABLE" basis without robust fitness guarantees. While
+                    our tools process everything locally inside your own browser window for maximum privacy, we cannot
+                    guarantee 100% file integrity.</p>
+                <ul>
+                    <li><strong>Browser Limitations:</strong> Certain large PDFs may cause browser out-of-memory errors
+                        that result in a tab crash. Your files are not damaged, but your progress on that page may be
+                        lost.</li>
+                    <li><strong>Formatting Oddities:</strong> OCR and Text Extraction heavily rely on the original
+                        nature of the document. Results may occasionally diverge from your visual expectation.</li>
+                </ul>
+                <p><strong>Liability Limitation:</strong> We are not liable for any data loss, financial damages, or
+                    workflow disruptions you believe were caused by outputting files through our platform. Always keep
+                    original backups of your critical documents before editing or locking them through our services.</p>
+
+                <h2>3. Pro Subscription (Premium Features)</h2>
+                <p>Payments made via our Razorpay integration to unlock "PDFSuite PRO" are handled securely on
+                    third-party gateways. Upon completing checkout, you are granted a digital unlock token physically
+                    stored in your browser.</p>
+                <p>We do not provide physical goods. Refunds are handled on a case-by-case basis through our feedback
+                    channels within 7 days of subscription, provided there is a verifiable flaw in a promised premium
+                    core mechanic.</p>
+
+                <h2>4. Content Liability</h2>
+                <p>Because we do not upload or store your files to any remote server, we have absolutely no awareness or
+                    monitoring of what your document content consists of. <strong>You are entirely legally
+                        responsible</strong> for the copyright status, legality, authorization, and nature of the
+                    documents you modify or distribute using our platform.</p>
+
+                <p style="margin-top: 3rem; font-size: 0.85rem; text-align: left; opacity: 0.6;">By continuing to use
+                    PDFSuite, you accept that these terms may be updated from time to time.</p>
+            </div>
+        </main>
+
+        <footer class="site-footer">
+            <div class="footer-inner">
+                <div class="footer-brand">
+                    <div class="logo">PDF<span>Suite</span></div>
+                    <p>The ultimate toolkit for all your PDF needs.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="link-group">
+                        <h4>Tools</h4>
+                        <a href="./editor.html">PDF Editor</a>
+                        <a href="./merge.html">Merge PDF</a>
+                        <a href="./compress.html">Compress PDF</a>
+                    </div>
+                    <div class="link-group">
+                        <h4>Legal</h4>
+                        <a href="./privacy.html">Privacy Policy</a>
+                        <a href="./terms.html">Terms & Conditions</a>
+                        <a href="./about.html">About Us</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span>&copy; <span id="year"></span> PDFSuite. All rights reserved.</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        document.getElementById("year").textContent = new Date().getFullYear();
+        lucide.createIcons();
+
+        const toggleBtn = document.getElementById('themeToggleBtn');
+        const htmlEl = document.documentElement;
+        const moonIcon = document.getElementById('moon-icon');
+
+        if (htmlEl.getAttribute('data-theme') === 'light') {
+            moonIcon.innerHTML = `<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>`;
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            const isDark = htmlEl.getAttribute('data-theme') === 'dark';
+            const newTheme = isDark ? 'light' : 'dark';
+            htmlEl.setAttribute('data-theme', newTheme);
+            localStorage.setItem('pdfsuite-theme', newTheme);
+            if (newTheme === 'light') {
+                moonIcon.innerHTML = `<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>`;
+            } else {
+                moonIcon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+            }
+        });
+    </script>
+</body>
+
+</html>

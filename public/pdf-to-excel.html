@@ -188,28 +188,56 @@
                 const page = await doc.getPage(i);
                 const content = await page.getTextContent();
 
-                // Group by Y within 10px bands
+                // Group by Y within 8px bands (more precise row alignment)
                 const rowMap = {};
                 content.items.forEach(item => {
-                    const y = Math.round((item.transform[5] || 0) / 10) * 10;
+                    const y = Math.round((item.transform[5] || 0) / 8) * 8;
                     if (!rowMap[y]) rowMap[y] = [];
                     rowMap[y].push(item);
                 });
 
                 const sortedYs = Object.keys(rowMap).map(Number).sort((a, b) => b - a);
+
                 sortedYs.forEach(y => {
                     const lineItems = rowMap[y].sort((a, b) => (a.transform[4] || 0) - (b.transform[4] || 0));
-                    let columns = [], colStr = "", lastX = -1;
+                    let columns = [];
+                    let colStr = "";
+                    let lastX = -1;
+                    let lastWidth = 0;
+
                     lineItems.forEach(item => {
                         const x = item.transform[4] || 0;
-                        if (lastX !== -1 && (x - lastX) > 12) {
-                            columns.push(colStr.trim());
+                        const fontSize = Math.abs(item.transform[3]) || 12;
+                        const width = item.width || (item.str.length * (fontSize * 0.5));
+
+                        if (lastX === -1) {
+                            // First element, prepend empty cells based on x coordinate if it's very far right
+                            // Assume standard left margin is ~50 points, column width ~80 points
+                            if (x > 100) {
+                                const emptyCells = Math.floor((x - 50) / 80);
+                                for (let i = 0; i < emptyCells; i++) columns.push("");
+                            }
                             colStr = item.str;
                         } else {
-                            colStr += (colStr && !colStr.endsWith(" ") ? " " : "") + item.str;
+                            // The gap is measured from the END of the last item to the START of the current item.
+                            const gap = x - (lastX + lastWidth);
+
+                            // If gap > 15 points, we treat it as a new column
+                            if (gap > 15) {
+                                columns.push(colStr.trim());
+                                colStr = item.str;
+
+                                // Insert extra empty cells if the gap is massive
+                                const extraCells = Math.floor(gap / 80);
+                                for (let i = 0; i < extraCells - 1; i++) columns.push("");
+                            } else {
+                                colStr += (colStr.endsWith(" ") ? "" : " ") + item.str;
+                            }
                         }
-                        lastX = x + (item.width || item.str.length * 5);
+                        lastX = x;
+                        lastWidth = width;
                     });
+
                     if (colStr.trim()) columns.push(colStr.trim());
                     if (columns.length > 0) allRows.push(columns);
                 });

@@ -126,7 +126,7 @@
                     const arrayBuffer = await file.arrayBuffer();
                     const doc = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
 
-                    let fullText = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'></head><body>";
+                    let fullText = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><style> p { margin: 0; padding: 0; } </style></head><body>";
 
                     for (let i = 1; i <= doc.numPages; i++) {
                         const page = await doc.getPage(i);
@@ -134,27 +134,41 @@
 
                         let lines = {};
                         content.items.forEach(item => {
-                            let y = Math.round((item.transform[5] || 0) / 10) * 10;
+                            let y = Math.round((item.transform[5] || 0) / 6) * 6; // slightly tighter row banding
                             if (!lines[y]) lines[y] = [];
                             lines[y].push(item);
                         });
 
                         const sortedYs = Object.keys(lines).map(Number).sort((a, b) => b - a);
-                        fullText += `<h2 style='page-break-before:always;'>--- Page ${i} ---</h2>`;
+                        if (i > 1) {
+                            fullText += `<br clear='all' style='page-break-before:always' />`;
+                        }
+
                         for (let y of sortedYs) {
                             const lineItems = lines[y].sort((a, b) => (a.transform[4] || 0) - (b.transform[4] || 0));
                             let pContent = "";
                             let lastEdge = 0;
-                            lineItems.forEach(item => {
+
+                            lineItems.forEach((item, index) => {
                                 const x = item.transform[4] || 0;
-                                const gap = Math.max(0, x - lastEdge);
-                                const spacesCount = Math.floor(gap / 5.5);
-                                const spaces = spacesCount > 0 ? `<span style="mso-spacerun:yes">` + "&nbsp;".repeat(spacesCount) + `</span>` : "";
-                                pContent += spaces + `<span style="font-size:${item.height}px;">${item.str}</span>`;
-                                lastEdge = x + (item.width || item.str.length * 5);
+                                const fontSize = Math.abs(item.transform[3]) || 12;
+
+                                let margin = 0;
+                                if (index === 0) {
+                                    margin = x;
+                                } else {
+                                    margin = Math.max(0, x - lastEdge);
+                                }
+
+                                const style = `font-family:Arial,sans-serif; font-size:${fontSize}px; margin-left:${margin}px; display:inline-block;`;
+                                pContent += `<span style="${style}">${item.str}</span>`;
+
+                                lastEdge = x + (item.width || (item.str.length * (fontSize * 0.5)));
                             });
-                            if (pContent.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, '').trim())
-                                fullText += `<p style="margin:2px 0; font-family:Arial,sans-serif; white-space:pre-wrap;">${pContent}</p>`;
+
+                            if (pContent.replace(/<[^>]+>/g, '').trim()) {
+                                fullText += `<div style="white-space:nowrap;">${pContent}</div>`;
+                            }
                         }
                     }
                     fullText += "</body></html>";

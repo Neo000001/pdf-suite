@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - PDFSuite</title>
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .page-wrapper {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 4rem 1.5rem;
+        }
+
+        .reading-container {
+            max-width: 800px;
+            margin: 0 auto;
+            color: var(--fg);
+        }
+
+        .reading-container h1 {
+            font-size: 2.8rem;
+            margin-bottom: 2rem;
+            color: var(--fg);
+            letter-spacing: -0.5px;
+            text-align: center;
+        }
+
+        .reading-container h2 {
+            font-size: 1.5rem;
+            margin-top: 3rem;
+            margin-bottom: 1.2rem;
+            color: var(--fg);
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 0.5rem;
+        }
+
+        .reading-container p,
+        .reading-container li {
+            line-height: 1.8;
+            color: var(--fg-muted);
+            font-size: 1.05rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .vision-text {
+            font-size: 1.35rem;
+            font-weight: 500;
+            font-style: italic;
+            color: #10b981;
+            margin: 3rem 0;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 3rem 0;
+            flex-wrap: wrap;
+        }
+
+        .hero-stats .stat {
+            background: var(--bg-soft);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 1px solid var(--border-subtle);
+            text-align: center;
+            min-width: 200px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .hero-stats .stat span {
+            display: block;
+            font-size: 2.25rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .about-feature {
+            margin-bottom: 2.5rem;
+        }
+
+        .about-feature h3 {
+            font-size: 1.25rem;
+            color: var(--fg);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .about-feature i {
+            color: #3b82f6;
+            width: 22px;
+            height: 22px;
+        }
+    </style>
+    <!-- Auto Theme Detector -->
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('pdfsuite-theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else {
+                const hour = new Date().getHours();
+                const theme = (hour >= 6 && hour < 18) ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+        })();
+    </script>
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <header class="site-header">
+            <div class="header-inner">
+                <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+                <div class="header-actions">
+                    <button class="theme-toggle" id="themeToggleBtn" aria-label="Toggle Theme">
+                        <svg id="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg>
+                    </button>
+                    <a href="../index.html" class="btn-primary btn-small">Home</a>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="reading-container">
+                <h1>About PDFSuite</h1>
+
+                <p class="vision-text">"Democratizing Powerful Document Tools While Respecting Your Privacy"</p>
+
+                <p style="text-align: center;">PDFSuite was built as an independent, browser-first platform. Our vision
+                    is to offer the utility of expensive enterprise software without the privacy invasive practices of
+                    uploading sensitive medical, legal, and financial PDFs to random internet servers.</p>
+
+                <div class="hero-stats">
+                    <div class="stat"><span style="color:#10b981;">0</span> Server Uploads</div>
+                    <div class="stat"><span style="color:#3b82f6;">30+</span> Native Tools</div>
+                    <div class="stat"><span style="color:#eab308;">$0</span> Base Cost</div>
+                </div>
+
+                <h2>How It Works</h2>
+                <p>Most online PDF tools take your file, upload it to an expensive cloud server, run traditional Linux
+                    processing tools, and make you download the result back. This is slow, expensive, and terrible for
+                    privacy.</p>
+
+                <div class="about-feature">
+                    <h3><i data-lucide="cpu"></i> Processing Right In Your Browser</h3>
+                    <p>By leveraging cutting-edge web technologies like <strong>WebAssembly, HTML5, and advanced
+                            JavaScript APIs</strong>, we compile powerful C/C++ PDF engines to run directly inside your
+                        Chrome or Safari browser. When you work with PDFSuite, you aren't sending files to the
+                        cloud—you're bringing the cloud directly to your local machine processing unit.</p>
+                </div>
+
+                <div class="about-feature">
+                    <h3><i data-lucide="shield-alert"></i> Unbreakable Privacy Standard</h3>
+                    <p>Because the network is entirely disconnected from your editing workflow, your files cannot be
+                        physically stolen by our database—because there is no database. Your medical forms, taxes, and
+                        work NDAs are incredibly safe here.</p>
+                </div>
+
+                <div class="about-feature">
+                    <h3><i data-lucide="zap"></i> Lightning Fast Speeds</h3>
+                    <p>No waiting for a 100MB PDF to upload on a slow connection. No waiting in a "queue" behind other
+                        users. Processing starts instantly using your own CPU cores right on your desk.</p>
+                </div>
+
+                <p style="margin-top:4rem; text-align: center;">Thank you for trusting and supporting our mission to
+                    keep the web open, secure, and incredibly fast.</p>
+            </div>
+        </main>
+
+        <footer class="site-footer">
+            <div class="footer-inner">
+                <div class="footer-brand">
+                    <div class="logo">PDF<span>Suite</span></div>
+                    <p>The ultimate toolkit for all your PDF needs.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="link-group">
+                        <h4>Tools</h4>
+                        <a href="./editor.html">PDF Editor</a>
+                        <a href="./merge.html">Merge PDF</a>
+                        <a href="./compress.html">Compress PDF</a>
+                    </div>
+                    <div class="link-group">
+                        <h4>Legal</h4>
+                        <a href="./privacy.html">Privacy Policy</a>
+                        <a href="./terms.html">Terms & Conditions</a>
+                        <a href="./about.html">About Us</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span>&copy; <span id="year"></span> PDFSuite. All rights reserved.</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        document.getElementById("year").textContent = new Date().getFullYear();
+        lucide.createIcons();
+
+        const toggleBtn = document.getElementById('themeToggleBtn');
+        const htmlEl = document.documentElement;
+        const moonIcon = document.getElementById('moon-icon');
+
+        if (htmlEl.getAttribute('data-theme') === 'light') {
+            moonIcon.innerHTML = `<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>`;
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            const isDark = htmlEl.getAttribute('data-theme') === 'dark';
+            const newTheme = isDark ? 'light' : 'dark';
+            htmlEl.setAttribute('data-theme', newTheme);
+            localStorage.setItem('pdfsuite-theme', newTheme);
+            if (newTheme === 'light') {
+                moonIcon.innerHTML = `<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>`;
+            } else {
+                moonIcon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+            }
+        });
+    </script>
+</body>
+
+</html>

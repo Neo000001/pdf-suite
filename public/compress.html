@@ -11,6 +11,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211"
         crossorigin="anonymous"></script>
 
@@ -125,14 +127,11 @@
             browser. No upload to any server.</p>
 
         <div
-            style="background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); border-radius:8px; padding:1rem; margin-bottom:1.5rem; text-align:left; font-size:0.85rem;">
-            <strong style="color:#f59e0b; display:block; margin-bottom:0.25rem;">Note on Privacy vs
-                Performance:</strong>
-            Because this tool runs strictly inside your browser for your privacy, it cannot re-compress internal PDF
-            images perfectly yet. It removes invisible metadata and unused objects.
-            <br><span style="color:var(--fg-muted);">Tip: If your PDF is mostly images, compress the images first using
-                our <a href="./img-compress.html" style="color:var(--accent);">Image Compressor</a> before converting
-                them to PDF.</span>
+            style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); border-radius:8px; padding:1rem; margin-bottom:1.5rem; text-align:left; font-size:0.85rem;">
+            <strong style="color:#10b981; display:block; margin-bottom:0.25rem;">New Deep Processing Engine:</strong>
+            We have upgraded our local engine to perform <strong>Deep Rasterization Compression</strong>. This mimics
+            the extreme file size reduction of cloud services like ILovePDF, instantly shrinking massive files entirely
+            in your browser.
         </div>
 
         <div class="upload-box" id="uploadBox">
@@ -158,8 +157,9 @@
                     <div>
                         <strong style="display:block; color:var(--fg); font-size: 1rem;">Extreme Compression
                             (Hard)</strong>
-                        <span style="font-size:0.85rem; color:var(--fg-muted);">Less quality, high compression. Best for
-                            tight email limits.</span>
+                        <span style="font-size:0.85rem; color:var(--fg-muted);">Massive file size reduction via
+                            aggressive 1.0x rasterization mapping. Quality drops, but best for strict email
+                            limits.</span>
                     </div>
                 </label>
 
@@ -172,8 +172,8 @@
                     <div>
                         <strong style="display:block; color:var(--fg); font-size: 1rem;">Recommended Compression
                             (Normal)</strong>
-                        <span style="font-size:0.85rem; color:var(--fg-muted);">Good quality, good compression. Ideal
-                            for standard usage.</span>
+                        <span style="font-size:0.85rem; color:var(--fg-muted);">Deep 1.5x rasterization compress. Ideal
+                            balance of good quality and strong compression.</span>
                     </div>
                 </label>
 
@@ -184,9 +184,9 @@
                     <input type="radio" name="compLevel" value="low"
                         style="margin-top:4px; transform: scale(1.2); accent-color: #10b981;">
                     <div>
-                        <strong style="display:block; color:var(--fg); font-size: 1rem;">Less Compression (Low)</strong>
-                        <span style="font-size:0.85rem; color:var(--fg-muted);">High quality, less compression. Keeps
-                            maximum fidelity.</span>
+                        <strong style="display:block; color:var(--fg); font-size: 1rem;">Metadata Only (Low)</strong>
+                        <span style="font-size:0.85rem; color:var(--fg-muted);">Does not rasterize your PDF. Keeps
+                            original text selectable, but compression is minimal.</span>
                     </div>
                 </label>
             </div>
@@ -268,16 +268,48 @@
                 const level = document.querySelector('input[name="compLevel"]:checked').value;
 
                 const { PDFDocument } = PDFLib;
-                const doc = await PDFDocument.load(currentPdfBytes, { updateMetadata: false });
+                let newPdfBytes;
 
-                if (level === 'normal' || level === 'hard') {
+                if (level === 'hard' || level === 'normal') {
+                    // Deep rasterization compression (iLovePDF style)
+                    const scale = level === 'hard' ? 1.0 : 1.5;
+                    const quality = level === 'hard' ? 0.3 : 0.6;
+
+                    const typedarray = new Uint8Array(currentPdfBytes);
+                    const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
+                    const newDoc = await PDFDocument.create();
+
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        processBtn.innerText = `Compressing... Page ${i}/${pdf.numPages}`;
+                        const page = await pdf.getPage(i);
+                        const viewport = page.getViewport({ scale: scale });
+
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        canvas.width = viewport.width;
+                        canvas.height = viewport.height;
+
+                        await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+                        const imgData = canvas.toDataURL('image/jpeg', quality);
+
+                        const jpgImage = await newDoc.embedJpg(imgData);
+                        const newPage = newDoc.addPage([viewport.width, viewport.height]);
+                        newPage.drawImage(jpgImage, {
+                            x: 0,
+                            y: 0,
+                            width: viewport.width,
+                            height: viewport.height,
+                        });
+                    }
+                    newPdfBytes = await newDoc.save({ useObjectStreams: true });
+                } else {
+                    // Low compression: Metadata removal
+                    const doc = await PDFDocument.load(currentPdfBytes, { updateMetadata: false });
                     doc.setTitle(''); doc.setAuthor(''); doc.setSubject('');
                     doc.setCreator(''); doc.setProducer(''); doc.setKeywords([]);
+                    newPdfBytes = await doc.save({ useObjectStreams: true });
                 }
 
-                const useStreams = (level === 'normal' || level === 'hard');
-
-                const newPdfBytes = await doc.save({ useObjectStreams: useStreams });
                 const blob = new Blob([newPdfBytes], { type: 'application/pdf' });
                 const newSize = blob.size;
 
