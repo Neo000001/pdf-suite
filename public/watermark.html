@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+<!--
+    PDFSuite - Copyright (c) 2025 Eebii. All Rights Reserved.
+    Unauthorized copying or distribution prohibited.
+    Contact: support@eebii.com
+-->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Watermark to PDF - PDFSuite</title>
+    <meta name="description" content="Add a confidential or custom text watermark to your PDF file.">
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211"
+        crossorigin="anonymous"></script>
+    <!-- pdf-lib is needed for stamping -->
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script>
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('pdfsuite-theme');
+            if (savedTheme) { document.documentElement.setAttribute('data-theme', savedTheme); }
+            else { const hour = new Date().getHours(); document.documentElement.setAttribute('data-theme', (hour >= 6 && hour < 18) ? 'light' : 'dark'); }
+        })();
+    </script>
+    <style>
+        .workspace {
+            max-width: 600px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background: var(--bg-soft);
+            border-radius: 20px;
+            border: 1px solid var(--border-subtle);
+            text-align: center;
+        }
+
+        .upload-box {
+            border: 2px dashed var(--accent);
+            padding: 3rem 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
+
+        .upload-box:hover {
+            background: rgba(96, 165, 250, 0.2);
+        }
+
+        .upload-box svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 1rem;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            text-align: left;
+            background: var(--bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-subtle);
+            margin-top: 1.5rem;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .control-group.full {
+            grid-column: span 2;
+        }
+
+        label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--fg);
+        }
+
+        input,
+        select {
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+            background: var(--bg-soft);
+            color: var(--fg);
+            font-family: inherit;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+    
+        .pdf-preview-section {
+            display: none;
+            margin-top: 1.5rem;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            background: var(--bg);
+            padding: 1rem;
+        }
+        .pdf-preview-section h3 {
+            margin: 0 0 0.75rem;
+            font-size: 0.9rem;
+            color: var(--fg-muted);
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        .pdf-pages-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-height: 480px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .pdf-page-canvas {
+            width: 100%;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            display: block;
+        }
+        .pdf-page-label {
+            font-size: 0.75rem;
+            color: var(--fg-muted);
+            text-align: center;
+            margin-top: 2px;
+        }
+
+    </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+            <div class="header-actions"><a href="../index.html" class="btn-ghost btn-small">Back to Tools</a></div>
+        </div>
+    </header>
+
+    <div class="ad-banner-section">
+        <div class="ad-container" style="text-align: center; margin: 1rem 0;">
+            <ins class="adsbygoogle" style="display:inline-block;width:728px;height:90px"
+                data-ad-client="ca-pub-7048088905906211"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </div>
+
+    <div class="workspace">
+        <h1>Add Watermark</h1>
+        <p style="color:var(--fg-muted)">Stamp a watermark over all pages (e.g., CONFIDENTIAL)</p>
+
+        <div class="upload-box" id="uploadBox">
+            <i data-lucide="droplet"></i>
+            <h2>Select PDF File</h2>
+        </div>
+        <input type="file" id="fileInput" accept=".pdf" hidden>
+
+        <div id="actionArea" style="display:none;">
+            <p id="fileInfo" style="font-weight:600; margin-bottom:0.5rem;"></p>
+            <div class="pdf-preview-section" id="pdfPreviewSection">
+                <h3>📄 Preview — <span id="previewPageCount"></span></h3>
+                <div class="pdf-pages-wrap" id="pdfPagesWrap"></div>
+            </div>
+
+            <div class="controls">
+                <div class="control-group full">
+                    <label>Watermark Text</label>
+                    <input type="text" id="wmText" value="CONFIDENTIAL" />
+                </div>
+                <div class="control-group">
+                    <label>Position</label>
+                    <select id="wmPosition">
+                        <option value="center">Center / Diagonal</option>
+                        <option value="top">Top Header</option>
+                        <option value="bottom">Bottom Footer</option>
+                        <option value="repeat">Repeat Across Page</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Color</label>
+                    <input type="color" id="wmColor" value="#ff0000" style="padding:0; height: 42px;" />
+                </div>
+                <div class="control-group">
+                    <label>Size</label>
+                    <select id="wmSize">
+                        <option value="36">Small</option>
+                        <option value="72" selected>Medium</option>
+                        <option value="120">Large</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Opacity</label>
+                    <select id="wmOpacity">
+                        <option value="0.7">70%</option>
+                        <option value="0.5" selected>50%</option>
+                        <option value="0.2">20%</option>
+                        <option value="0.1">10%</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="action-btns">
+                <button class="btn-primary" id="applyBtn" style="flex:1;"><i data-lucide="check"
+                        style="width:16px;height:16px;"></i> Apply & Download</button>
+                <button class="btn-ghost" id="resetBtn">Upload Another</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const fileInput = document.getElementById('fileInput');
+        const uploadBox = document.getElementById('uploadBox');
+        const actionArea = document.getElementById('actionArea');
+        const applyBtn = document.getElementById('applyBtn');
+        let pdfBytes = null;
+
+        async function renderPDFPreview(arrayBuffer) {
+            const pdfPreviewSection = document.getElementById('pdfPreviewSection');
+            const pdfPagesWrap = document.getElementById('pdfPagesWrap');
+            const previewPageCount = document.getElementById('previewPageCount');
+
+            pdfPagesWrap.innerHTML = '';
+            pdfPreviewSection.style.display = 'block';
+
+            try {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                const total = pdf.numPages;
+                previewPageCount.textContent = total + ' page' + (total !== 1 ? 's' : '');
+
+                for (let p = 1; p <= total; p++) {
+                    const page = await pdf.getPage(p);
+                    const viewport = page.getViewport({ scale: 1.2 });
+                    const canvas = document.createElement('canvas');
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                    canvas.className = 'pdf-page-canvas';
+                    const ctx = canvas.getContext('2d');
+                    await page.render({ canvasContext: ctx, viewport }).promise;
+
+                    const label = document.createElement('p');
+                    label.className = 'pdf-page-label';
+                    label.textContent = 'Page ' + p;
+
+                    pdfPagesWrap.appendChild(canvas);
+                    pdfPagesWrap.appendChild(label);
+                }
+            } catch (e) {
+                pdfPreviewSection.style.display = 'none';
+                console.warn('PDF preview failed:', e);
+            }
+        }
+
+        let fileName = '';
+
+        uploadBox.addEventListener('click', () => fileInput.click());
+        document.getElementById('resetBtn').addEventListener('click', () => location.reload());
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            fileName = file.name;
+            document.getElementById('fileInfo').innerText = `File: ${fileName}`;
+            pdfBytes = await file.arrayBuffer();
+            renderPDFPreview(pdfBytes.slice(0));
+            uploadBox.style.display = 'none';
+            actionArea.style.display = 'block';
+        });
+
+        applyBtn.addEventListener('click', async () => {
+            if (!pdfBytes) return;
+            applyBtn.disabled = true;
+            applyBtn.innerText = 'Applying...';
+
+            try {
+                const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+                const pages = pdfDoc.getPages();
+                const wmText = document.getElementById('wmText').value || 'CONFIDENTIAL';
+                const pos = document.getElementById('wmPosition').value;
+                const hexColor = document.getElementById('wmColor').value;
+                const size = parseInt(document.getElementById('wmSize').value);
+                const opacity = parseFloat(document.getElementById('wmOpacity').value);
+
+                // convert hex to rgb
+                const r = parseInt(hexColor.substr(1, 2), 16) / 255;
+                const g = parseInt(hexColor.substr(3, 2), 16) / 255;
+                const b = parseInt(hexColor.substr(5, 2), 16) / 255;
+                const color = PDFLib.rgb(r, g, b);
+
+                pdfDoc.registerFontkit(window.fontkit);
+                const font = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+
+                for (const page of pages) {
+                    const { width, height } = page.getSize();
+                    const textWidth = font.widthOfTextAtSize(wmText, size);
+                    const textHeight = font.heightAtSize(size);
+
+                    if (pos === 'center') {
+                        // Diagonal center
+                        const angle = Math.atan(height / width);
+                        page.drawText(wmText, {
+                            x: width / 2 - (textWidth * Math.cos(angle)) / 2,
+                            y: height / 2 - (textWidth * Math.sin(angle)) / 2,
+                            size: size,
+                            font: font,
+                            color: color,
+                            rotate: PDFLib.degrees(angle * (180 / Math.PI)),
+                            opacity: opacity
+                        });
+                    } else if (pos === 'top') {
+                        page.drawText(wmText, {
+                            x: width / 2 - textWidth / 2,
+                            y: height - 60 - textHeight / 2,
+                            size: size, font: font, color: color, opacity: opacity
+                        });
+                    } else if (pos === 'bottom') {
+                        page.drawText(wmText, {
+                            x: width / 2 - textWidth / 2,
+                            y: 40,
+                            size: size, font: font, color: color, opacity: opacity
+                        });
+                    } else if (pos === 'repeat') {
+                        const s = size * 0.7; // slightly smaller for repeat
+                        const tw = font.widthOfTextAtSize(wmText, s);
+                        const th = font.heightAtSize(s);
+                        for (let y = 0; y < height; y += th * 3) {
+                            for (let x = -tw; x < width; x += tw * 1.5) {
+                                page.drawText(wmText, {
+                                    x: x + (y % (th * 6) === 0 ? tw / 2 : 0),
+                                    y: y,
+                                    size: s, font: font, color: color, opacity: opacity * 0.6,
+                                    rotate: PDFLib.degrees(30)
+                                });
+                            }
+                        }
+                    }
+                }
+
+                const outBytes = await pdfDoc.save();
+                const blob = new Blob([outBytes], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName.replace('.pdf', '_Watermarked.pdf');
+                a.click();
+
+                applyBtn.innerText = 'Success! Downloaded';
+                setTimeout(() => {
+                    applyBtn.disabled = false;
+                    applyBtn.innerHTML = '<i data-lucide="check" style="width:16px;height:16px;"></i> Apply & Download';
+                    lucide.createIcons();
+                }, 3000);
+            } catch (err) {
+                console.error(err);
+                alert("Failed to apply watermark.");
+                applyBtn.disabled = false;
+                applyBtn.innerText = 'Apply & Download';
+                lucide.createIcons();
+            }
+        });
+    </script>
+    <script src="../src/js/protect.js"></script>
+    <script src="../src/js/adblock-detect.js" defer></script>
+</body>
+
+</html>

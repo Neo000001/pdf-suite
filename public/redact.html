@@ -6,6 +6,11 @@
 
 
 <head>
+<!--
+    PDFSuite - Copyright (c) 2025 Eebii. All Rights Reserved.
+    Unauthorized copying or distribution prohibited.
+    Contact: support@eebii.com
+-->
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -70,6 +75,44 @@
             margin-top: 2rem;
 
         }
+    
+        .pdf-preview-section {
+            display: none;
+            margin-top: 1.5rem;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            background: var(--bg);
+            padding: 1rem;
+        }
+        .pdf-preview-section h3 {
+            margin: 0 0 0.75rem;
+            font-size: 0.9rem;
+            color: var(--fg-muted);
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        .pdf-pages-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-height: 480px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .pdf-page-canvas {
+            width: 100%;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            display: block;
+        }
+        .pdf-page-label {
+            font-size: 0.75rem;
+            color: var(--fg-muted);
+            text-align: center;
+            margin-top: 2px;
+        }
+
     </style>
 
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
@@ -143,7 +186,11 @@
 
         <div id="actionArea" style="display: none; text-align: left;">
 
-            <p id="fileInfo" style="margin-bottom: 1.5rem; font-weight: 600;"></p>
+            <p id="fileInfo" style="margin-bottom: 0.75rem; font-weight: 600;"></p>
+            <div class="pdf-preview-section" id="pdfPreviewSection">
+                <h3>📄 Preview — <span id="previewPageCount"></span></h3>
+                <div class="pdf-pages-wrap" id="pdfPagesWrap"></div>
+            </div>
 
 
 
@@ -181,7 +228,7 @@
 
 
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
     <script>
 
@@ -203,6 +250,44 @@
 
         const redactTextInput = document.getElementById('redactText');
 
+        async function renderPDFPreview(arrayBuffer) {
+            const pdfPreviewSection = document.getElementById('pdfPreviewSection');
+            const pdfPagesWrap = document.getElementById('pdfPagesWrap');
+            const previewPageCount = document.getElementById('previewPageCount');
+
+            pdfPagesWrap.innerHTML = '';
+            pdfPreviewSection.style.display = 'block';
+
+            try {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                const total = pdf.numPages;
+                previewPageCount.textContent = total + ' page' + (total !== 1 ? 's' : '');
+
+                for (let p = 1; p <= total; p++) {
+                    const page = await pdf.getPage(p);
+                    const viewport = page.getViewport({ scale: 1.2 });
+                    const canvas = document.createElement('canvas');
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+                    canvas.className = 'pdf-page-canvas';
+                    const ctx = canvas.getContext('2d');
+                    await page.render({ canvasContext: ctx, viewport }).promise;
+
+                    const label = document.createElement('p');
+                    label.className = 'pdf-page-label';
+                    label.textContent = 'Page ' + p;
+
+                    pdfPagesWrap.appendChild(canvas);
+                    pdfPagesWrap.appendChild(label);
+                }
+            } catch (e) {
+                pdfPreviewSection.style.display = 'none';
+                console.warn('PDF preview failed:', e);
+            }
+        }
+
+
 
 
         let currentPdfBytes = null;
@@ -222,6 +307,7 @@
             if (file) {
 
                 currentPdfBytes = await file.arrayBuffer();
+            renderPDFPreview(currentPdfBytes.slice(0));
 
                 fileName = file.name;
 
@@ -326,6 +412,8 @@
         });
 
     </script>
+    <script src="../src/js/protect.js"></script>
+    <script src="../src/js/adblock-detect.js" defer></script>
 </body>
 
 </html>

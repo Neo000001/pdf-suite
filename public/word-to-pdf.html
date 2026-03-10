@@ -2,6 +2,11 @@
 <html lang="en" data-theme="dark">
 
 <head>
+<!--
+    PDFSuite - Copyright (c) 2025 Eebii. All Rights Reserved.
+    Unauthorized copying or distribution prohibited.
+    Contact: support@eebii.com
+-->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Word to PDF - PDFSuite</title>
@@ -247,7 +252,9 @@
   td, th { border: 1px solid #000; padding: 4pt 6pt; }
   img { max-width: 100%; height: auto; }
 </style>
-</head><body>${content}</body></html>`);
+</head><body>${content}    <script src="../src/js/protect.js"></script>
+    <script src="../src/js/adblock-detect.js" defer></script>
+</body></html>`);
             win.document.close();
             setTimeout(() => { win.print(); }, 500);
         });

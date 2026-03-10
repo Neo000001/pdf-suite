@@ -2,6 +2,11 @@
 <html lang="en" data-theme="dark">
 
 <head>
+<!--
+    PDFSuite - Copyright (c) 2025 Eebii. All Rights Reserved.
+    Unauthorized copying or distribution prohibited.
+    Contact: support@eebii.com
+-->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PDF to Word - PDFSuite</title>
@@ -171,7 +176,9 @@
                             }
                         }
                     }
-                    fullText += "</body></html>";
+                    fullText += "    <script src="../src/js/protect.js"></script>
+    <script src="../src/js/adblock-detect.js" defer></script>
+</body></html>";
                     extractedText = fullText;
                     statusMsg.innerText = "Conversion ready! You can now download your word-compatible document.";
                     downloadBtn.disabled = false;

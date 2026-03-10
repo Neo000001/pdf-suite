@@ -2,6 +2,11 @@
 <html lang="en" data-theme="dark">
 
 <head>
+<!--
+    PDFSuite - Copyright (c) 2025 Eebii. All Rights Reserved.
+    Unauthorized copying or distribution prohibited.
+    Contact: support@eebii.com
+-->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Excel to PDF - PDFSuite</title>
@@ -130,8 +135,8 @@
             <p id="statusMsg" style="color:var(--fg-muted); font-size:0.85rem; margin-bottom:1rem;"></p>
             <div class="table-preview" id="tablePreview"></div>
             <div style="display:flex; gap:1rem; margin-top:1.25rem; justify-content:center; flex-wrap:wrap;">
-                <button class="btn-primary" id="printBtn" style="background:#22c55e; display:none;">Print / Save as
-                    PDF</button>
+                <button class="btn-primary" id="downloadBtn" style="background:#22c55e; display:none; align-items:center; gap:0.5rem;">&#8595; Download PDF Directly</button>
+                <button class="btn-primary" id="printBtn" style="background:#3b82f6; display:none; align-items:center; gap:0.5rem;">&#128438; Print Document</button>
                 <button class="btn-ghost" id="resetBtn">Upload Another</button>
             </div>
         </div>
@@ -150,19 +155,32 @@
 
     </div>
 
-    <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
         lucide.createIcons();
         const fileInput = document.getElementById('fileInput');
         const uploadBox = document.getElementById('uploadBox');
         const actionArea = document.getElementById('actionArea');
         const printBtn = document.getElementById('printBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
         const resetBtn = document.getElementById('resetBtn');
         const tablePreview = document.getElementById('tablePreview');
         const fileInfo = document.getElementById('fileInfo');
         const statusMsg = document.getElementById('statusMsg');
 
+        let preserveColorsCheckbox = document.createElement('label');
+        preserveColorsCheckbox.style.display = 'flex';
+        preserveColorsCheckbox.style.alignItems = 'center';
+        preserveColorsCheckbox.style.gap = '8px';
+        preserveColorsCheckbox.style.justifyContent = 'center';
+        preserveColorsCheckbox.style.margin = '1rem 0';
+        preserveColorsCheckbox.style.cursor = 'pointer';
+        preserveColorsCheckbox.innerHTML = '<input type="checkbox" id="preserveColors" checked style="accent-color: #22c55e; width: 16px; height: 16px;"> Preserve Original Excel Colors & Styles';
+        tablePreview.parentNode.insertBefore(preserveColorsCheckbox, tablePreview);
+
         let tableHtml = '';
+        let fileName = 'Document';
 
         uploadBox.addEventListener('click', () => fileInput.click());
         resetBtn.addEventListener('click', () => location.reload());
@@ -170,26 +188,160 @@
         fileInput.addEventListener('change', e => {
             const file = e.target.files[0];
             if (!file) return;
+            fileName = file.name.replace(/\.[^/.]+$/, "");
             fileInfo.innerText = `Selected: ${file.name}`;
             statusMsg.innerText = 'Parsing spreadsheet...';
             uploadBox.style.display = 'none';
             actionArea.style.display = 'block';
 
-            const reader = new FileReader();
-            reader.onload = ev => {
-                try {
-                    const wb = XLSX.read(ev.target.result, { type: 'array' });
-                    const ws = wb.Sheets[wb.SheetNames[0]];
-                    tableHtml = XLSX.utils.sheet_to_html(ws, { editable: false });
-                    tablePreview.innerHTML = tableHtml;
-                    statusMsg.innerText = `Showing sheet: ${wb.SheetNames[0]}`;
-                    printBtn.style.display = 'inline-flex';
-                } catch (err) {
-                    statusMsg.innerText = 'Failed to parse file.';
-                    console.error(err);
+            renderTable(file);
+        });
+
+        document.getElementById('preserveColors').addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                statusMsg.innerText = 'Re-rendering table styles...';
+                renderTable(fileInput.files[0]);
+            }
+        });
+
+        async function renderTable(file) {
+            try {
+                const buffer = await file.arrayBuffer();
+                let tableContent = '<table id="exportTable" style="border-collapse: collapse; min-width: 100%; border: 1px solid #ccc;">';
+                const preserveColors = document.getElementById('preserveColors').checked;
+
+                if (file.name.toLowerCase().endsWith('.csv')) {
+                    const text = await file.text();
+                    const rows = text.split('\n');
+                    rows.forEach(row => {
+                        tableContent += '<tr>';
+                        row.split(',').forEach(cell => {
+                            tableContent += `<td style="border: 1px solid #ccc; padding: 6px 10px;">${cell.replace(/"/g, '').trim()}</td>`;
+                        });
+                        tableContent += '</tr>';
+                    });
+                } else {
+                    const workbook = new ExcelJS.Workbook();
+                    await workbook.xlsx.load(buffer);
+                    const ws = workbook.worksheets[0];
+                    statusMsg.innerText = `Showing sheet: ${ws.name}`;
+
+                    let skipMap = {};
+
+                    const themes = ['#ffffff', '#000000', '#eeece1', '#1f497d', '#4f81bd', '#c0504d', '#9bbb59', '#8064a2', '#4bacc6', '#f79646'];
+
+                    for (let r = 1; r <= ws.rowCount; r++) {
+                        const row = ws.getRow(r);
+                        tableContent += '<tr>';
+                        for (let c = 1; c <= ws.columnCount; c++) {
+                            const cell = ws.getCell(r, c);
+
+                            if (skipMap[`${r},${c}`]) continue;
+
+                            let colspan = 1;
+                            let rowspan = 1;
+
+                            if (cell.isMerged && cell.master.address === cell.address) {
+                                let rSpan = 1; let cSpan = 1;
+                                while(r + rSpan <= ws.rowCount && ws.getCell(r + rSpan, c).master && ws.getCell(r + rSpan, c).master.address === cell.address) { rSpan++; }
+                                while(c + cSpan <= ws.columnCount && ws.getCell(r, c + cSpan).master && ws.getCell(r, c + cSpan).master.address === cell.address) { cSpan++; }
+                                rowspan = rSpan; colspan = cSpan;
+                                for(let i=0; i<rowspan; i++) {
+                                    for(let j=0; j<colspan; j++) {
+                                        if(i===0 && j===0) continue;
+                                        skipMap[`${r+i},${c+j}`] = true;
+                                    }
+                                }
+                            } else if (cell.isMerged && cell.master.address !== cell.address) {
+                                continue;
+                            }
+
+                            let styleStr = 'border: 1px solid #ccc; padding: 6px 10px; ';
+
+                            if (preserveColors) {
+                                let bgColor = '';
+                                if (cell.fill && cell.fill.type === 'pattern') {
+                                    if (cell.fill.fgColor && cell.fill.fgColor.argb) {
+                                        let argb = cell.fill.fgColor.argb;
+                                        bgColor = '#' + (argb.length === 8 ? argb.substring(2) : argb);
+                                    } else if (cell.fill.fgColor && cell.fill.fgColor.theme !== undefined) {
+                                        bgColor = themes[cell.fill.fgColor.theme] || '';
+                                    } else if (cell.fill.bgColor && cell.fill.bgColor.argb) {
+                                        let argb = cell.fill.bgColor.argb;
+                                        bgColor = '#' + (argb.length === 8 ? argb.substring(2) : argb);
+                                    }
+                                }
+                                if (bgColor) styleStr += `background-color: ${bgColor}; -webkit-print-color-adjust: exact; print-color-adjust: exact; `;
+
+                                if (cell.font) {
+                                    if (cell.font.color && cell.font.color.argb) {
+                                        let argb = cell.font.color.argb;
+                                        styleStr += `color: #${argb.length === 8 ? argb.substring(2) : argb}; `;
+                                    }
+                                    if (cell.font.bold) styleStr += `font-weight: bold; `;
+                                    if (cell.font.size) styleStr += `font-size: ${cell.font.size}pt; `;
+                                    if (cell.font.italic) styleStr += `font-style: italic; `;
+                                }
+
+                                if (cell.alignment) {
+                                    if (cell.alignment.horizontal) styleStr += `text-align: ${cell.alignment.horizontal}; `;
+                                    if (cell.alignment.vertical) styleStr += `vertical-align: ${cell.alignment.vertical}; `;
+                                }
+                            } else {
+                                if (r % 2 === 0) styleStr += 'background-color: #f8fafc; ';
+                                if (r === 1) styleStr += 'background-color: #e2e8f0; font-weight: bold; ';
+                            }
+
+                            let val = cell.value !== null && cell.value !== undefined ? cell.text : '';
+                            tableContent += `<td colspan="${colspan}" rowspan="${rowspan}" style="${styleStr}">${String(val).replace(/\n/g, '<br>')}</td>`;
+                        }
+                        tableContent += '</tr>';
+                    }
                 }
-            };
-            reader.readAsArrayBuffer(file);
+
+                tableContent += '</table>';
+                tableHtml = tableContent;
+                tablePreview.innerHTML = tableContent;
+                printBtn.style.display = 'inline-flex';
+                downloadBtn.style.display = 'inline-flex';
+                lucide.createIcons();
+
+            } catch (err) {
+                statusMsg.innerText = 'Failed to parse format correctly.';
+                console.error(err);
+            }
+        }
+
+        downloadBtn.addEventListener('click', async () => {
+             downloadBtn.disabled = true;
+             downloadBtn.innerHTML = 'Generating PDF...';
+             
+             const element = document.createElement('div');
+             element.innerHTML = `<style>
+                   body { font-family: 'Inter', Arial, sans-serif; font-size: 10pt; color: #000; }
+                   table { page-break-inside: auto; margin-bottom: 2rem; border-collapse: collapse; }
+                   tr { page-break-inside: avoid; page-break-after: auto; }
+                   td { border: 1px solid #ccc; padding: 6px 10px; }
+                </style>` + tableHtml;
+             
+             const opt = {
+                margin:       10,
+                filename:     `${fileName}_Export.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+             };
+             
+             try {
+                await html2pdf().set(opt).from(element).save();
+             } catch(err) {
+                console.error('PDF Generation failed:', err);
+                alert("Failed to generator PDF. Try using normal mode.");
+             }
+             
+             downloadBtn.disabled = false;
+             downloadBtn.innerHTML = '<i data-lucide="download" style="width:16px;height:16px;"></i> Download PDF Direct';
+             lucide.createIcons();
         });
 
         printBtn.addEventListener('click', () => {
@@ -203,11 +355,12 @@
   td, th { border: 1px solid #ccc; padding: 4px 8px; font-size:9pt; white-space: nowrap; }
   th { background: #e2e8f0; font-weight: bold; }
   tr:nth-child(even) td { background: #f8fafc; }
-</style></head><body>${tableHtml}</body></html>`);
+</style></head><body>${tableHtml}    <script src="../src/js/protect.js"></script>
+    <script src="../src/js/adblock-detect.js" defer></script>
+</body></html>`);
             win.document.close();
             setTimeout(() => win.print(), 400);
         });
     </script>
 </body>
-
 </html>

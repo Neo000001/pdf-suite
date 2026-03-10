@@ -1,0 +1,65 @@
+PROPRIETARY SOFTWARE LICENSE
+
+Copyright (c) 2025 PDFSuite. All Rights Reserved.
+
+NOTICE: All information contained herein is, and remains the property of
+PDFSuite and its owners. The intellectual and technical concepts contained
+herein are proprietary to PDFSuite and are protected by copyright law.
+
+RESTRICTIONS:
+- You may NOT copy, reproduce, or duplicate any part of this software.
+- You may NOT modify, adapt, or create derivative works.
+- You may NOT distribute, sell, sublicense, or transfer this software
+  to any third party.
+- You may NOT reverse engineer, decompile, or disassemble this software.
+- You may NOT use any part of this codebase in another project, whether
+  commercial or non-commercial, without explicit written permission from
+  the owner.
+
+UNAUTHORIZED USE:
+Any unauthorized use, reproduction, or distribution of this software,
+or any portion of it, may result in severe civil and criminal penalties,
+and will be prosecuted to the maximum extent possible under the law.
+
+This software is provided for use only as explicitly authorized by PDFSuite.
+All other rights are reserved.
+
+For licensing inquiries, contact: support@eebii.com
+
+---
+
+THIRD-PARTY SOFTWARE NOTICES
+=============================
+
+This product includes third-party software used under their respective
+open-source licenses. PDFSuite does not claim ownership of these libraries.
+The following notices are required by their respective licenses:
+
+1. PDF.js — Copyright (c) Mozilla Foundation
+   Licensed under the Apache License, Version 2.0
+   https://github.com/mozilla/pdf.js/blob/master/LICENSE
+
+2. pdf-lib — Copyright (c) Andrew Dillon
+   Licensed under the MIT License
+   https://github.com/Hopding/pdf-lib/blob/master/LICENSE.md
+
+3. ExcelJS — Copyright (c) ExcelJS Contributors
+   Licensed under the MIT License
+   https://github.com/exceljs/exceljs/blob/master/LICENSE
+
+4. html2pdf.js — Copyright (c) Erik Koopmans
+   Licensed under the MIT License
+   https://github.com/eKoopmans/html2pdf.js/blob/master/LICENSE
+
+5. Lucide Icons — Copyright (c) Lucide Contributors
+   Licensed under the ISC License
+   https://github.com/lucide-icons/lucide/blob/main/LICENSE
+
+6. Tesseract.js — Copyright (c) Project Naptha
+   Licensed under the Apache License, Version 2.0
+   https://github.com/naptha/tesseract.js/blob/master/LICENSE.md
+
+These libraries are loaded via public CDN and are not bundled into this
+repository. Their use is governed by their respective licenses linked above.
+PDFSuite's proprietary restrictions apply only to its own original code.
+

@@ -1,0 +1,61 @@
+    <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script>
+        lucide.createIcons();
+        const fileInput = document.getElementById('fileInput');
+        const uploadBox = document.getElementById('uploadBox');
+        const actionArea = document.getElementById('actionArea');
+        const printBtn = document.getElementById('printBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const tablePreview = document.getElementById('tablePreview');
+        const fileInfo = document.getElementById('fileInfo');
+        const statusMsg = document.getElementById('statusMsg');
+
+        let tableHtml = '';
+
+        uploadBox.addEventListener('click', () => fileInput.click());
+        resetBtn.addEventListener('click', () => location.reload());
+
+        fileInput.addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (!file) return;
+            fileInfo.innerText = `Selected: ${file.name}`;
+            statusMsg.innerText = 'Parsing spreadsheet...';
+            uploadBox.style.display = 'none';
+            actionArea.style.display = 'block';
+
+            const reader = new FileReader();
+            reader.onload = ev => {
+                try {
+                    const wb = XLSX.read(ev.target.result, { type: 'array' });
+                    const ws = wb.Sheets[wb.SheetNames[0]];
+                    tableHtml = XLSX.utils.sheet_to_html(ws, { editable: false });
+                    tablePreview.innerHTML = tableHtml;
+                    statusMsg.innerText = `Showing sheet: ${wb.SheetNames[0]}`;
+                    printBtn.style.display = 'inline-flex';
+                } catch (err) {
+                    statusMsg.innerText = 'Failed to parse file.';
+                    console.error(err);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        printBtn.addEventListener('click', () => {
+            const win = window.open('', '_blank');
+            win.document.write(`<!DOCTYPE html>
+<html><head><title>Excel to PDF</title>
+<style>
+  @page { size: A4 landscape; margin: 1cm; }
+  body { font-family: 'Calibri', Arial, sans-serif; font-size: 9pt; margin: 0; padding: 0; color:#000; }
+  table { border-collapse: collapse; width: max-content; min-width: 100%; }
+  td, th { border: 1px solid #ccc; padding: 4px 8px; font-size:9pt; white-space: nowrap; }
+  th { background: #e2e8f0; font-weight: bold; }
+  tr:nth-child(even) td { background: #f8fafc; }
+</style></head><body>${tableHtml}</body></html>`);
+            win.document.close();
+            setTimeout(() => win.print(), 400);
+        });
+    </script>
+</body>
+
+</html>
