@@ -9,12 +9,12 @@
 -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Organize & Reorder PDF - PDFSuite</title>
-    <meta name="description" content="Visually sort, organize, rotate, and delete PDF pages like a pro.">
+    <title>Organize PDF - Reorder, Rotate, Delete & Extract Pages - PDFSuite</title>
+    <meta name="description" content="Visually sort, organize, reorder, rotate, delete, and extract PDF pages directly in your browser.">
 
     <link rel="stylesheet" href="../src/css/base.css" />
     <link rel="stylesheet" href="../src/css/dashboard.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
@@ -23,19 +23,19 @@
 
     <style>
         .workspace {
-            max-width: 1100px;
-            margin: 2rem auto;
-            padding: 1.5rem;
+            max-width: 1240px;
+            margin: 1.5rem auto;
+            padding: 1rem 1.5rem;
         }
 
         .upload-box {
             border: 2px dashed #3b82f6;
-            padding: 4rem;
+            padding: 4rem 2rem;
             cursor: pointer;
-            border-radius: 12px;
+            border-radius: 16px;
             margin: 2rem auto;
             background: rgba(59, 130, 246, 0.05);
-            max-width: 700px;
+            max-width: 720px;
             text-align: center;
             transition: all 0.2s;
         }
@@ -46,124 +46,218 @@
         }
 
         .upload-box svg {
-            width: 52px;
-            height: 52px;
+            width: 56px;
+            height: 56px;
             color: #3b82f6;
             margin-bottom: 1rem;
         }
 
-        .sticky-toolbar {
+        .organize-toolbar {
             position: sticky;
             top: 0;
             z-index: 50;
             background: var(--bg-soft);
-            border-bottom: 1px solid var(--border-subtle);
-            padding: 1rem;
+            border: 1px solid var(--border-subtle);
+            padding: 0.85rem 1.25rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tool-btn {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            color: var(--fg-default);
+            padding: 6px 12px;
             border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+
+        .tool-btn:hover:not(:disabled) {
+            background: var(--bg-hover, rgba(255,255,255,0.06));
+            border-color: var(--accent);
+            color: var(--fg);
+        }
+
+        .tool-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .tool-btn.danger:hover:not(:disabled) {
+            border-color: #ef4444;
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .badge-count {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border-radius: 999px;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
         }
 
         .pages-grid {
             display: grid;
             gap: 1.5rem;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
             padding-bottom: 4rem;
         }
 
-        .page-thumb-wrapper {
+        .page-card {
             position: relative;
             background: var(--bg-soft);
-            border: 1px solid var(--border-subtle);
-            border-radius: 8px;
-            padding: 0.5rem;
+            border: 2px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 0.6rem;
             display: flex;
             flex-direction: column;
             align-items: center;
-            transition: transform 0.2s, border-color 0.2s;
+            transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s;
             cursor: grab;
+            user-select: none;
         }
 
-        .page-thumb-wrapper.dragging {
-            opacity: 0.5;
+        .page-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+        }
+
+        .page-card.selected {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.08);
+            box-shadow: 0 0 0 1px #3b82f6;
+        }
+
+        .page-card.dragging {
+            opacity: 0.4;
             cursor: grabbing;
-            border-color: var(--accent);
+            border-style: dashed;
         }
 
-        .page-thumb-wrapper:hover {
-            border-color: var(--accent);
-            transform: translateY(-3px);
+        .page-card.drag-over {
+            border-color: #38bdf8;
+            transform: scale(1.02);
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+        }
+
+        .canvas-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #ffffff;
+            border-radius: 6px;
+            overflow: hidden;
+            min-height: 180px;
+            position: relative;
         }
 
         .page-canvas {
             max-width: 100%;
             height: auto;
-            border: 1px solid var(--border-subtle);
-            background: #fff;
+            display: block;
             pointer-events: none;
+            transition: transform 0.25s ease;
         }
 
-        .page-info {
+        .page-select-checkbox {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            z-index: 10;
+            accent-color: #3b82f6;
+        }
+
+        .page-footer {
             width: 100%;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 0.5rem;
+            margin-top: 0.6rem;
             padding-top: 0.5rem;
-            border-top: 1px dashed var(--border-subtle);
+            border-top: 1px solid var(--border-subtle);
         }
 
-        .page-num {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--fg-muted);
-        }
-
-        .thumb-actions {
+        .page-badge {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--fg-default);
             display: flex;
-            gap: 0.25rem;
+            align-items: center;
+            gap: 4px;
         }
 
-        .action-icon {
+        .page-orig-badge {
+            font-size: 0.72rem;
+            color: var(--fg-muted);
+            font-weight: 400;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .mini-btn {
             background: transparent;
             border: 1px solid var(--border-subtle);
             color: var(--fg-muted);
-            font-size: 0.7rem;
-            cursor: pointer;
-            padding: 3px 7px;
+            padding: 3px 6px;
             border-radius: 4px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             transition: all 0.15s;
         }
 
-        .action-icon:hover {
-            opacity: 1;
-            color: var(--fg);
+        .mini-btn:hover {
             border-color: var(--accent);
+            color: var(--fg-default);
+            background: var(--bg-hover, rgba(255,255,255,0.08));
         }
 
-        .action-icon.trash:hover {
+        .mini-btn.danger:hover {
             border-color: #ef4444;
             color: #ef4444;
-            background: rgba(239, 68, 68, 0.1);
+            background: rgba(239, 68, 68, 0.15);
         }
 
         #actionArea {
             display: none;
         }
 
-        @media (max-width: 600px) {
-            .pages-grid {
-                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-                gap: 1rem;
-            }
-
-            .sticky-toolbar {
-                flex-wrap: wrap;
-                gap: 0.5rem;
-            }
+        .selection-banner {
+            font-size: 0.85rem;
+            color: var(--fg-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
     </style>
 
@@ -187,27 +281,57 @@
     <header class="site-header">
         <div class="header-inner">
             <a href="../index.html" class="logo">PDF<span>Suite</span></a>
-            <div class="header-actions"><a href="../index.html" class="btn-ghost btn-small">Back to Tools</a></div>
+            <div class="header-actions">
+                <a href="../index.html" class="btn-ghost btn-small">Back to Tools</a>
+            </div>
         </div>
     </header>
 
     <div class="workspace">
         <div class="upload-box" id="uploadBox">
             <i data-lucide="layout-grid"></i>
-            <h2>Visually Organize PDF</h2>
-            <p style="color:var(--fg-muted)">Upload a PDF. Drag to reorder, click Rotate or Delete on each page.</p>
+            <h2>Organize PDF Pages</h2>
+            <p style="color:var(--fg-muted); max-width: 520px; margin: 0.5rem auto 1.5rem auto;">
+                Drag & drop pages to reorder, rotate clockwise/counter-clockwise, duplicate, delete unwanted pages, or extract specific pages into a new PDF.
+            </p>
             <input type="file" id="fileInput" accept="application/pdf" hidden>
+            <button class="btn-primary" style="pointer-events:none;">Choose PDF File</button>
         </div>
 
         <div id="actionArea">
-            <div class="sticky-toolbar">
-                <div style="display:flex; align-items:center; gap: 1rem;">
-                    <span style="font-weight:600" id="fileTitle">Document</span>
-                    <span style="color:var(--fg-muted); font-size:0.9rem;" id="pageCountLabel"></span>
+            <div class="organize-toolbar">
+                <div class="toolbar-group">
+                    <span style="font-weight:700; font-size:1rem;" id="docTitle">Document.pdf</span>
+                    <span class="badge-count" id="pageCountBadge">0 Pages</span>
+                    <span class="selection-banner" id="selectionCount">0 selected</span>
                 </div>
-                <div style="display:flex; gap:1rem; align-items:center;">
-                    <span id="statusMsg" style="font-size:0.9rem; color:#22c55e;"></span>
-                    <button class="btn-primary" id="saveBtn">Save Organized PDF</button>
+
+                <div class="toolbar-group">
+                    <button class="tool-btn" id="selectAllBtn" title="Select all pages">
+                        <i data-lucide="check-square" style="width:14px;height:14px;"></i> Select All
+                    </button>
+                    <button class="tool-btn" id="deselectAllBtn" title="Deselect all pages">
+                        <i data-lucide="square" style="width:14px;height:14px;"></i> Clear
+                    </button>
+                    <button class="tool-btn" id="rotateSelectedBtn" title="Rotate selected pages 90° clockwise">
+                        <i data-lucide="rotate-cw" style="width:14px;height:14px;"></i> Rotate
+                    </button>
+                    <button class="tool-btn danger" id="deleteSelectedBtn" title="Delete selected pages">
+                        <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Delete
+                    </button>
+                    <button class="tool-btn" id="extractSelectedBtn" title="Extract selected pages into a new PDF">
+                        <i data-lucide="file-output" style="width:14px;height:14px;"></i> Extract Selected
+                    </button>
+                    <button class="tool-btn" id="resetOrderBtn" title="Reset all changes back to original file">
+                        <i data-lucide="refresh-cw" style="width:14px;height:14px;"></i> Reset
+                    </button>
+                </div>
+
+                <div class="toolbar-group">
+                    <span id="statusMsg" style="font-size:0.85rem; color:#22c55e;"></span>
+                    <button class="btn-primary" id="savePdfBtn" style="background:#2563eb; display:inline-flex; align-items:center; gap:8px;">
+                        <i data-lucide="download" style="width:16px;height:16px;"></i> Save Organized PDF
+                    </button>
                 </div>
             </div>
 
@@ -216,16 +340,13 @@
     </div>
 
     <div class="ad-banner-section bottom-ad">
-        
-    <div class="ad-container" style="text-align: center; margin: 1rem 0;">
-      <ins class="adsbygoogle"
-           style="display:inline-block;width:300px;height:250px"
-           data-ad-client="ca-pub-7048088905906211"></ins>
-      <script>
-           (adsbygoogle = window.adsbygoogle || []).push({});
-      </script>
-    </div>
-
+        <div class="ad-container" style="text-align: center; margin: 1rem 0;">
+            <ins class="adsbygoogle" style="display:inline-block;width:300px;height:250px"
+                data-ad-client="ca-pub-7048088905906211"></ins>
+            <script>
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
     </div>
 
     <script>
@@ -236,198 +357,397 @@
         const uploadBox = document.getElementById('uploadBox');
         const actionArea = document.getElementById('actionArea');
         const pagesGrid = document.getElementById('pagesGrid');
-        const fileTitle = document.getElementById('fileTitle');
-        const pageCountLabel = document.getElementById('pageCountLabel');
-        const saveBtn = document.getElementById('saveBtn');
+        const docTitle = document.getElementById('docTitle');
+        const pageCountBadge = document.getElementById('pageCountBadge');
+        const selectionCount = document.getElementById('selectionCount');
+        const selectAllBtn = document.getElementById('selectAllBtn');
+        const deselectAllBtn = document.getElementById('deselectAllBtn');
+        const rotateSelectedBtn = document.getElementById('rotateSelectedBtn');
+        const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+        const extractSelectedBtn = document.getElementById('extractSelectedBtn');
+        const resetOrderBtn = document.getElementById('resetOrderBtn');
+        const savePdfBtn = document.getElementById('savePdfBtn');
         const statusMsg = document.getElementById('statusMsg');
 
         let originalPdfBytes = null;
-        let fileName = '';
-        let pagesData = [];
+        let baseFileName = 'document';
+        let pdfDocProxy = null;
+        // pageItems: Array of { uid: string, originalPageNum: int, rotation: int, selected: boolean, canvasDataUrl: string }
+        let pageItems = [];
+        let draggedItemUid = null;
 
         uploadBox.addEventListener('click', () => fileInput.click());
 
-        fileInput.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            fileName = file.name;
-            originalPdfBytes = await file.arrayBuffer();
-            uploadBox.style.display = 'none';
-            actionArea.style.display = 'block';
-            fileTitle.innerText = fileName;
-            statusMsg.innerText = 'Rendering pages...';
-            await renderThumbnails();
-            statusMsg.innerText = '';
+        uploadBox.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadBox.style.borderColor = '#2563eb';
         });
 
-        async function renderThumbnails() {
-            pagesGrid.innerHTML = '';
-            pagesData = [];
+        uploadBox.addEventListener('dragleave', () => {
+            uploadBox.style.borderColor = '#3b82f6';
+        });
 
-            const doc = await pdfjsLib.getDocument({ data: new Uint8Array(originalPdfBytes) }).promise;
-            const numPages = doc.numPages;
-            pageCountLabel.innerText = `${numPages} pages`;
+        uploadBox.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadBox.style.borderColor = '#3b82f6';
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
 
-            for (let i = 1; i <= numPages; i++) {
-                pagesData.push({ id: `page_${i}`, originalIndex: i, rotation: 0, deleted: false });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                handleFile(e.target.files[0]);
+            }
+        });
 
-                const page = await doc.getPage(i);
-                const viewport = page.getViewport({ scale: 0.5 });
+        async function handleFile(file) {
+            if (!file || file.type !== 'application/pdf') {
+                alert('Please select a valid PDF file.');
+                return;
+            }
 
-                const wrapper = document.createElement('div');
-                wrapper.className = 'page-thumb-wrapper';
-                wrapper.draggable = true;
-                wrapper.dataset.index = i - 1;
+            baseFileName = file.name.replace(/\.[^/.]+$/, "");
+            docTitle.textContent = file.name;
+            originalPdfBytes = await file.arrayBuffer();
+
+            uploadBox.style.display = 'none';
+            actionArea.style.display = 'block';
+            statusMsg.textContent = 'Rendering page previews...';
+
+            await loadDocument();
+        }
+
+        async function loadDocument() {
+            pdfDocProxy = await pdfjsLib.getDocument({ data: new Uint8Array(originalPdfBytes) }).promise;
+            pageItems = [];
+
+            for (let i = 1; i <= pdfDocProxy.numPages; i++) {
+                const page = await pdfDocProxy.getPage(i);
+                const viewport = page.getViewport({ scale: 0.35 });
 
                 const canvas = document.createElement('canvas');
-                canvas.className = 'page-canvas';
                 canvas.width = viewport.width;
                 canvas.height = viewport.height;
                 await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
 
-                const infoDiv = document.createElement('div');
-                infoDiv.className = 'page-info';
-
-                const numSpan = document.createElement('span');
-                numSpan.className = 'page-num';
-                numSpan.innerText = i;
-
-                const actDiv = document.createElement('div');
-                actDiv.className = 'thumb-actions';
-
-                const rotateBtn = document.createElement('button');
-                rotateBtn.className = 'action-icon rotate';
-                rotateBtn.innerText = 'Rotate';
-                rotateBtn.title = 'Rotate Right 90°';
-                rotateBtn.onclick = (ev) => {
-                    ev.stopPropagation();
-                    const pData = pagesData[wrapper.dataset.index];
-                    pData.rotation = (pData.rotation + 90) % 360;
-                    canvas.style.transform = `rotate(${pData.rotation}deg)`;
-                    canvas.style.transition = 'transform 0.3s';
-                };
-
-                const trashBtn = document.createElement('button');
-                trashBtn.className = 'action-icon trash';
-                trashBtn.innerText = 'Delete';
-                trashBtn.title = 'Delete this page';
-                trashBtn.onclick = (ev) => {
-                    ev.stopPropagation();
-                    pagesData[wrapper.dataset.index].deleted = true;
-                    wrapper.style.opacity = '0';
-                    wrapper.style.transition = 'opacity 0.2s';
-                    setTimeout(() => { wrapper.style.display = 'none'; updatePageCount(); }, 200);
-                };
-
-                actDiv.appendChild(rotateBtn);
-                actDiv.appendChild(trashBtn);
-                infoDiv.appendChild(numSpan);
-                infoDiv.appendChild(actDiv);
-                wrapper.appendChild(canvas);
-                wrapper.appendChild(infoDiv);
-                setupDragListeners(wrapper);
-                pagesGrid.appendChild(wrapper);
+                pageItems.push({
+                    uid: 'page_' + Math.random().toString(36).substr(2, 9),
+                    originalPageNum: i,
+                    rotation: 0,
+                    selected: false,
+                    canvasDataUrl: canvas.toDataURL('image/jpeg', 0.85),
+                    aspectRatio: viewport.height / viewport.width
+                });
             }
+
+            statusMsg.textContent = '';
+            renderGrid();
         }
 
-        function updatePageCount() {
-            const visibleCount = pagesData.filter(p => !p.deleted).length;
-            pageCountLabel.innerText = `${visibleCount} pages`;
+        function renderGrid() {
+            pagesGrid.innerHTML = '';
+            pageCountBadge.textContent = `${pageItems.length} Page${pageItems.length === 1 ? '' : 's'}`;
+            updateSelectionState();
+
+            pageItems.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = `page-card ${item.selected ? 'selected' : ''}`;
+                card.draggable = true;
+                card.dataset.uid = item.uid;
+
+                // Checkbox
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.className = 'page-select-checkbox';
+                cb.checked = item.selected;
+                cb.title = 'Select page';
+                cb.onclick = (e) => {
+                    e.stopPropagation();
+                    item.selected = cb.checked;
+                    card.classList.toggle('selected', item.selected);
+                    updateSelectionState();
+                };
+                card.appendChild(cb);
+
+                // Canvas Container
+                const canvasBox = document.createElement('div');
+                canvasBox.className = 'canvas-container';
+
+                const img = document.createElement('img');
+                img.src = item.canvasDataUrl;
+                img.className = 'page-canvas';
+                img.style.transform = `rotate(${item.rotation}deg)`;
+                canvasBox.appendChild(img);
+                card.appendChild(canvasBox);
+
+                // Footer Info & Actions
+                const footer = document.createElement('div');
+                footer.className = 'page-footer';
+
+                const badge = document.createElement('div');
+                badge.className = 'page-badge';
+                badge.innerHTML = `<span>#${index + 1}</span> <span class="page-orig-badge">(Orig ${item.originalPageNum})</span>`;
+                footer.appendChild(badge);
+
+                const actions = document.createElement('div');
+                actions.className = 'card-actions';
+
+                // Rotate CCW
+                const rotCcwBtn = document.createElement('button');
+                rotCcwBtn.className = 'mini-btn';
+                rotCcwBtn.title = 'Rotate 90° Left';
+                rotCcwBtn.innerHTML = '↺';
+                rotCcwBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    item.rotation = (item.rotation - 90 + 360) % 360;
+                    img.style.transform = `rotate(${item.rotation}deg)`;
+                };
+
+                // Rotate CW
+                const rotCwBtn = document.createElement('button');
+                rotCwBtn.className = 'mini-btn';
+                rotCwBtn.title = 'Rotate 90° Right';
+                rotCwBtn.innerHTML = '↻';
+                rotCwBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    item.rotation = (item.rotation + 90) % 360;
+                    img.style.transform = `rotate(${item.rotation}deg)`;
+                };
+
+                // Duplicate
+                const dupBtn = document.createElement('button');
+                dupBtn.className = 'mini-btn';
+                dupBtn.title = 'Duplicate this page';
+                dupBtn.innerHTML = '＋';
+                dupBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    duplicatePage(index);
+                };
+
+                // Delete
+                const delBtn = document.createElement('button');
+                delBtn.className = 'mini-btn danger';
+                delBtn.title = 'Delete this page';
+                delBtn.innerHTML = '✕';
+                delBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    deletePage(index);
+                };
+
+                actions.appendChild(rotCcwBtn);
+                actions.appendChild(rotCwBtn);
+                actions.appendChild(dupBtn);
+                actions.appendChild(delBtn);
+                footer.appendChild(actions);
+
+                card.appendChild(footer);
+
+                // Card click selects/deselects if clicked outside buttons
+                card.onclick = (e) => {
+                    if (e.target.closest('button') || e.target === cb) return;
+                    item.selected = !item.selected;
+                    cb.checked = item.selected;
+                    card.classList.toggle('selected', item.selected);
+                    updateSelectionState();
+                };
+
+                // Setup Drag and Drop
+                setupDragEvents(card, item.uid);
+
+                pagesGrid.appendChild(card);
+            });
         }
 
-        let draggedItem = null;
+        function setupDragEvents(card, uid) {
+            card.addEventListener('dragstart', (e) => {
+                draggedItemUid = uid;
+                card.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+            });
 
-        function setupDragListeners(el) {
-            el.addEventListener('dragstart', function () {
-                draggedItem = this;
-                setTimeout(() => this.classList.add('dragging'), 0);
+            card.addEventListener('dragend', () => {
+                card.classList.remove('dragging');
+                document.querySelectorAll('.page-card').forEach(c => c.classList.remove('drag-over'));
+                draggedItemUid = null;
             });
-            el.addEventListener('dragend', function () {
-                this.classList.remove('dragging');
-                draggedItem = null;
-                updateArrayFromDOM();
+
+            card.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                if (draggedItemUid && draggedItemUid !== uid) {
+                    card.classList.add('drag-over');
+                }
             });
-            el.addEventListener('dragover', (e) => e.preventDefault());
-            el.addEventListener('dragenter', (e) => e.preventDefault());
-            el.addEventListener('drop', function () {
-                if (this !== draggedItem && draggedItem !== null) {
-                    const allItems = Array.from(pagesGrid.querySelectorAll('.page-thumb-wrapper'));
-                    const draggedIndex = allItems.indexOf(draggedItem);
-                    const dropIndex = allItems.indexOf(this);
-                    if (draggedIndex < dropIndex) {
-                        this.parentNode.insertBefore(draggedItem, this.nextSibling);
-                    } else {
-                        this.parentNode.insertBefore(draggedItem, this);
-                    }
+
+            card.addEventListener('dragleave', () => {
+                card.classList.remove('drag-over');
+            });
+
+            card.addEventListener('drop', (e) => {
+                e.preventDefault();
+                card.classList.remove('drag-over');
+                if (!draggedItemUid || draggedItemUid === uid) return;
+
+                const fromIndex = pageItems.findIndex(p => p.uid === draggedItemUid);
+                const toIndex = pageItems.findIndex(p => p.uid === uid);
+                if (fromIndex !== -1 && toIndex !== -1) {
+                    const [moved] = pageItems.splice(fromIndex, 1);
+                    pageItems.splice(toIndex, 0, moved);
+                    renderGrid();
                 }
             });
         }
 
-        function updateArrayFromDOM() {
-            const elements = Array.from(pagesGrid.querySelectorAll('.page-thumb-wrapper'));
-            const newPagesData = [];
-            elements.forEach((el, newIdx) => {
-                const origIdx = el.dataset.index;
-                newPagesData.push(pagesData[origIdx]);
-                el.dataset.index = newIdx;
-            });
-            pagesData = newPagesData;
-            let pNum = 1;
-            elements.forEach(el => {
-                const numEl = el.querySelector('.page-num');
-                if (numEl && !pagesData[el.dataset.index].deleted) {
-                    numEl.innerText = pNum++;
-                }
-            });
+        function updateSelectionState() {
+            const count = pageItems.filter(p => p.selected).length;
+            selectionCount.textContent = count > 0 ? `${count} selected` : '0 selected';
+            rotateSelectedBtn.disabled = count === 0;
+            deleteSelectedBtn.disabled = count === 0;
+            extractSelectedBtn.disabled = count === 0;
         }
 
-        saveBtn.addEventListener('click', async () => {
+        function duplicatePage(index) {
+            const original = pageItems[index];
+            const duplicate = {
+                uid: 'page_' + Math.random().toString(36).substr(2, 9),
+                originalPageNum: original.originalPageNum,
+                rotation: original.rotation,
+                selected: false,
+                canvasDataUrl: original.canvasDataUrl,
+                aspectRatio: original.aspectRatio
+            };
+            pageItems.splice(index + 1, 0, duplicate);
+            renderGrid();
+        }
+
+        function deletePage(index) {
+            if (pageItems.length <= 1) {
+                alert('Document must retain at least one page.');
+                return;
+            }
+            pageItems.splice(index, 1);
+            renderGrid();
+        }
+
+        selectAllBtn.addEventListener('click', () => {
+            pageItems.forEach(p => p.selected = true);
+            renderGrid();
+        });
+
+        deselectAllBtn.addEventListener('click', () => {
+            pageItems.forEach(p => p.selected = false);
+            renderGrid();
+        });
+
+        rotateSelectedBtn.addEventListener('click', () => {
+            pageItems.forEach(p => {
+                if (p.selected) {
+                    p.rotation = (p.rotation + 90) % 360;
+                }
+            });
+            renderGrid();
+        });
+
+        deleteSelectedBtn.addEventListener('click', () => {
+            const remaining = pageItems.filter(p => !p.selected);
+            if (remaining.length === 0) {
+                alert('Cannot delete all pages. Please keep at least one page.');
+                return;
+            }
+            pageItems = remaining;
+            renderGrid();
+        });
+
+        resetOrderBtn.addEventListener('click', async () => {
+            if (confirm('Reset all reordering, rotations, and deletions back to the original PDF?')) {
+                statusMsg.textContent = 'Resetting...';
+                await loadDocument();
+            }
+        });
+
+        // Extract Selected Pages into a new PDF
+        extractSelectedBtn.addEventListener('click', async () => {
+            const selected = pageItems.filter(p => p.selected);
+            if (selected.length === 0) return;
+
             try {
-                saveBtn.disabled = true;
-                saveBtn.innerText = 'Processing...';
-                statusMsg.innerText = 'Building PDF...';
+                extractSelectedBtn.disabled = true;
+                statusMsg.textContent = 'Extracting selected pages...';
 
                 const { PDFDocument, degrees } = PDFLib;
-                const sourceDoc = await PDFDocument.load(originalPdfBytes);
-                const newPdf = await PDFDocument.create();
+                const srcDoc = await PDFDocument.load(originalPdfBytes);
+                const outDoc = await PDFDocument.create();
 
-                const finalPages = pagesData.filter(p => !p.deleted);
+                const indicesToCopy = selected.map(p => p.originalPageNum - 1);
+                const copiedPages = await outDoc.copyPages(srcDoc, indicesToCopy);
 
-                if (finalPages.length === 0) {
-                    alert('Cannot save empty document. Restore at least one page.');
-                    saveBtn.disabled = false;
-                    saveBtn.innerText = 'Save Organized PDF';
-                    statusMsg.innerText = '';
-                    return;
-                }
-
-                const indicesToCopy = finalPages.map(p => p.originalIndex - 1);
-                const copiedPages = await newPdf.copyPages(sourceDoc, indicesToCopy);
-
-                finalPages.forEach((pData, i) => {
-                    const page = copiedPages[i];
-                    const currentRot = page.getRotation().angle;
-                    page.setRotation(degrees(currentRot + pData.rotation));
-                    newPdf.addPage(page);
+                copiedPages.forEach((page, i) => {
+                    const rot = (page.getRotation().angle + selected[i].rotation) % 360;
+                    page.setRotation(degrees(rot));
+                    outDoc.addPage(page);
                 });
 
-                const newPdfBytes = await newPdf.save();
-                const blob = new Blob([newPdfBytes], { type: 'application/pdf' });
+                const outBytes = await outDoc.save();
+                const blob = new Blob([outBytes], { type: 'application/pdf' });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = `Organized_${fileName}`;
+                link.download = `${baseFileName}_Extracted.pdf`;
                 link.click();
 
-                statusMsg.innerText = 'Saved successfully!';
-                setTimeout(() => { statusMsg.innerText = ''; }, 3000);
-                saveBtn.innerText = 'Save Organized PDF';
-                saveBtn.disabled = false;
+                statusMsg.textContent = 'Extracted successfully!';
+                setTimeout(() => { statusMsg.textContent = ''; }, 3000);
             } catch (err) {
                 console.error(err);
-                alert('Failed to save. See console.');
-                saveBtn.disabled = false;
-                saveBtn.innerText = 'Save Organized PDF';
-                statusMsg.innerText = '';
+                alert('Failed to extract: ' + err.message);
+                statusMsg.textContent = '';
+            } finally {
+                extractSelectedBtn.disabled = false;
+            }
+        });
+
+        // Save Full Organized PDF
+        savePdfBtn.addEventListener('click', async () => {
+            if (pageItems.length === 0) {
+                alert('No pages to save.');
+                return;
+            }
+
+            try {
+                savePdfBtn.disabled = true;
+                savePdfBtn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> Saving...';
+                statusMsg.textContent = 'Building organized PDF...';
+
+                const { PDFDocument, degrees } = PDFLib;
+                const srcDoc = await PDFDocument.load(originalPdfBytes);
+                const outDoc = await PDFDocument.create();
+
+                const indicesToCopy = pageItems.map(p => p.originalPageNum - 1);
+                const copiedPages = await outDoc.copyPages(srcDoc, indicesToCopy);
+
+                copiedPages.forEach((page, i) => {
+                    const rot = (page.getRotation().angle + pageItems[i].rotation) % 360;
+                    page.setRotation(degrees(rot));
+                    outDoc.addPage(page);
+                });
+
+                const outBytes = await outDoc.save();
+                const blob = new Blob([outBytes], { type: 'application/pdf' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `${baseFileName}_Organized.pdf`;
+                link.click();
+
+                statusMsg.textContent = 'Saved successfully!';
+                setTimeout(() => { statusMsg.textContent = ''; }, 3000);
+            } catch (err) {
+                console.error(err);
+                alert('Failed to save organized PDF: ' + err.message);
+                statusMsg.textContent = '';
+            } finally {
+                savePdfBtn.disabled = false;
+                savePdfBtn.innerHTML = '<i data-lucide="download" style="width:16px;height:16px;"></i> Save Organized PDF';
+                lucide.createIcons();
             }
         });
     </script>

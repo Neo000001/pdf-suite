@@ -540,12 +540,23 @@
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
 }
 
-[data-theme="light"] .filter-pill {
+[data-theme="light"] .filter-pill:not(.active) {
   background: #ffffff;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+[data-theme="light"] .filter-pill:not(.active):hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #94a3b8;
 }
 
 [data-theme="light"] .filter-pill.active {
-  color: #ffffff;
+  background: #2563eb !important;
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
 }
 
 /* No results state on homepage */

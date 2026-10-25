@@ -98,27 +98,38 @@
     },
     {
       id: 'reorder',
-      name: 'Rotate & Reorder',
-      desc: 'Drag to reorder pages and fix orientation',
-      icon: 'rotate-cw',
+      name: 'Organize PDF',
+      desc: 'Reorder, rotate, delete & extract pages',
+      icon: 'layout-grid',
       category: 'organize',
       categoryLabel: 'Organize Pages',
       url: publicPrefix + 'reorder.html',
-      badge: '',
-      keywords: 'rotate reorder sort arrange flip landscape portrait'
+      badge: 'Power Tool',
+      keywords: 'organize rotate reorder sort arrange flip delete extract split'
+    },
+    {
+      id: 'page-number',
+      name: 'Page Numbers',
+      desc: 'Add numbers, headers & footers to pages',
+      icon: 'hash',
+      category: 'organize',
+      categoryLabel: 'Organize Pages',
+      url: publicPrefix + 'page-number.html',
+      badge: 'New',
+      keywords: 'page number header footer pagination numbering bates stamp'
     },
 
     // Category 3: Convert (Both to and from PDF)
     {
       id: 'pdf-to-word',
       name: 'PDF to Word',
-      desc: 'Convert PDF to editable DOCX text',
+      desc: 'Convert PDF to genuine .docx Word document',
       icon: 'file-text',
       category: 'convert',
       categoryLabel: 'Convert',
       url: publicPrefix + 'pdf-to-word.html',
-      badge: 'Popular',
-      keywords: 'pdf to word doc docx convert editable microsoft'
+      badge: 'Real .DOCX',
+      keywords: 'pdf to word doc docx convert editable microsoft openxml'
     },
     {
       id: 'word-to-pdf',
@@ -178,12 +189,12 @@
     {
       id: 'pdf-to-ppt',
       name: 'PDF to PPT',
-      desc: 'Convert slides to PowerPoint',
+      desc: 'Generate Microsoft PowerPoint (.pptx) slides',
       icon: 'monitor-play',
       category: 'convert',
       categoryLabel: 'Convert',
       url: publicPrefix + 'pdf-to-ppt.html',
-      badge: '',
+      badge: 'Real .PPTX',
       keywords: 'pdf to ppt pptx presentation slides powerpoint'
     },
     {
@@ -242,6 +253,17 @@
       url: publicPrefix + 'protect.html',
       badge: '',
       keywords: 'protect password encrypt secure lock privacy restriction'
+    },
+    {
+      id: 'flatten',
+      name: 'Flatten PDF',
+      desc: 'Lock form fields, signatures & annotations',
+      icon: 'shield-check',
+      category: 'security-ai',
+      categoryLabel: 'Security & AI',
+      url: publicPrefix + 'flatten.html',
+      badge: 'New',
+      keywords: 'flatten lock bake form fields comments annotations immutable'
     },
 
     // Category 5: Image Tools

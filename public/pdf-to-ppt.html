@@ -134,9 +134,15 @@
             <div id="statusMsg" style="color:var(--fg-muted); margin-bottom:1rem;"></div>
             <div class="slide-preview-grid" id="previewGrid"></div>
             <div style="display:flex; gap:1rem; margin-top:1.5rem; justify-content:center; flex-wrap:wrap;">
-                <button class="btn-primary" id="convertBtn" style="background:#f97316;">Convert to Slide Images</button>
-                <button class="btn-primary" id="downloadAllBtn" style="display:none; background:#ea580c;">Download All
-                    Slides (ZIP)</button>
+                <button class="btn-primary" id="convertBtn" style="background:#ea580c; display:inline-flex; align-items:center; gap:8px;">
+                    <i data-lucide="file-presentation"></i> Convert to PowerPoint (.pptx)
+                </button>
+                <button class="btn-primary" id="downloadPptxBtn" style="display:none; background:#16a34a; align-items:center; gap:8px;">
+                    <i data-lucide="download"></i> Download Presentation (.pptx)
+                </button>
+                <button class="btn-ghost" id="downloadZipBtn" style="display:none; align-items:center; gap:8px;">
+                    <i data-lucide="archive"></i> Download Slides as Images (ZIP)
+                </button>
                 <button class="btn-ghost" id="resetBtn">Upload Another</button>
             </div>
         </div>
@@ -155,6 +161,7 @@
 
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
@@ -164,13 +171,14 @@
         const uploadBox = document.getElementById('uploadBox');
         const actionArea = document.getElementById('actionArea');
         const convertBtn = document.getElementById('convertBtn');
-        const downloadAllBtn = document.getElementById('downloadAllBtn');
+        const downloadPptxBtn = document.getElementById('downloadPptxBtn');
+        const downloadZipBtn = document.getElementById('downloadZipBtn');
         const resetBtn = document.getElementById('resetBtn');
         const statusMsg = document.getElementById('statusMsg');
         const fileInfo = document.getElementById('fileInfo');
         const previewGrid = document.getElementById('previewGrid');
 
-        let pdfBytes = null, fileName = '', slideDataUrls = [];
+        let pdfBytes = null, fileName = '', slideDataUrls = [], pptxInstance = null;
 
         uploadBox.addEventListener('click', () => fileInput.click());
         resetBtn.addEventListener('click', () => location.reload());
@@ -183,57 +191,102 @@
             uploadBox.style.display = 'none';
             actionArea.style.display = 'block';
             fileInfo.innerText = `Selected: ${fileName}`;
+            lucide.createIcons();
         });
 
         convertBtn.addEventListener('click', async () => {
             convertBtn.disabled = true;
-            convertBtn.innerText = 'Converting...';
+            convertBtn.innerHTML = '<i data-lucide="loader" style="width:16px;height:16px;animation:spin 1s linear infinite;"></i> Converting...';
             previewGrid.innerHTML = '';
             slideDataUrls = [];
-            statusMsg.innerText = 'Rendering slides...';
+            statusMsg.innerText = 'Creating presentation slides...';
 
-            const doc = await pdfjsLib.getDocument({ data: new Uint8Array(pdfBytes) }).promise;
+            try {
+                const doc = await pdfjsLib.getDocument({ data: new Uint8Array(pdfBytes) }).promise;
+                const firstPage = await doc.getPage(1);
+                const firstVp = firstPage.getViewport({ scale: 1.0 });
 
-            for (let i = 1; i <= doc.numPages; i++) {
-                statusMsg.innerText = `Converting page ${i} of ${doc.numPages}...`;
-                const page = await doc.getPage(i);
-                const vp = page.getViewport({ scale: 1.8 });
-                const canvas = document.createElement('canvas');
-                canvas.width = vp.width;
-                canvas.height = vp.height;
-                await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+                // Initialize genuine PowerPoint generator
+                pptxInstance = new PptxGenJS();
+                const isWide = firstVp.width >= firstVp.height;
+                pptxInstance.layout = isWide ? 'LAYOUT_WIDE' : 'LAYOUT_4x3';
 
-                const dataUrl = canvas.toDataURL('image/png');
-                slideDataUrls.push({ name: `Slide_${i}.png`, dataUrl });
+                for (let i = 1; i <= doc.numPages; i++) {
+                    statusMsg.innerText = `Processing slide ${i} of ${doc.numPages}...`;
+                    const page = (i === 1) ? firstPage : await doc.getPage(i);
+                    const vp = page.getViewport({ scale: 2.0 }); // High-res 144 DPI
+                    const canvas = document.createElement('canvas');
+                    canvas.width = vp.width;
+                    canvas.height = vp.height;
+                    await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
 
-                const thumb = document.createElement('div');
-                thumb.className = 'slide-thumb';
-                const tc = document.createElement('canvas');
-                const scale2 = 160 / vp.width;
-                tc.width = vp.width * scale2;
-                tc.height = vp.height * scale2;
-                tc.getContext('2d').drawImage(canvas, 0, 0, tc.width, tc.height);
-                const p = document.createElement('p');
-                p.innerText = `Slide ${i}`;
-                const dl = document.createElement('a');
-                dl.href = dataUrl;
-                dl.download = `Slide_${i}.png`;
-                dl.style.display = 'block';
-                dl.appendChild(tc);
-                thumb.appendChild(dl);
-                thumb.appendChild(p);
-                previewGrid.appendChild(thumb);
+                    const dataUrl = canvas.toDataURL('image/png');
+                    slideDataUrls.push({ name: `Slide_${i}.png`, dataUrl });
+
+                    // Add slide to genuine PPTX
+                    const slide = pptxInstance.addSlide();
+                    slide.addImage({
+                        data: dataUrl,
+                        x: 0,
+                        y: 0,
+                        w: '100%',
+                        h: '100%',
+                        sizing: { type: 'contain', w: '100%', h: '100%' }
+                    });
+
+                    // Add UI preview card
+                    const thumb = document.createElement('div');
+                    thumb.className = 'slide-thumb';
+                    const tc = document.createElement('canvas');
+                    const scale2 = 160 / vp.width;
+                    tc.width = vp.width * scale2;
+                    tc.height = vp.height * scale2;
+                    tc.getContext('2d').drawImage(canvas, 0, 0, tc.width, tc.height);
+                    const p = document.createElement('p');
+                    p.innerText = `Slide ${i}`;
+                    thumb.appendChild(tc);
+                    thumb.appendChild(p);
+                    previewGrid.appendChild(thumb);
+                }
+
+                statusMsg.innerHTML = `<span style="color:#10b981;font-weight:600;">&#10003; PowerPoint Presentation Ready!</span> Generated ${doc.numPages} slides formatted for Microsoft PowerPoint.`;
+                convertBtn.style.display = 'none';
+                downloadPptxBtn.style.display = 'inline-flex';
+                downloadZipBtn.style.display = 'inline-flex';
+                lucide.createIcons();
+
+            } catch (err) {
+                console.error(err);
+                statusMsg.innerText = 'Conversion failed: ' + (err.message || 'Unknown error');
+                statusMsg.style.color = '#ef4444';
+                convertBtn.disabled = false;
+                convertBtn.innerText = 'Try Again';
             }
-
-            statusMsg.innerText = `${doc.numPages} slides ready. Click each to download, or use Download All.`;
-            convertBtn.disabled = false;
-            convertBtn.innerText = 'Convert Again';
-            downloadAllBtn.style.display = 'inline-flex';
         });
 
-        downloadAllBtn.addEventListener('click', async () => {
-            downloadAllBtn.disabled = true;
-            downloadAllBtn.innerText = 'Zipping...';
+        // Download real Microsoft PowerPoint (.pptx)
+        downloadPptxBtn.addEventListener('click', async () => {
+            if (!pptxInstance) return;
+            downloadPptxBtn.disabled = true;
+            downloadPptxBtn.innerHTML = '<i data-lucide="loader" style="width:16px;height:16px;animation:spin 1s linear infinite;"></i> Saving PPTX...';
+
+            try {
+                const pptxName = fileName.replace(/\.pdf$/i, '') + '.pptx';
+                await pptxInstance.writeFile({ fileName: pptxName });
+            } catch (e) {
+                console.error('PPTX save error:', e);
+                alert('Failed to save PowerPoint file: ' + e.message);
+            } finally {
+                downloadPptxBtn.disabled = false;
+                downloadPptxBtn.innerHTML = '<i data-lucide="download"></i> Download Presentation (.pptx)';
+                lucide.createIcons();
+            }
+        });
+
+        // Optional: Download slide images as ZIP
+        downloadZipBtn.addEventListener('click', async () => {
+            downloadZipBtn.disabled = true;
+            downloadZipBtn.innerHTML = '<i data-lucide="loader" style="width:16px;height:16px;animation:spin 1s linear infinite;"></i> Zipping...';
 
             const zip = new JSZip();
             for (const s of slideDataUrls) {
@@ -243,11 +296,12 @@
             const blob = await zip.generateAsync({ type: 'blob' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = `${fileName.replace('.pdf', '')}_Slides.zip`;
+            a.download = `${fileName.replace(/\.pdf$/i, '')}_SlideImages.zip`;
             a.click();
 
-            downloadAllBtn.disabled = false;
-            downloadAllBtn.innerText = 'Download All Slides (ZIP)';
+            downloadZipBtn.disabled = false;
+            downloadZipBtn.innerHTML = '<i data-lucide="archive"></i> Download Slides as Images (ZIP)';
+            lucide.createIcons();
         });
     </script>
     <script src="../src/js/tools-menu.js"></script>

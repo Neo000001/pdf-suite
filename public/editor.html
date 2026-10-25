@@ -1156,6 +1156,15 @@
     <!-- MAIN TOOLBAR -->
     <div class="editor-toolbar" id="editorToolbar" style="display:none">
 
+        <!-- SIDEBAR / ORGANIZE TOGGLE -->
+        <div class="toolbar-group">
+            <button class="tool-btn active" id="toggleSidebarBtn" title="Toggle Page Thumbnails / Organizer (P)">
+                <i data-lucide="panel-left"></i> <span id="sidebarBtnText" style="font-weight:600;">Pages</span>
+            </button>
+        </div>
+
+        <div class="toolbar-sep"></div>
+
         <!-- PRIMARY TOOLS -->
         <div class="toolbar-group">
             <button class="tool-btn active" data-tool="select" title="Select, Move & Resize (Esc)">
@@ -1498,6 +1507,7 @@
         const pageRotations = {};       // pageNum -> extra degrees (0, 90, 180, 270)
         const deletedPages = new Set(); // set of deleted page numbers
         const addedBlankPages = [];     // [{ pageNum, width, height }]
+        let pageOrder = [];             // custom order of pages [pageNum, ...]
 
         // History for undo/redo
         const undoHistory = [];
@@ -1532,6 +1542,7 @@
         const pageInfo = document.getElementById('pageInfo');
         const docTitle = document.getElementById('docTitle');
         const thumbSidebar = document.getElementById('thumbSidebar');
+        const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
 
         const selectionQuickBar = document.getElementById('selectionQuickBar');
         const floatingFormatBar = document.getElementById('floatingFormatBar');
@@ -1541,6 +1552,14 @@
         const pdfCtx = pdfCanvas.getContext('2d');
         const drawCtx = drawCanvas.getContext('2d');
         const interCtx = interactionCanvas.getContext('2d');
+
+        // Sidebar Collapse Toggle
+        toggleSidebarBtn.addEventListener('click', () => {
+            const isCollapsed = editorBody.classList.toggle('sidebar-collapsed');
+            toggleSidebarBtn.classList.toggle('active', !isCollapsed);
+            document.getElementById('sidebarBtnText').textContent = isCollapsed ? 'Pages' : 'Pages';
+            showToast(isCollapsed ? 'Sidebar hidden (Full width)' : 'Sidebar opened');
+        });
 
         // ========== LOAD PDF ==========
         uploadState.addEventListener('click', () => fileInput.click());
@@ -1573,6 +1592,12 @@
             pageNav.style.display = 'flex';
             editorToolbar.style.display = 'flex';
             exportBtn.disabled = false;
+
+            // Initialize default page order
+            pageOrder = [];
+            for (let i = 1; i <= pdfDoc.numPages; i++) {
+                pageOrder.push(i);
+            }
 
             // Compute ideal initial scale
             const firstPage = await pdfDoc.getPage(1);
@@ -1651,10 +1676,12 @@
                 textLayer.innerHTML = '';
             }
 
-            const totalPages = pdfDoc.numPages + addedBlankPages.length;
-            pageInfo.innerText = `${num} / ${totalPages}`;
-            document.getElementById('prevPage').disabled = num <= 1;
-            document.getElementById('nextPage').disabled = num >= totalPages;
+            const activeOrder = pageOrder.filter(p => !deletedPages.has(p));
+            const curIdx = activeOrder.indexOf(num);
+            const displayIdx = curIdx !== -1 ? curIdx + 1 : 1;
+            pageInfo.innerText = `${displayIdx} / ${activeOrder.length}`;
+            document.getElementById('prevPage').disabled = curIdx <= 0;
+            document.getElementById('nextPage').disabled = curIdx === -1 || curIdx >= activeOrder.length - 1;
 
             renderDrawings(num);
             renderAnnotations(num);
@@ -1691,16 +1718,15 @@
         }
 
         document.getElementById('prevPage').addEventListener('click', () => {
-            let prev = currentPage - 1;
-            while (prev >= 1 && deletedPages.has(prev)) prev--;
-            if (prev >= 1) pageTo(prev);
+            const activeOrder = pageOrder.filter(p => !deletedPages.has(p));
+            const idx = activeOrder.indexOf(currentPage);
+            if (idx > 0) pageTo(activeOrder[idx - 1]);
         });
 
         document.getElementById('nextPage').addEventListener('click', () => {
-            const total = pdfDoc ? pdfDoc.numPages + addedBlankPages.length : 1;
-            let next = currentPage + 1;
-            while (next <= total && deletedPages.has(next)) next++;
-            if (next <= total) pageTo(next);
+            const activeOrder = pageOrder.filter(p => !deletedPages.has(p));
+            const idx = activeOrder.indexOf(currentPage);
+            if (idx !== -1 && idx < activeOrder.length - 1) pageTo(activeOrder[idx + 1]);
         });
 
         // ========== TOOL SWITCHING ==========
@@ -3262,6 +3288,9 @@
                 } else if (e.key === 'f' || e.key === 'F') {
                     e.preventDefault();
                     openFindDialog();
+                } else if ((e.key === 'p' || e.key === 'P') && !isEditingText) {
+                    e.preventDefault();
+                    toggleSidebarBtn.click();
                 } else if (e.key === '=' || e.key === '+') {
                     e.preventDefault();
                     document.getElementById('zoomIn').click();
@@ -3284,55 +3313,99 @@
         }
 
         function deletePage(pageNum) {
-            const total = (pdfDoc ? pdfDoc.numPages : 0) + addedBlankPages.length;
-            const remaining = total - deletedPages.size;
-            if (remaining <= 1) {
+            const activeOrder = pageOrder.filter(p => !deletedPages.has(p));
+            if (activeOrder.length <= 1) {
                 alert('Cannot delete the only remaining page.');
                 return;
             }
-            if (!confirm(`Are you sure you want to delete Page ${pageNum}?`)) return;
+            if (!confirm(`Are you sure you want to delete this page?`)) return;
 
             deletedPages.add(pageNum);
+            pageOrder = pageOrder.filter(p => p !== pageNum);
+
             if (currentPage === pageNum) {
-                let next = 1;
-                while (next <= total && deletedPages.has(next)) next++;
-                if (next <= total) {
-                    pageTo(next);
-                } else {
-                    let prev = total;
-                    while (prev >= 1 && deletedPages.has(prev)) prev--;
-                    if (prev >= 1) pageTo(prev);
+                const nextOrder = pageOrder.filter(p => !deletedPages.has(p));
+                if (nextOrder.length > 0) {
+                    pageTo(nextOrder[0]);
                 }
             }
             buildThumbnails();
-            showToast(`Page ${pageNum} deleted`);
+            showToast('Page deleted');
         }
 
         function addBlankPage() {
             const newPageNum = (pdfDoc ? pdfDoc.numPages : 0) + addedBlankPages.length + 1;
             addedBlankPages.push({ pageNum: newPageNum, width: 595, height: 842 });
+            pageOrder.push(newPageNum);
             buildThumbnails();
             pageTo(newPageNum);
             showToast(`Added new blank page (${newPageNum})`);
         }
 
+        let draggedPageNum = null;
+
         async function buildThumbnails() {
             thumbSidebar.innerHTML = '';
             if (!pdfDoc) return;
 
-            const total = pdfDoc.numPages + addedBlankPages.length;
-            for (let i = 1; i <= total; i++) {
-                if (deletedPages.has(i)) continue;
+            const activeOrder = pageOrder.filter(p => !deletedPages.has(p));
+
+            for (let idx = 0; idx < activeOrder.length; idx++) {
+                const i = activeOrder[idx];
 
                 const item = document.createElement('div');
                 item.className = 'thumb-item' + (i === currentPage ? ' active' : '');
                 item.dataset.page = i;
+                item.dataset.index = idx;
+                item.draggable = true;
+                item.title = 'Drag to reorder pages';
+
+                // HTML5 Drag and Drop Reordering
+                item.addEventListener('dragstart', (e) => {
+                    draggedPageNum = i;
+                    item.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', i);
+                });
+
+                item.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    item.classList.add('drag-over');
+                });
+
+                item.addEventListener('dragleave', () => {
+                    item.classList.remove('drag-over');
+                });
+
+                item.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    item.classList.remove('drag-over');
+                    if (draggedPageNum !== null && draggedPageNum !== i) {
+                        const fromIdx = pageOrder.indexOf(draggedPageNum);
+                        const toIdx = pageOrder.indexOf(i);
+                        if (fromIdx !== -1 && toIdx !== -1) {
+                            const [moved] = pageOrder.splice(fromIdx, 1);
+                            pageOrder.splice(toIdx, 0, moved);
+                            buildThumbnails();
+                            renderPage(currentPage);
+                            showToast(`Moved page to position ${toIdx + 1}`);
+                        }
+                    }
+                });
+
+                item.addEventListener('dragend', () => {
+                    item.classList.remove('dragging');
+                    document.querySelectorAll('.thumb-item').forEach(el => el.classList.remove('drag-over'));
+                    draggedPageNum = null;
+                });
 
                 // Header with page number & actions
                 const header = document.createElement('div');
                 header.className = 'thumb-header';
                 const lbl = document.createElement('span');
-                lbl.textContent = `Page ${i}`;
+                lbl.className = 'thumb-page-num';
+                lbl.innerHTML = `<i data-lucide="grip-vertical" style="width:11px;height:11px;vertical-align:middle;opacity:0.5;margin-right:2px;"></i>${idx + 1}`;
                 header.appendChild(lbl);
 
                 const actions = document.createElement('div');
@@ -3681,33 +3754,31 @@
 
                 const totalOriginal = srcDoc.getPageCount();
 
-                // 1. Process original pages (skipping deleted ones)
-                for (let origP = 1; origP <= totalOriginal; origP++) {
-                    if (deletedPages.has(origP)) continue;
+                // Process all pages according to custom pageOrder (preserving user reordering)
+                for (const p of pageOrder) {
+                    if (deletedPages.has(p)) continue;
 
-                    const [copiedPage] = await pdfLibDoc.copyPages(srcDoc, [origP - 1]);
-                    const page = pdfLibDoc.addPage(copiedPage);
+                    if (p <= totalOriginal) {
+                        const [copiedPage] = await pdfLibDoc.copyPages(srcDoc, [p - 1]);
+                        const page = pdfLibDoc.addPage(copiedPage);
 
-                    const extraRot = pageRotations[origP] || 0;
-                    if (extraRot !== 0) {
-                        const curRot = page.getRotation().angle || 0;
-                        page.setRotation(degrees((curRot + extraRot) % 360));
+                        const extraRot = pageRotations[p] || 0;
+                        if (extraRot !== 0) {
+                            const curRot = page.getRotation().angle || 0;
+                            page.setRotation(degrees((curRot + extraRot) % 360));
+                        }
+
+                        await exportLayersForPage(pdfLibDoc, page, p, fonts);
+                    } else {
+                        const blank = addedBlankPages.find(b => b.pageNum === p) || { width: 595, height: 842 };
+                        const page = pdfLibDoc.addPage([blank.width || 595, blank.height || 842]);
+                        const extraRot = pageRotations[p] || 0;
+                        if (extraRot !== 0) {
+                            page.setRotation(degrees(extraRot % 360));
+                        }
+
+                        await exportLayersForPage(pdfLibDoc, page, blank.pageNum, fonts);
                     }
-
-                    await exportLayersForPage(pdfLibDoc, page, origP, fonts);
-                }
-
-                // 2. Process added blank pages
-                for (const blank of addedBlankPages) {
-                    if (deletedPages.has(blank.pageNum)) continue;
-
-                    const page = pdfLibDoc.addPage([blank.width || 595, blank.height || 842]);
-                    const extraRot = pageRotations[blank.pageNum] || 0;
-                    if (extraRot !== 0) {
-                        page.setRotation(degrees(extraRot % 360));
-                    }
-
-                    await exportLayersForPage(pdfLibDoc, page, blank.pageNum, fonts);
                 }
 
                 // Save PDF and trigger download
