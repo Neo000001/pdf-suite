@@ -363,7 +363,44 @@
             cursor: crosshair;
         }
 
-        /* Annotation layer */
+        /* Text layer (PDF.js text for selection, hover, and in-place editing) */
+        .textLayer {
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            overflow: hidden;
+            opacity: 1;
+            line-height: 1.0;
+            z-index: 4;
+            pointer-events: auto;
+        }
+
+        .textLayer span {
+            color: transparent;
+            position: absolute;
+            white-space: pre;
+            cursor: text;
+            transform-origin: 0% 0%;
+            transition: background 0.12s, outline 0.12s;
+            border-radius: 2px;
+        }
+
+        .textLayer ::selection {
+            background: rgba(37, 99, 235, 0.35);
+            color: transparent;
+        }
+
+        /* Hover effect when Edit Text or Select tool is active */
+        .mode-select .textLayer span:hover,
+        .mode-text .textLayer span:hover {
+            background: rgba(37, 99, 235, 0.15) !important;
+            outline: 1.5px dashed #2563eb;
+            cursor: pointer;
+        }
+
+        /* Annotation layer (custom annotations sit on top of text layer) */
         #annotationLayer {
             position: absolute;
             top: 0;
@@ -372,23 +409,6 @@
             height: 100%;
             pointer-events: none;
             z-index: 10;
-        }
-
-        #annotationLayer.mode-select {
-            pointer-events: auto;
-        }
-
-        #annotationLayer.mode-text {
-            pointer-events: auto;
-            cursor: text;
-        }
-
-        #annotationLayer.mode-draw,
-        #annotationLayer.mode-whiteout,
-        #annotationLayer.mode-redact,
-        #annotationLayer.mode-highlight,
-        #annotationLayer.mode-shape {
-            pointer-events: none;
         }
 
         /* === ANNOTATION ITEMS === */
@@ -597,6 +617,7 @@
         }
 
         .thumb-item {
+            position: relative;
             border: 2px solid transparent;
             border-radius: 8px;
             cursor: pointer;
@@ -604,6 +625,7 @@
             padding: 5px;
             transition: all 0.15s;
             background: var(--bg);
+            overflow: hidden;
         }
 
         .thumb-item.active {
@@ -623,11 +645,337 @@
             border-radius: 4px;
         }
 
-        .thumb-item p {
-            font-size: 0.75rem;
+        .thumb-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+            padding: 0 2px;
+        }
+
+        .thumb-page-num {
+            font-size: 0.72rem;
+            font-weight: 700;
             color: var(--fg-muted);
-            margin-top: 4px;
+        }
+
+        .thumb-actions {
+            display: none;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .thumb-item:hover .thumb-actions {
+            display: flex;
+        }
+
+        .thumb-act-btn {
+            background: rgba(148, 163, 184, 0.15);
+            border: 1px solid var(--border-subtle);
+            color: var(--fg);
+            border-radius: 4px;
+            width: 18px;
+            height: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s;
+            padding: 0;
+        }
+
+        .thumb-act-btn:hover {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .thumb-del-btn:hover {
+            background: #ef4444 !important;
+            border-color: #ef4444 !important;
+        }
+
+        .add-blank-page-btn {
+            width: 100%;
+            margin-top: 0.5rem;
+            padding: 8px 6px;
+            background: transparent;
+            border: 1.5px dashed var(--border-subtle);
+            border-radius: 8px;
+            color: var(--fg-muted);
+            font-size: 0.78rem;
             font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: all 0.15s;
+        }
+
+        .add-blank-page-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        /* === FLOATING TEXT SELECTION QUICK ACTION BAR === */
+        .floating-selection-bar {
+            position: fixed;
+            z-index: 999;
+            display: none;
+            align-items: center;
+            gap: 4px;
+            background: #0f172a;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 4px 6px;
+            border-radius: 10px;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+            transform: translateX(-50%) translateY(-100%);
+            margin-top: -8px;
+            animation: fadeInQuick 0.15s ease-out;
+        }
+
+        [data-theme="light"] .floating-selection-bar {
+            background: #ffffff;
+            border-color: #cbd5e1;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.15);
+        }
+
+        .quick-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: transparent;
+            border: none;
+            color: var(--fg);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+            font-family: inherit;
+        }
+
+        .quick-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .quick-btn:hover {
+            background: rgba(37, 99, 235, 0.15);
+            color: #60a5fa;
+        }
+
+        [data-theme="light"] .quick-btn:hover {
+            background: rgba(37, 99, 235, 0.1);
+            color: #2563eb;
+        }
+
+        /* === FLOATING FORMATTING INSPECTOR === */
+        .floating-format-bar {
+            position: absolute;
+            z-index: 50;
+            display: none;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg-soft);
+            border: 1px solid var(--border-subtle);
+            padding: 5px 8px;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+            white-space: nowrap;
+            animation: fadeInQuick 0.15s ease-out;
+        }
+
+        [data-theme="light"] .floating-format-bar {
+            background: #ffffff;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+        }
+
+        .fmt-section {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .fmt-select {
+            background: var(--bg);
+            border: 1px solid var(--border-subtle);
+            color: var(--fg);
+            border-radius: 6px;
+            padding: 3px 6px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .fmt-btn {
+            background: var(--bg);
+            border: 1px solid var(--border-subtle);
+            color: var(--fg);
+            border-radius: 6px;
+            width: 26px;
+            height: 26px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .fmt-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .fmt-btn:hover,
+        .fmt-btn.active {
+            background: rgba(37, 99, 235, 0.15);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .fmt-val {
+            font-size: 0.8rem;
+            font-weight: 600;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .fmt-color {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 1.5px solid var(--border-subtle);
+            cursor: pointer;
+            padding: 0;
+            background: transparent;
+        }
+
+        .fmt-btn-danger:hover {
+            background: rgba(239, 68, 68, 0.15) !important;
+            border-color: #ef4444 !important;
+            color: #ef4444 !important;
+        }
+
+        .fmt-sep {
+            width: 1px;
+            height: 18px;
+            background: var(--border-subtle);
+            margin: 0 2px;
+        }
+
+        /* === FIND & REPLACE DIALOG === */
+        .find-replace-dialog {
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            width: 320px;
+            background: var(--bg-soft);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+            z-index: 100;
+            padding: 12px;
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            animation: fadeInQuick 0.15s ease-out;
+        }
+
+        [data-theme="light"] .find-replace-dialog {
+            background: #ffffff;
+            box-shadow: 0 12px 28px rgba(15, 23, 42, 0.15);
+        }
+
+        .fr-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--fg);
+        }
+
+        .fr-close {
+            background: transparent;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--fg-muted);
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .fr-input-row {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .fr-input-row input {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 6px 54px 6px 10px;
+            color: var(--fg);
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .fr-input-row input:focus {
+            border-color: var(--accent);
+        }
+
+        .fr-count {
+            position: absolute;
+            right: 8px;
+            font-size: 0.72rem;
+            color: var(--fg-muted);
+        }
+
+        .fr-actions-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .fr-btn {
+            background: var(--bg);
+            border: 1px solid var(--border-subtle);
+            color: var(--fg);
+            border-radius: 6px;
+            padding: 5px 10px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.15s;
+        }
+
+        .fr-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .fr-btn-pri {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+            font-weight: 600;
+        }
+
+        .fr-btn-pri:hover {
+            opacity: 0.9;
+            color: #fff;
+        }
+
+        @keyframes fadeInQuick {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* === MODAL STYLES === */
@@ -893,6 +1241,13 @@
             <button class="tool-btn" id="fitWidthBtn" title="Fit to Width"><i data-lucide="maximize-2"></i></button>
         </div>
 
+        <div class="toolbar-sep"></div>
+
+        <!-- FIND & REPLACE -->
+        <div class="toolbar-group">
+            <button class="tool-btn" id="findBtn" title="Find & Replace text (Ctrl+F)"><i data-lucide="search"></i> Find</button>
+        </div>
+
     </div>
 
     <!-- HIDDEN IMAGE INPUT -->
@@ -916,9 +1271,76 @@
 
             <div class="pdf-wrap" id="pdfWrap">
                 <canvas id="pdfCanvas"></canvas>
+                <div id="textLayer" class="textLayer"></div>
                 <canvas id="drawCanvas"></canvas>
                 <canvas id="interactionCanvas"></canvas>
                 <div id="annotationLayer" class="mode-select"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FLOATING TEXT SELECTION QUICK ACTION BAR -->
+    <div id="selectionQuickBar" class="floating-selection-bar">
+        <button type="button" class="quick-btn" id="qBtnEdit" title="Edit selected text in place">
+            <i data-lucide="edit-3"></i> Edit Text
+        </button>
+        <button type="button" class="quick-btn" id="qBtnHighlight" title="Highlight selection">
+            <i data-lucide="highlighter"></i> Highlight
+        </button>
+        <button type="button" class="quick-btn" id="qBtnRedact" title="Blackout / Redact selection">
+            <i data-lucide="eye-off"></i> Redact
+        </button>
+        <button type="button" class="quick-btn" id="qBtnCopy" title="Copy selected text">
+            <i data-lucide="copy"></i> Copy
+        </button>
+    </div>
+
+    <!-- FLOATING FORMATTING INSPECTOR FOR ACTIVE ANNOTATIONS -->
+    <div id="floatingFormatBar" class="floating-format-bar">
+        <div class="fmt-section fmt-text-only">
+            <select id="fmtFontFamily" class="fmt-select" title="Font Family">
+                <option value="Helvetica">Helvetica</option>
+                <option value="Times">Times</option>
+                <option value="Courier">Courier</option>
+            </select>
+            <button type="button" class="fmt-btn" id="fmtFontSizeMinus" title="Decrease font size">-</button>
+            <span id="fmtFontSizeVal" class="fmt-val">16</span>
+            <button type="button" class="fmt-btn" id="fmtFontSizePlus" title="Increase font size">+</button>
+            <button type="button" class="fmt-btn" id="fmtBold" title="Bold"><strong>B</strong></button>
+            <button type="button" class="fmt-btn" id="fmtItalic" title="Italic"><em>I</em></button>
+            <input type="color" id="fmtTextColor" class="fmt-color" title="Text Color" value="#000000">
+        </div>
+        <div class="fmt-section fmt-shape-only" style="display:none;">
+            <label class="toolbar-label" style="font-size:0.75rem;">Color:</label>
+            <input type="color" id="fmtStrokeColor" class="fmt-color" title="Stroke Color">
+            <label class="toolbar-label" style="font-size:0.75rem;">Fill:</label>
+            <input type="color" id="fmtFillColor" class="fmt-color" title="Fill Color">
+            <input type="number" id="fmtStrokeWidth" class="stroke-size-input" min="1" max="20" value="2" style="width:36px;" title="Border Width">
+        </div>
+        <div class="fmt-sep"></div>
+        <button type="button" class="fmt-btn" id="fmtDuplicateBtn" title="Duplicate (Ctrl+D)"><i data-lucide="copy"></i></button>
+        <button type="button" class="fmt-btn fmt-btn-danger" id="fmtDeleteBtn" title="Delete (Delete key)"><i data-lucide="trash-2"></i></button>
+    </div>
+
+    <!-- FIND & REPLACE FLOATING DIALOG -->
+    <div class="find-replace-dialog" id="findReplaceDialog">
+        <div class="fr-header">
+            <span class="fr-title"><i data-lucide="search" style="width:14px;height:14px;vertical-align:middle;"></i> Find & Replace</span>
+            <button type="button" class="fr-close" id="frCloseBtn">&times;</button>
+        </div>
+        <div class="fr-body">
+            <div class="fr-input-row" style="margin-bottom:6px;">
+                <input type="text" id="frFindInput" placeholder="Find text in document..." autocomplete="off">
+                <span id="frMatchCount" class="fr-count">0 / 0</span>
+            </div>
+            <div class="fr-input-row" style="margin-bottom:8px;">
+                <input type="text" id="frReplaceInput" placeholder="Replace with..." autocomplete="off">
+            </div>
+            <div class="fr-actions-row">
+                <button type="button" class="fr-btn" id="frPrevBtn" title="Previous match">&uarr;</button>
+                <button type="button" class="fr-btn" id="frNextBtn" title="Next match">&darr;</button>
+                <button type="button" class="fr-btn fr-btn-pri" id="frReplaceBtn">Replace</button>
+                <button type="button" class="fr-btn" id="frReplaceAllBtn">Replace All</button>
             </div>
         </div>
     </div>
@@ -1051,6 +1473,11 @@
         // Page viewports at scale 1.0
         const pageDimensions = {};
 
+        // Document-level page operations
+        const pageRotations = {};       // pageNum -> extra degrees (0, 90, 180, 270)
+        const deletedPages = new Set(); // set of deleted page numbers
+        const addedBlankPages = [];     // [{ pageNum, width, height }]
+
         // History for undo/redo
         const undoHistory = [];
         const redoHistory = [];
@@ -1074,6 +1501,7 @@
         const editorBody = document.getElementById('editorBody');
         const pdfWrap = document.getElementById('pdfWrap');
         const pdfCanvas = document.getElementById('pdfCanvas');
+        const textLayer = document.getElementById('textLayer');
         const drawCanvas = document.getElementById('drawCanvas');
         const interactionCanvas = document.getElementById('interactionCanvas');
         const annotLayer = document.getElementById('annotationLayer');
@@ -1083,6 +1511,11 @@
         const pageInfo = document.getElementById('pageInfo');
         const docTitle = document.getElementById('docTitle');
         const thumbSidebar = document.getElementById('thumbSidebar');
+
+        const selectionQuickBar = document.getElementById('selectionQuickBar');
+        const floatingFormatBar = document.getElementById('floatingFormatBar');
+        const findReplaceDialog = document.getElementById('findReplaceDialog');
+        const findBtn = document.getElementById('findBtn');
 
         const pdfCtx = pdfCanvas.getContext('2d');
         const drawCtx = drawCanvas.getContext('2d');
@@ -1142,10 +1575,21 @@
 
         async function renderPage(num) {
             if (!pdfDoc) return;
-            const page = await pdfDoc.getPage(num);
-            const vp = page.getViewport({ scale });
+            const isBlank = num > pdfDoc.numPages;
+            const extraRot = pageRotations[num] || 0;
 
-            pageDimensions[num] = { width: vp.width / scale, height: vp.height / scale };
+            let vp;
+            let page = null;
+            if (!isBlank) {
+                page = await pdfDoc.getPage(num);
+                const currentRotation = (page.rotate + extraRot) % 360;
+                vp = page.getViewport({ scale, rotation: currentRotation });
+                pageDimensions[num] = { width: vp.width / scale, height: vp.height / scale };
+            } else {
+                const blankData = addedBlankPages.find(b => b.pageNum === num) || { width: 595, height: 842 };
+                vp = { width: blankData.width * scale, height: blankData.height * scale };
+                pageDimensions[num] = { width: blankData.width, height: blankData.height };
+            }
 
             // High-DPI crisp rendering
             const dpr = window.devicePixelRatio || 1;
@@ -1153,6 +1597,9 @@
             pdfCanvas.height = Math.floor(vp.height * dpr);
             pdfCanvas.style.width = Math.floor(vp.width) + 'px';
             pdfCanvas.style.height = Math.floor(vp.height) + 'px';
+
+            textLayer.style.width = Math.floor(vp.width) + 'px';
+            textLayer.style.height = Math.floor(vp.height) + 'px';
 
             drawCanvas.width = Math.floor(vp.width * dpr);
             drawCanvas.height = Math.floor(vp.height * dpr);
@@ -1172,26 +1619,68 @@
             interCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
             if (currentRenderTask) currentRenderTask.cancel();
-            currentRenderTask = page.render({ canvasContext: pdfCtx, viewport: vp });
-            await currentRenderTask.promise.catch(() => { });
 
-            pageInfo.innerText = `${num} / ${pdfDoc.numPages}`;
+            if (!isBlank && page) {
+                currentRenderTask = page.render({ canvasContext: pdfCtx, viewport: vp });
+                await currentRenderTask.promise.catch(() => { });
+                await renderTextLayerForPage(page, vp);
+            } else {
+                pdfCtx.fillStyle = '#ffffff';
+                pdfCtx.fillRect(0, 0, vp.width, vp.height);
+                textLayer.innerHTML = '';
+            }
+
+            const totalPages = pdfDoc.numPages + addedBlankPages.length;
+            pageInfo.innerText = `${num} / ${totalPages}`;
             document.getElementById('prevPage').disabled = num <= 1;
-            document.getElementById('nextPage').disabled = num >= pdfDoc.numPages;
+            document.getElementById('nextPage').disabled = num >= totalPages;
 
             renderDrawings(num);
             renderAnnotations(num);
             highlightThumb(num);
         }
 
+        // Render PDF.js Text Layer so existing text in the PDF is interactive, selectable, and editable
+        async function renderTextLayerForPage(page, vp) {
+            textLayer.innerHTML = '';
+            try {
+                const textContent = await page.getTextContent();
+                if (pdfjsLib.renderTextLayer) {
+                    const task = pdfjsLib.renderTextLayer({
+                        textContent: textContent,
+                        container: textLayer,
+                        viewport: vp,
+                        textDivs: []
+                    });
+                    if (task && task.promise) {
+                        await task.promise.catch(() => { });
+                    }
+                }
+            } catch (err) {
+                console.warn('Text layer render:', err);
+            }
+        }
+
         async function pageTo(n) {
             currentPage = n;
             selectedAnnoId = null;
+            hideSelectionQuickBar();
+            hideFloatingFormatBar();
             await renderPage(n);
         }
 
-        document.getElementById('prevPage').addEventListener('click', () => { if (currentPage > 1) pageTo(currentPage - 1); });
-        document.getElementById('nextPage').addEventListener('click', () => { if (currentPage < pdfDoc.numPages) pageTo(currentPage + 1); });
+        document.getElementById('prevPage').addEventListener('click', () => {
+            let prev = currentPage - 1;
+            while (prev >= 1 && deletedPages.has(prev)) prev--;
+            if (prev >= 1) pageTo(prev);
+        });
+
+        document.getElementById('nextPage').addEventListener('click', () => {
+            const total = pdfDoc ? pdfDoc.numPages + addedBlankPages.length : 1;
+            let next = currentPage + 1;
+            while (next <= total && deletedPages.has(next)) next++;
+            if (next <= total) pageTo(next);
+        });
 
         // ========== TOOL SWITCHING ==========
         const toolBtns = document.querySelectorAll('.tool-btn[data-tool]');
@@ -1443,13 +1932,10 @@
             }
         }
 
-        // ========== TEXT CLICK TO ADD ==========
-        annotLayer.addEventListener('click', function (e) {
-            if (currentTool !== 'text') return;
-            if (e.target !== annotLayer) return;
-            const pt = getPdfCoords(e);
+        // ========== IN-PLACE TEXT EDITING & SELECTION ENGINE ==========
+        function createNewTextAt(pdfX, pdfY, initialText = 'Type text here...', initialFontSize = null) {
             const id = 'anno_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
-            const fs = parseInt(document.getElementById('fontSize').value) || 16;
+            const fs = initialFontSize || parseInt(document.getElementById('fontSize').value) || 16;
             const col = document.getElementById('textColor').value;
             const fam = document.getElementById('fontFamily').value;
             const bold = document.getElementById('btnBold').classList.contains('active');
@@ -1458,11 +1944,11 @@
             const newAnno = {
                 id,
                 type: 'text',
-                x: pt.pdfX,
-                y: pt.pdfY,
+                x: pdfX,
+                y: pdfY,
                 width: 140,
-                height: Math.max(28, fs * 1.5),
-                text: 'Type text here...',
+                height: Math.max(26, fs * 1.4),
+                text: initialText,
                 fontSize: fs,
                 fontFamily: fam,
                 bold,
@@ -1475,7 +1961,6 @@
             setTool('select');
             selectAnno(newAnno.id);
 
-            // Focus contenteditable text
             setTimeout(() => {
                 const el = document.getElementById(newAnno.id);
                 if (el) {
@@ -1485,7 +1970,111 @@
                         selectAllText(inner);
                     }
                 }
-            }, 50);
+            }, 40);
+            return newAnno;
+        }
+
+        // Direct in-place editing of existing PDF text:
+        // Automatically masks the original canvas text with matching whiteout and spawns editable text right in place!
+        function editTextSpanInPlace(span) {
+            const canvasRect = pdfCanvas.getBoundingClientRect();
+            const spanRect = span.getBoundingClientRect();
+
+            const x = Math.max(0, (spanRect.left - canvasRect.left) / scale);
+            const y = Math.max(0, (spanRect.top - canvasRect.top) / scale);
+            const width = Math.max(24, spanRect.width / scale);
+            const height = Math.max(14, spanRect.height / scale);
+            const text = (span.textContent || '').trim();
+            if (!text) return;
+
+            // Detect computed font size from PDF.js span
+            const computedStyle = window.getComputedStyle(span);
+            const computedFontSize = parseFloat(computedStyle.fontSize) / scale;
+            const fontSize = Math.max(8, Math.round(computedFontSize)) || 14;
+
+            // 1. Add whiteout annotation to cover original text on canvas
+            const whiteoutId = 'anno_wo_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+            const whiteoutAnno = {
+                id: whiteoutId,
+                type: 'whiteout',
+                x: Math.max(0, x - 1),
+                y: Math.max(0, y - 1),
+                width: width + 3,
+                height: height + 2,
+                color: '#ffffff'
+            };
+
+            // 2. Add editable text annotation right on top
+            const textId = 'anno_txt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+            const textAnno = {
+                id: textId,
+                type: 'text',
+                x: x,
+                y: y,
+                width: Math.max(width + 16, 60),
+                height: height,
+                text: text,
+                fontSize: fontSize,
+                fontFamily: 'Helvetica',
+                color: '#000000',
+                bold: false,
+                italic: false,
+                align: 'left'
+            };
+
+            // Record as composite action for single-step undo/redo
+            recordAction({
+                type: 'composite_edit',
+                page: currentPage,
+                items: [whiteoutAnno, textAnno]
+            });
+
+            if (!pageAnnotations[currentPage]) pageAnnotations[currentPage] = [];
+            pageAnnotations[currentPage].push(whiteoutAnno);
+            pageAnnotations[currentPage].push(textAnno);
+
+            renderAnnotations(currentPage);
+
+            setTool('select');
+            selectAnno(textId);
+
+            setTimeout(() => {
+                const el = document.getElementById(textId);
+                if (el) {
+                    const inner = el.querySelector('.anno-text-inner');
+                    if (inner) {
+                        inner.focus();
+                        selectAllText(inner);
+                    }
+                }
+            }, 40);
+        }
+
+        // Listen for direct clicks on the PDF Text Layer
+        textLayer.addEventListener('click', function (e) {
+            const span = e.target.closest('span');
+            if (span) {
+                if (currentTool === 'text' || currentTool === 'select') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    editTextSpanInPlace(span);
+                }
+                return;
+            }
+
+            // Clicked on blank space in text mode
+            if (currentTool === 'text') {
+                const pt = getPdfCoords(e);
+                createNewTextAt(pt.pdfX, pt.pdfY);
+            }
+        });
+
+        // Click on annotLayer empty space in text mode
+        annotLayer.addEventListener('click', function (e) {
+            if (currentTool !== 'text') return;
+            if (e.target !== annotLayer) return;
+            const pt = getPdfCoords(e);
+            createNewTextAt(pt.pdfX, pt.pdfY);
         });
 
         function selectAllText(el) {
@@ -1496,7 +2085,393 @@
             sel.addRange(range);
         }
 
-        // ========== ANNOTATIONS DATA STORE ==========
+        // ========== TEXT SELECTION QUICK ACTION BAR ==========
+        let activeSelectionRange = null;
+        let activeSelectedText = '';
+
+        canvasArea.addEventListener('mouseup', handleTextSelection);
+        canvasArea.addEventListener('touchend', handleTextSelection);
+
+        function handleTextSelection(e) {
+            if (e && (e.target.closest('#selectionQuickBar') || e.target.closest('#floatingFormatBar'))) return;
+
+            setTimeout(() => {
+                const sel = window.getSelection();
+                if (!sel || sel.isCollapsed || !sel.rangeCount) {
+                    hideSelectionQuickBar();
+                    return;
+                }
+
+                const text = sel.toString().trim();
+                if (!text) {
+                    hideSelectionQuickBar();
+                    return;
+                }
+
+                const range = sel.getRangeAt(0);
+                const rRect = range.getBoundingClientRect();
+                const areaRect = canvasArea.getBoundingClientRect();
+
+                if (rRect.width === 0 || rRect.height === 0) {
+                    hideSelectionQuickBar();
+                    return;
+                }
+
+                activeSelectionRange = range;
+                activeSelectedText = text;
+
+                selectionQuickBar.style.display = 'flex';
+                selectionQuickBar.style.left = (rRect.left + rRect.width / 2) + 'px';
+                selectionQuickBar.style.top = Math.max(areaRect.top + 10, rRect.top - 8) + 'px';
+                lucide.createIcons({ root: selectionQuickBar });
+            }, 30);
+        }
+
+        function hideSelectionQuickBar() {
+            if (selectionQuickBar) selectionQuickBar.style.display = 'none';
+            activeSelectionRange = null;
+            activeSelectedText = '';
+        }
+
+        // Quick bar actions
+        document.getElementById('qBtnEdit').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!activeSelectionRange) return;
+            const rRect = activeSelectionRange.getBoundingClientRect();
+            const canvasRect = pdfCanvas.getBoundingClientRect();
+
+            const x = Math.max(0, (rRect.left - canvasRect.left) / scale);
+            const y = Math.max(0, (rRect.top - canvasRect.top) / scale);
+            const width = Math.max(20, rRect.width / scale);
+            const height = Math.max(14, rRect.height / scale);
+
+            const whiteoutId = 'anno_wo_' + Date.now();
+            const whiteoutAnno = {
+                id: whiteoutId,
+                type: 'whiteout',
+                x: Math.max(0, x - 1),
+                y: Math.max(0, y - 1),
+                width: width + 3,
+                height: height + 2,
+                color: '#ffffff'
+            };
+
+            const textId = 'anno_txt_' + Date.now();
+            const textAnno = {
+                id: textId,
+                type: 'text',
+                x: x,
+                y: y,
+                width: Math.max(width + 16, 60),
+                height: height,
+                text: activeSelectedText,
+                fontSize: Math.max(8, Math.round(height * 0.85)) || 14,
+                fontFamily: 'Helvetica',
+                color: '#000000',
+                bold: false,
+                italic: false,
+                align: 'left'
+            };
+
+            recordAction({ type: 'composite_edit', page: currentPage, items: [whiteoutAnno, textAnno] });
+            if (!pageAnnotations[currentPage]) pageAnnotations[currentPage] = [];
+            pageAnnotations[currentPage].push(whiteoutAnno);
+            pageAnnotations[currentPage].push(textAnno);
+
+            renderAnnotations(currentPage);
+            hideSelectionQuickBar();
+            window.getSelection().removeAllRanges();
+
+            setTool('select');
+            selectAnno(textId);
+            setTimeout(() => {
+                const el = document.getElementById(textId);
+                if (el) {
+                    const inner = el.querySelector('.anno-text-inner');
+                    if (inner) {
+                        inner.focus();
+                        selectAllText(inner);
+                    }
+                }
+            }, 40);
+        });
+
+        document.getElementById('qBtnHighlight').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!activeSelectionRange) return;
+            const rRect = activeSelectionRange.getBoundingClientRect();
+            const canvasRect = pdfCanvas.getBoundingClientRect();
+
+            const x = Math.max(0, (rRect.left - canvasRect.left) / scale);
+            const y = Math.max(0, (rRect.top - canvasRect.top) / scale);
+            const width = Math.max(10, rRect.width / scale);
+            const height = Math.max(10, rRect.height / scale);
+
+            const hlAnno = {
+                id: 'anno_hl_' + Date.now(),
+                type: 'highlight',
+                x, y, width, height,
+                color: document.getElementById('hlColor').value || '#facc15',
+                opacity: 0.35
+            };
+            addAnnotation(currentPage, hlAnno);
+            hideSelectionQuickBar();
+            window.getSelection().removeAllRanges();
+        });
+
+        document.getElementById('qBtnRedact').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!activeSelectionRange) return;
+            const rRect = activeSelectionRange.getBoundingClientRect();
+            const canvasRect = pdfCanvas.getBoundingClientRect();
+
+            const x = Math.max(0, (rRect.left - canvasRect.left) / scale);
+            const y = Math.max(0, (rRect.top - canvasRect.top) / scale);
+            const width = Math.max(10, rRect.width / scale);
+            const height = Math.max(10, rRect.height / scale);
+
+            const redAnno = {
+                id: 'anno_red_' + Date.now(),
+                type: 'redact',
+                x, y, width, height,
+                color: '#000000'
+            };
+            addAnnotation(currentPage, redAnno);
+            hideSelectionQuickBar();
+            window.getSelection().removeAllRanges();
+        });
+
+        document.getElementById('qBtnCopy').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (activeSelectedText) {
+                navigator.clipboard.writeText(activeSelectedText);
+                showToast('Text copied to clipboard!');
+            }
+            hideSelectionQuickBar();
+            window.getSelection().removeAllRanges();
+        });
+
+        // Simple Toast Notification
+        function showToast(msg) {
+            let toast = document.getElementById('editorToast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'editorToast';
+                toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;padding:8px 16px;border-radius:8px;font-size:0.85rem;font-weight:600;box-shadow:0 10px 25px rgba(0,0,0,0.25);z-index:99999;transition:opacity 0.2s;';
+                document.body.appendChild(toast);
+            }
+            toast.textContent = msg;
+            toast.style.opacity = '1';
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => { toast.style.display = 'none'; }, 200);
+            }, 2200);
+        }
+
+        // ========== FLOATING FORMATTING INSPECTOR ==========
+        function updateFloatingFormatBar() {
+            if (!selectedAnnoId) {
+                hideFloatingFormatBar();
+                return;
+            }
+            const item = getAnno(selectedAnnoId);
+            const el = document.getElementById(selectedAnnoId);
+            if (!item || !el) {
+                hideFloatingFormatBar();
+                return;
+            }
+
+            const rect = el.getBoundingClientRect();
+            const areaRect = canvasArea.getBoundingClientRect();
+
+            let top = rect.top - 46;
+            let left = rect.left + rect.width / 2;
+
+            if (top < areaRect.top + 8) {
+                top = rect.bottom + 10; // Flip below if too high
+            }
+
+            floatingFormatBar.style.display = 'flex';
+            floatingFormatBar.style.top = top + 'px';
+            floatingFormatBar.style.left = left + 'px';
+            floatingFormatBar.style.transform = 'translateX(-50%)';
+
+            const textSect = floatingFormatBar.querySelector('.fmt-text-only');
+            const shapeSect = floatingFormatBar.querySelector('.fmt-shape-only');
+
+            if (item.type === 'text') {
+                textSect.style.display = 'flex';
+                shapeSect.style.display = 'none';
+                document.getElementById('fmtFontFamily').value = item.fontFamily || 'Helvetica';
+                document.getElementById('fmtFontSizeVal').textContent = item.fontSize || 16;
+                document.getElementById('fmtTextColor').value = item.color || '#000000';
+                document.getElementById('fmtBold').classList.toggle('active', !!item.bold);
+                document.getElementById('fmtItalic').classList.toggle('active', !!item.italic);
+            } else if (['rect', 'circle', 'line', 'whiteout', 'redact'].includes(item.type)) {
+                textSect.style.display = 'none';
+                shapeSect.style.display = (item.type === 'whiteout' || item.type === 'redact') ? 'none' : 'flex';
+                if (shapeSect.style.display === 'flex') {
+                    document.getElementById('fmtStrokeColor').value = item.strokeColor || '#2563eb';
+                    document.getElementById('fmtFillColor').value = (item.fillColor && item.fillColor !== 'transparent') ? item.fillColor : '#ffffff';
+                    document.getElementById('fmtStrokeWidth').value = item.strokeWidth || 2;
+                }
+            } else {
+                textSect.style.display = 'none';
+                shapeSect.style.display = 'none';
+            }
+            lucide.createIcons({ root: floatingFormatBar });
+        }
+
+        function hideFloatingFormatBar() {
+            if (floatingFormatBar) floatingFormatBar.style.display = 'none';
+        }
+
+        // Floating Inspector Controls
+        document.getElementById('fmtFontSizePlus').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!selectedAnnoId) return;
+            const item = getAnno(selectedAnnoId);
+            if (item && item.type === 'text') {
+                item.fontSize = Math.min(96, (item.fontSize || 16) + 2);
+                document.getElementById('fmtFontSizeVal').textContent = item.fontSize;
+                document.getElementById('fontSize').value = item.fontSize;
+                renderAnnotations(currentPage);
+                selectAnno(item.id);
+            }
+        });
+
+        document.getElementById('fmtFontSizeMinus').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!selectedAnnoId) return;
+            const item = getAnno(selectedAnnoId);
+            if (item && item.type === 'text') {
+                item.fontSize = Math.max(8, (item.fontSize || 16) - 2);
+                document.getElementById('fmtFontSizeVal').textContent = item.fontSize;
+                document.getElementById('fontSize').value = item.fontSize;
+                renderAnnotations(currentPage);
+                selectAnno(item.id);
+            }
+        });
+
+        document.getElementById('fmtFontFamily').addEventListener('change', function (e) {
+            e.stopPropagation();
+            if (!selectedAnnoId) return;
+            const item = getAnno(selectedAnnoId);
+            if (item && item.type === 'text') {
+                item.fontFamily = this.value;
+                document.getElementById('fontFamily').value = this.value;
+                renderAnnotations(currentPage);
+                selectAnno(item.id);
+            }
+        });
+
+        document.getElementById('fmtTextColor').addEventListener('input', function (e) {
+            e.stopPropagation();
+            if (!selectedAnnoId) return;
+            const item = getAnno(selectedAnnoId);
+            if (item && item.type === 'text') {
+                item.color = this.value;
+                document.getElementById('textColor').value = this.value;
+                renderAnnotations(currentPage);
+                selectAnno(item.id);
+            }
+        });
+
+        document.getElementById('fmtBold').addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (!selectedAnnoId) return;
+            const item = getAnno(selectedAnnoId);
+            if (item && item.type === 'text') {
+                item.bold = !item.bold;
+                this.classList.toggle('active', item.bold);
+                document.getElementById('btnBold').classList.toggle('active', item.bold);
+                renderAnnotations(currentPage);
+                selectAnno(item.id);
+            }
+        });
+
+        document.getElementById('fmtItalic').addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (!selectedAnnoId) return;
+            const item = getAnno(selectedAnnoId);
+            if (item && item.type === 'text') {
+                item.italic = !item.italic;
+                this.classList.toggle('active', item.italic);
+                document.getElementById('btnItalic').classList.toggle('active', item.italic);
+                renderAnnotations(currentPage);
+                selectAnno(item.id);
+            }
+        });
+
+        document.getElementById('fmtStrokeColor').addEventListener('input', function (e) {
+            e.stopPropagation();
+            if (!selectedAnnoId) return;
+            const item = getAnno(selectedAnnoId);
+            if (item) {
+                item.strokeColor = this.value;
+                renderAnnotations(currentPage);
+                selectAnno(item.id);
+            }
+        });
+
+        document.getElementById('fmtFillColor').addEventListener('input', function (e) {
+            e.stopPropagation();
+            if (!selectedAnnoId) return;
+            const item = getAnno(selectedAnnoId);
+            if (item) {
+                item.fillColor = this.value;
+                renderAnnotations(currentPage);
+                selectAnno(item.id);
+            }
+        });
+
+        document.getElementById('fmtStrokeWidth').addEventListener('input', function (e) {
+            e.stopPropagation();
+            if (!selectedAnnoId) return;
+            const item = getAnno(selectedAnnoId);
+            if (item) {
+                item.strokeWidth = parseInt(this.value) || 2;
+                renderAnnotations(currentPage);
+                selectAnno(item.id);
+            }
+        });
+
+        document.getElementById('fmtDuplicateBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!selectedAnnoId) return;
+            const item = getAnno(selectedAnnoId);
+            if (item) duplicateAnno(item);
+        });
+
+        document.getElementById('fmtDeleteBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!selectedAnnoId) return;
+            removeAnnotation(currentPage, selectedAnnoId);
+            hideFloatingFormatBar();
+        });
+
+        canvasArea.addEventListener('scroll', () => {
+            if (selectedAnnoId) updateFloatingFormatBar();
+            if (activeSelectionRange) hideSelectionQuickBar();
+        });
+
+        // Deselect when clicking outside
+        annotLayer.addEventListener('mousedown', function (e) {
+            if (e.target === annotLayer && currentTool === 'select') {
+                deselectAnno();
+            }
+        });
+
+        // ========== ANNOTATION MANAGEMENT & RENDERING ==========
+        function getAnno(id) {
+            for (const p in pageAnnotations) {
+                const found = pageAnnotations[p].find(a => a.id === id);
+                if (found) return found;
+            }
+            return null;
+        }
+
         function addAnnotation(pageNum, anno) {
             if (!pageAnnotations[pageNum]) pageAnnotations[pageNum] = [];
             pageAnnotations[pageNum].push(anno);
@@ -1504,122 +2479,26 @@
             renderAnnotations(pageNum);
         }
 
-        function removeAnnotation(pageNum, annoId) {
-            const list = pageAnnotations[pageNum];
-            if (!list) return;
-            const idx = list.findIndex(a => a.id === annoId);
+        function removeAnnotation(pageNum, id) {
+            const list = pageAnnotations[pageNum] || [];
+            const idx = list.findIndex(a => a.id === id);
             if (idx !== -1) {
                 const removed = list.splice(idx, 1)[0];
                 recordAction({ type: 'remove_anno', page: pageNum, anno: removed, index: idx });
-                if (selectedAnnoId === annoId) selectedAnnoId = null;
+                if (selectedAnnoId === id) {
+                    deselectAnno();
+                }
                 renderAnnotations(pageNum);
             }
         }
 
-        function getAnno(annoId) {
-            for (let p in pageAnnotations) {
-                const a = pageAnnotations[p].find(x => x.id === annoId);
-                if (a) return a;
-            }
-            return null;
-        }
-
-        // ========== RENDER ANNOTATIONS DOM ==========
-        function renderAnnotations(pageNum) {
-            annotLayer.innerHTML = '';
-            const list = pageAnnotations[pageNum] || [];
-
-            list.forEach(item => {
-                const wrap = document.createElement('div');
-                wrap.id = item.id;
-                wrap.className = 'anno-item' + (item.id === selectedAnnoId ? ' selected' : '');
-                wrap.style.left = (item.x * scale) + 'px';
-                wrap.style.top = (item.y * scale) + 'px';
-                wrap.style.width = (item.width * scale) + 'px';
-                wrap.style.height = (item.height * scale) + 'px';
-
-                // Inner content by type
-                if (item.type === 'text') {
-                    wrap.classList.add('anno-text-box');
-                    const inner = document.createElement('div');
-                    inner.className = 'anno-text-inner';
-                    inner.contentEditable = true;
-                    inner.innerText = item.text || '';
-                    inner.style.fontSize = (item.fontSize * scale) + 'px';
-                    inner.style.color = item.color || '#000';
-                    inner.style.fontFamily = getFontFamilyCss(item.fontFamily);
-                    inner.style.fontWeight = item.bold ? '700' : '400';
-                    inner.style.fontStyle = item.italic ? 'italic' : 'normal';
-                    inner.style.textAlign = item.align || 'left';
-
-                    inner.addEventListener('input', () => {
-                        item.text = inner.innerText;
-                    });
-                    inner.addEventListener('focus', () => {
-                        selectAnno(item.id);
-                    });
-                    wrap.appendChild(inner);
-                } else if (item.type === 'whiteout') {
-                    wrap.classList.add('anno-whiteout');
-                } else if (item.type === 'redact') {
-                    wrap.classList.add('anno-redact');
-                } else if (item.type === 'highlight') {
-                    wrap.classList.add('anno-highlight');
-                    wrap.style.background = (item.color || '#facc15') + '66';
-                } else if (item.type === 'rect') {
-                    wrap.classList.add('anno-shape-rect');
-                    wrap.style.border = `${(item.strokeWidth || 2) * scale}px solid ${item.strokeColor || '#2563eb'}`;
-                    wrap.style.background = item.fillColor || 'transparent';
-                } else if (item.type === 'circle') {
-                    wrap.classList.add('anno-shape-circle');
-                    wrap.style.border = `${(item.strokeWidth || 2) * scale}px solid ${item.strokeColor || '#2563eb'}`;
-                    wrap.style.background = item.fillColor || 'transparent';
-                } else if (item.type === 'line') {
-                    wrap.style.borderTop = `${(item.strokeWidth || 2) * scale}px solid ${item.strokeColor || '#2563eb'}`;
-                } else if (item.type === 'image') {
-                    wrap.classList.add('anno-image');
-                    const img = document.createElement('img');
-                    img.src = item.dataUrl;
-                    img.draggable = false;
-                    wrap.appendChild(img);
-                }
-
-                // Add 8 resize handles
-                ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'].forEach(pos => {
-                    const h = document.createElement('div');
-                    h.className = `anno-handle ${pos}`;
-                    h.dataset.handle = pos;
-                    wrap.appendChild(h);
-                });
-
-                // Action Bar (Delete & Duplicate)
-                const actBar = document.createElement('div');
-                actBar.className = 'anno-actions-bar';
-                actBar.innerHTML = `
-                    <button class="anno-btn btn-dup" title="Duplicate"><i data-lucide="copy" style="width:12px;height:12px"></i></button>
-                    <button class="anno-btn btn-del" title="Delete"><i data-lucide="trash-2" style="width:12px;height:12px"></i></button>
-                `;
-                actBar.querySelector('.btn-del').onclick = (e) => {
-                    e.stopPropagation();
-                    removeAnnotation(pageNum, item.id);
-                };
-                actBar.querySelector('.btn-dup').onclick = (e) => {
-                    e.stopPropagation();
-                    duplicateAnno(item);
-                };
-                wrap.appendChild(actBar);
-
-                makeSelectableAndMovable(wrap, item);
-                annotLayer.appendChild(wrap);
-            });
-
-            lucide.createIcons({ root: annotLayer });
-        }
-
-        function getFontFamilyCss(fam) {
-            if (fam === 'Times') return "'Times New Roman', Times, serif";
-            if (fam === 'Courier') return "'Courier New', Courier, monospace";
-            return "'Inter', system-ui, -apple-system, sans-serif";
+        function duplicateAnno(item) {
+            const clone = JSON.parse(JSON.stringify(item));
+            clone.id = 'anno_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+            clone.x += 15;
+            clone.y += 15;
+            addAnnotation(currentPage, clone);
+            selectAnno(clone.id);
         }
 
         function selectAnno(id) {
@@ -1628,35 +2507,118 @@
                 el.classList.toggle('selected', el.id === id);
             });
             const item = getAnno(id);
-            if (item && item.type === 'text') {
-                document.getElementById('fontSize').value = item.fontSize || 16;
-                document.getElementById('fontFamily').value = item.fontFamily || 'Helvetica';
-                document.getElementById('textColor').value = item.color || '#000000';
-                document.getElementById('btnBold').classList.toggle('active', !!item.bold);
-                document.getElementById('btnItalic').classList.toggle('active', !!item.italic);
+            if (item) {
+                if (item.type === 'text') {
+                    document.getElementById('fontSize').value = item.fontSize || 16;
+                    document.getElementById('fontFamily').value = item.fontFamily || 'Helvetica';
+                    document.getElementById('textColor').value = item.color || '#000000';
+                    document.getElementById('btnBold').classList.toggle('active', !!item.bold);
+                    document.getElementById('btnItalic').classList.toggle('active', !!item.italic);
+                } else if (item.type === 'highlight') {
+                    document.getElementById('hlColor').value = item.color || '#facc15';
+                }
             }
+            updateFloatingFormatBar();
         }
 
         function deselectAnno() {
             selectedAnnoId = null;
-            document.querySelectorAll('.anno-item').forEach(el => el.classList.remove('selected'));
+            document.querySelectorAll('.anno-item.selected').forEach(el => el.classList.remove('selected'));
+            hideFloatingFormatBar();
         }
 
-        function duplicateAnno(item) {
-            const clone = JSON.parse(JSON.stringify(item));
-            clone.id = 'anno_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
-            clone.x += 15;
-            clone.y += 15;
-            addAnnotation(currentPage, clone);
-            selectAnno(clone.id);
-        }
+        function renderAnnotations(pageNum) {
+            annotLayer.innerHTML = '';
+            const list = pageAnnotations[pageNum] || [];
 
-        // Deselect when clicking outside
-        annotLayer.addEventListener('mousedown', function (e) {
-            if (e.target === annotLayer && currentTool === 'select') {
-                deselectAnno();
+            list.forEach(item => {
+                const el = document.createElement('div');
+                el.id = item.id;
+                el.className = 'anno-item';
+                if (item.id === selectedAnnoId) el.classList.add('selected');
+
+                el.style.left = (item.x * scale) + 'px';
+                el.style.top = (item.y * scale) + 'px';
+                el.style.width = (item.width * scale) + 'px';
+                el.style.height = (item.height * scale) + 'px';
+
+                if (item.type === 'text') {
+                    el.classList.add('anno-text-box');
+                    const inner = document.createElement('div');
+                    inner.className = 'anno-text-inner';
+                    inner.contentEditable = 'true';
+                    inner.spellcheck = false;
+                    inner.innerText = item.text || '';
+                    inner.style.fontSize = ((item.fontSize || 16) * scale) + 'px';
+                    inner.style.fontFamily = item.fontFamily === 'Courier' ? 'Courier, monospace' : (item.fontFamily === 'Times' ? 'Times New Roman, serif' : 'Helvetica, Arial, sans-serif');
+                    inner.style.color = item.color || '#000000';
+                    inner.style.fontWeight = item.bold ? 'bold' : 'normal';
+                    inner.style.fontStyle = item.italic ? 'italic' : 'normal';
+                    inner.style.textAlign = item.align || 'left';
+
+                    inner.addEventListener('input', () => {
+                        item.text = inner.innerText;
+                        const clientH = inner.offsetHeight / scale;
+                        if (clientH > item.height) {
+                            item.height = clientH;
+                            el.style.height = (item.height * scale) + 'px';
+                        }
+                    });
+
+                    inner.addEventListener('focus', () => {
+                        selectAnno(item.id);
+                    });
+
+                    el.appendChild(inner);
+                } else if (item.type === 'whiteout') {
+                    el.classList.add('anno-whiteout');
+                    el.style.background = '#ffffff';
+                } else if (item.type === 'redact') {
+                    el.classList.add('anno-redact');
+                    el.style.background = '#000000';
+                } else if (item.type === 'highlight') {
+                    el.classList.add('anno-highlight');
+                    el.style.backgroundColor = item.color || '#facc15';
+                    el.style.opacity = item.opacity || 0.35;
+                } else if (item.type === 'image') {
+                    el.classList.add('anno-image');
+                    const img = document.createElement('img');
+                    img.src = item.dataUrl;
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.objectFit = 'contain';
+                    img.draggable = false;
+                    el.appendChild(img);
+                } else if (item.type === 'rect') {
+                    el.classList.add('anno-shape-rect');
+                    el.style.borderColor = item.strokeColor || '#2563eb';
+                    el.style.borderWidth = ((item.strokeWidth || 2) * scale) + 'px';
+                    el.style.backgroundColor = (item.fillColor && item.fillColor !== 'transparent') ? item.fillColor : 'transparent';
+                } else if (item.type === 'circle') {
+                    el.classList.add('anno-shape-circle');
+                    el.style.borderColor = item.strokeColor || '#2563eb';
+                    el.style.borderWidth = ((item.strokeWidth || 2) * scale) + 'px';
+                    el.style.backgroundColor = (item.fillColor && item.fillColor !== 'transparent') ? item.fillColor : 'transparent';
+                } else if (item.type === 'line') {
+                    el.style.borderTop = `${(item.strokeWidth || 2) * scale}px solid ${item.strokeColor || '#2563eb'}`;
+                }
+
+                // Add 8 resize handles
+                ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'].forEach(h => {
+                    const handle = document.createElement('div');
+                    handle.className = `anno-handle ${h}`;
+                    handle.dataset.handle = h;
+                    el.appendChild(handle);
+                });
+
+                makeSelectableAndMovable(el, item);
+                annotLayer.appendChild(el);
+            });
+
+            if (selectedAnnoId) {
+                updateFloatingFormatBar();
             }
-        });
+        }
 
         // ========== DRAGGING & RESIZING ANNOTATIONS ==========
         function makeSelectableAndMovable(el, item) {
@@ -2185,6 +3147,12 @@
             } else if (action.type === 'draw_stroke') {
                 const strokes = pageDrawings[action.page];
                 if (strokes && strokes.length > 0) strokes.pop();
+            } else if (action.type === 'composite_edit') {
+                const list = pageAnnotations[action.page] || [];
+                action.items.forEach(it => {
+                    const idx = list.findIndex(a => a.id === it.id);
+                    if (idx !== -1) list.splice(idx, 1);
+                });
             }
 
             updateUndoRedoBtns();
@@ -2211,6 +3179,11 @@
             } else if (action.type === 'draw_stroke') {
                 if (!pageDrawings[action.page]) pageDrawings[action.page] = [];
                 pageDrawings[action.page].push(action.stroke);
+            } else if (action.type === 'composite_edit') {
+                if (!pageAnnotations[action.page]) pageAnnotations[action.page] = [];
+                action.items.forEach(it => {
+                    pageAnnotations[action.page].push(it);
+                });
             }
 
             updateUndoRedoBtns();
@@ -2248,6 +3221,7 @@
             } else if (e.key === 'Escape') {
                 deselectAnno();
                 setTool('select');
+                closeFindDialog();
             } else if (e.ctrlKey || e.metaKey) {
                 if (e.key === 'z' || e.key === 'Z') {
                     if (e.shiftKey) {
@@ -2264,6 +3238,9 @@
                     e.preventDefault();
                     const item = getAnno(selectedAnnoId);
                     if (item) duplicateAnno(item);
+                } else if (e.key === 'f' || e.key === 'F') {
+                    e.preventDefault();
+                    openFindDialog();
                 } else if (e.key === '=' || e.key === '+') {
                     e.preventDefault();
                     document.getElementById('zoomIn').click();
@@ -2274,33 +3251,358 @@
             }
         });
 
-        // ========== THUMBNAILS ==========
+        // ========== PAGE OPERATIONS & THUMBNAILS ==========
+        function rotatePage(pageNum) {
+            const current = pageRotations[pageNum] || 0;
+            pageRotations[pageNum] = (current + 90) % 360;
+            if (currentPage === pageNum) {
+                renderPage(pageNum);
+            }
+            buildThumbnails();
+            showToast(`Page ${pageNum} rotated 90°`);
+        }
+
+        function deletePage(pageNum) {
+            const total = (pdfDoc ? pdfDoc.numPages : 0) + addedBlankPages.length;
+            const remaining = total - deletedPages.size;
+            if (remaining <= 1) {
+                alert('Cannot delete the only remaining page.');
+                return;
+            }
+            if (!confirm(`Are you sure you want to delete Page ${pageNum}?`)) return;
+
+            deletedPages.add(pageNum);
+            if (currentPage === pageNum) {
+                let next = 1;
+                while (next <= total && deletedPages.has(next)) next++;
+                if (next <= total) {
+                    pageTo(next);
+                } else {
+                    let prev = total;
+                    while (prev >= 1 && deletedPages.has(prev)) prev--;
+                    if (prev >= 1) pageTo(prev);
+                }
+            }
+            buildThumbnails();
+            showToast(`Page ${pageNum} deleted`);
+        }
+
+        function addBlankPage() {
+            const newPageNum = (pdfDoc ? pdfDoc.numPages : 0) + addedBlankPages.length + 1;
+            addedBlankPages.push({ pageNum: newPageNum, width: 595, height: 842 });
+            buildThumbnails();
+            pageTo(newPageNum);
+            showToast(`Added new blank page (${newPageNum})`);
+        }
+
         async function buildThumbnails() {
             thumbSidebar.innerHTML = '';
-            for (let i = 1; i <= pdfDoc.numPages; i++) {
-                const page = await pdfDoc.getPage(i);
-                const vp = page.getViewport({ scale: 0.18 });
-                const tc = document.createElement('canvas');
-                tc.width = vp.width;
-                tc.height = vp.height;
-                await page.render({ canvasContext: tc.getContext('2d'), viewport: vp }).promise;
+            if (!pdfDoc) return;
+
+            const total = pdfDoc.numPages + addedBlankPages.length;
+            for (let i = 1; i <= total; i++) {
+                if (deletedPages.has(i)) continue;
 
                 const item = document.createElement('div');
-                item.className = 'thumb-item' + (i === 1 ? ' active' : '');
+                item.className = 'thumb-item' + (i === currentPage ? ' active' : '');
                 item.dataset.page = i;
-                const p = document.createElement('p');
-                p.innerText = i;
+
+                // Header with page number & actions
+                const header = document.createElement('div');
+                header.className = 'thumb-header';
+                const lbl = document.createElement('span');
+                lbl.textContent = `Page ${i}`;
+                header.appendChild(lbl);
+
+                const actions = document.createElement('div');
+                actions.className = 'thumb-actions';
+
+                // Rotate button
+                const rotBtn = document.createElement('button');
+                rotBtn.type = 'button';
+                rotBtn.className = 'thumb-act-btn btn-rot-thumb';
+                rotBtn.title = 'Rotate 90°';
+                rotBtn.innerHTML = '<i data-lucide="rotate-cw"></i>';
+                rotBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    rotatePage(i);
+                });
+                actions.appendChild(rotBtn);
+
+                // Delete button
+                const delBtn = document.createElement('button');
+                delBtn.type = 'button';
+                delBtn.className = 'thumb-act-btn btn-del-thumb';
+                delBtn.title = 'Delete Page';
+                delBtn.innerHTML = '<i data-lucide="trash-2"></i>';
+                delBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deletePage(i);
+                });
+                actions.appendChild(delBtn);
+
+                header.appendChild(actions);
+                item.appendChild(header);
+
+                // Canvas preview
+                const tc = document.createElement('canvas');
+                if (i <= pdfDoc.numPages) {
+                    const page = await pdfDoc.getPage(i);
+                    const extraRot = pageRotations[i] || 0;
+                    const rot = (page.rotate + extraRot) % 360;
+                    const vp = page.getViewport({ scale: 0.18, rotation: rot });
+                    tc.width = Math.floor(vp.width);
+                    tc.height = Math.floor(vp.height);
+                    await page.render({ canvasContext: tc.getContext('2d'), viewport: vp }).promise.catch(() => {});
+                } else {
+                    tc.width = Math.floor(595 * 0.18);
+                    tc.height = Math.floor(842 * 0.18);
+                    const tctx = tc.getContext('2d');
+                    tctx.fillStyle = '#ffffff';
+                    tctx.fillRect(0, 0, tc.width, tc.height);
+                    tctx.strokeStyle = '#cbd5e1';
+                    tctx.strokeRect(0, 0, tc.width, tc.height);
+                }
+
                 item.appendChild(tc);
-                item.appendChild(p);
                 item.addEventListener('click', () => { pageTo(i); });
                 thumbSidebar.appendChild(item);
             }
+
+            // Append "+ Add Blank Page" button
+            const addBtn = document.createElement('button');
+            addBtn.type = 'button';
+            addBtn.className = 'add-blank-page-btn';
+            addBtn.innerHTML = '<i data-lucide="plus"></i> Add Blank Page';
+            addBtn.addEventListener('click', addBlankPage);
+            thumbSidebar.appendChild(addBtn);
+
+            lucide.createIcons({ root: thumbSidebar });
         }
 
         function highlightThumb(n) {
             document.querySelectorAll('.thumb-item').forEach(t => {
                 t.classList.toggle('active', parseInt(t.dataset.page) === n);
             });
+        }
+
+        // ========== FIND & REPLACE ENGINE ==========
+        let findMatches = [];
+        let currentMatchIdx = -1;
+
+        findBtn.addEventListener('click', openFindDialog);
+        document.getElementById('frCloseBtn').addEventListener('click', closeFindDialog);
+
+        function openFindDialog() {
+            findReplaceDialog.classList.add('open');
+            const inp = document.getElementById('frFindInput');
+            inp.focus();
+            if (inp.value.trim()) {
+                executeFind(inp.value.trim());
+            }
+            lucide.createIcons({ root: findReplaceDialog });
+        }
+
+        function closeFindDialog() {
+            findReplaceDialog.classList.remove('open');
+            clearFindHighlights();
+        }
+
+        const frFindInput = document.getElementById('frFindInput');
+        let findDebounceTimer = null;
+        frFindInput.addEventListener('input', () => {
+            clearTimeout(findDebounceTimer);
+            findDebounceTimer = setTimeout(() => {
+                executeFind(frFindInput.value.trim());
+            }, 250);
+        });
+
+        frFindInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (e.shiftKey) {
+                    goToMatch(currentMatchIdx - 1);
+                } else {
+                    goToMatch(currentMatchIdx + 1);
+                }
+            } else if (e.key === 'Escape') {
+                closeFindDialog();
+            }
+        });
+
+        async function executeFind(query) {
+            findMatches = [];
+            currentMatchIdx = -1;
+            const countLabel = document.getElementById('frMatchCount');
+
+            if (!query || !pdfDoc) {
+                countLabel.textContent = '0 / 0';
+                clearFindHighlights();
+                return;
+            }
+
+            const lowerQuery = query.toLowerCase();
+            const total = pdfDoc.numPages;
+
+            for (let p = 1; p <= total; p++) {
+                if (deletedPages.has(p)) continue;
+                const page = await pdfDoc.getPage(p);
+                const textContent = await page.getTextContent();
+                const vp = page.getViewport({ scale: 1.0 });
+
+                textContent.items.forEach(item => {
+                    const str = item.str || '';
+                    const lowerStr = str.toLowerCase();
+                    let startIdx = 0;
+
+                    while ((startIdx = lowerStr.indexOf(lowerQuery, startIdx)) !== -1) {
+                        const tx = item.transform[4];
+                        const ty = item.transform[5];
+                        const fontSize = Math.abs(item.transform[0]) || Math.abs(item.transform[3]) || 12;
+                        const approxCharWidth = item.width > 0 ? (item.width / str.length) : (fontSize * 0.55);
+                        const matchX = tx + (startIdx * approxCharWidth);
+                        const matchW = approxCharWidth * query.length;
+                        const matchH = fontSize * 1.2;
+                        const matchY = vp.height - ty - fontSize;
+
+                        findMatches.push({
+                            pageNum: p,
+                            matchedText: str.substr(startIdx, query.length),
+                            bounds: {
+                                x: Math.max(0, matchX),
+                                y: Math.max(0, matchY),
+                                width: Math.max(12, matchW),
+                                height: Math.max(10, matchH),
+                                fontSize: Math.round(fontSize)
+                            }
+                        });
+                        startIdx += query.length;
+                    }
+                });
+            }
+
+            if (findMatches.length > 0) {
+                goToMatch(0);
+            } else {
+                countLabel.textContent = '0 / 0';
+                clearFindHighlights();
+            }
+        }
+
+        function goToMatch(idx) {
+            if (findMatches.length === 0) {
+                document.getElementById('frMatchCount').textContent = '0 / 0';
+                return;
+            }
+            if (idx < 0) idx = findMatches.length - 1;
+            if (idx >= findMatches.length) idx = 0;
+            currentMatchIdx = idx;
+
+            document.getElementById('frMatchCount').textContent = `${currentMatchIdx + 1} / ${findMatches.length}`;
+            const match = findMatches[currentMatchIdx];
+
+            if (match.pageNum !== currentPage) {
+                pageTo(match.pageNum).then(() => {
+                    highlightMatchOnCanvas(match);
+                });
+            } else {
+                highlightMatchOnCanvas(match);
+            }
+        }
+
+        function highlightMatchOnCanvas(match) {
+            clearFindHighlights();
+            const b = match.bounds;
+            const highlightBox = document.createElement('div');
+            highlightBox.id = 'activeFindHighlight';
+            highlightBox.style.cssText = `position:absolute;left:${b.x * scale}px;top:${b.y * scale}px;width:${b.width * scale}px;height:${b.height * scale}px;border:2px solid #2563eb;background:rgba(250,204,21,0.45);pointer-events:none;z-index:90;border-radius:3px;box-shadow:0 0 10px rgba(37,99,235,0.5);`;
+            annotLayer.appendChild(highlightBox);
+
+            const areaRect = canvasArea.getBoundingClientRect();
+            const matchTop = b.y * scale;
+            if (matchTop < canvasArea.scrollTop || matchTop > canvasArea.scrollTop + areaRect.height - 80) {
+                canvasArea.scrollTo({ top: Math.max(0, matchTop - 120), behavior: 'smooth' });
+            }
+        }
+
+        function clearFindHighlights() {
+            const h = document.getElementById('activeFindHighlight');
+            if (h) h.remove();
+        }
+
+        document.getElementById('frPrevBtn').addEventListener('click', () => goToMatch(currentMatchIdx - 1));
+        document.getElementById('frNextBtn').addEventListener('click', () => goToMatch(currentMatchIdx + 1));
+
+        document.getElementById('frReplaceBtn').addEventListener('click', () => {
+            if (currentMatchIdx < 0 || currentMatchIdx >= findMatches.length) return;
+            const replaceWith = document.getElementById('frReplaceInput').value;
+            const match = findMatches[currentMatchIdx];
+
+            applyMatchReplacement(match, replaceWith);
+            findMatches.splice(currentMatchIdx, 1);
+            if (findMatches.length > 0) {
+                goToMatch(currentMatchIdx % findMatches.length);
+            } else {
+                document.getElementById('frMatchCount').textContent = '0 / 0';
+                clearFindHighlights();
+                showToast('All matches replaced');
+            }
+        });
+
+        document.getElementById('frReplaceAllBtn').addEventListener('click', () => {
+            if (findMatches.length === 0) return;
+            const replaceWith = document.getElementById('frReplaceInput').value;
+            const count = findMatches.length;
+
+            findMatches.forEach(match => {
+                applyMatchReplacement(match, replaceWith);
+            });
+
+            findMatches = [];
+            currentMatchIdx = -1;
+            document.getElementById('frMatchCount').textContent = '0 / 0';
+            clearFindHighlights();
+            showToast(`Replaced ${count} occurrence${count > 1 ? 's' : ''}`);
+        });
+
+        function applyMatchReplacement(match, newText) {
+            const b = match.bounds;
+            const p = match.pageNum;
+
+            const whiteoutAnno = {
+                id: 'anno_wo_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                type: 'whiteout',
+                x: Math.max(0, b.x - 1),
+                y: Math.max(0, b.y - 1),
+                width: b.width + 4,
+                height: b.height + 2,
+                color: '#ffffff'
+            };
+
+            const textAnno = {
+                id: 'anno_txt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                type: 'text',
+                x: b.x,
+                y: b.y,
+                width: Math.max(b.width + 10, 40),
+                height: b.height,
+                text: newText,
+                fontSize: b.fontSize || 14,
+                fontFamily: 'Helvetica',
+                color: '#000000',
+                bold: false,
+                italic: false,
+                align: 'left'
+            };
+
+            recordAction({ type: 'composite_edit', page: p, items: [whiteoutAnno, textAnno] });
+            if (!pageAnnotations[p]) pageAnnotations[p] = [];
+            pageAnnotations[p].push(whiteoutAnno);
+            pageAnnotations[p].push(textAnno);
+
+            if (p === currentPage) {
+                renderAnnotations(currentPage);
+            }
         }
 
         // ========== EXPORT PDF WITH PDF-LIB ==========
@@ -2337,7 +3639,8 @@
 
             try {
                 const { PDFDocument, rgb, StandardFonts, degrees } = PDFLib;
-                const pdfLibDoc = await PDFDocument.load(originalPdfBytes);
+                const srcDoc = await PDFDocument.load(originalPdfBytes);
+                const pdfLibDoc = await PDFDocument.create();
 
                 // Pre-embed standard fonts
                 const fonts = {
@@ -2355,237 +3658,35 @@
                     CourierBoldOblique: await pdfLibDoc.embedFont(StandardFonts.CourierBoldOblique)
                 };
 
-                const pages = pdfLibDoc.getPages();
+                const totalOriginal = srcDoc.getPageCount();
 
-                for (let p = 1; p <= pages.length; p++) {
-                    const page = pages[p - 1];
-                    const { width: pageWidth, height: pageHeight } = page.getSize();
-                    const rotation = page.getRotation().angle || 0;
+                // 1. Process original pages (skipping deleted ones)
+                for (let origP = 1; origP <= totalOriginal; origP++) {
+                    if (deletedPages.has(origP)) continue;
 
-                    const annotations = pageAnnotations[p] || [];
-                    const drawings = pageDrawings[p] || [];
+                    const [copiedPage] = await pdfLibDoc.copyPages(srcDoc, [origP - 1]);
+                    const page = pdfLibDoc.addPage(copiedPage);
 
-                    // Coordinate converter for PDF space
-                    function mapCoord(item) {
-                        let x = item.x;
-                        let y = item.y;
-                        let w = item.width;
-                        let h = item.height;
-
-                        // Standard unrotated page
-                        if (rotation === 0) {
-                            return {
-                                x: x,
-                                y: pageHeight - y - h,
-                                width: w,
-                                height: h
-                            };
-                        } else if (rotation === 90) {
-                            return {
-                                x: y,
-                                y: x,
-                                width: h,
-                                height: w
-                            };
-                        } else if (rotation === 180) {
-                            return {
-                                x: pageWidth - x - w,
-                                y: y,
-                                width: w,
-                                height: h
-                            };
-                        } else if (rotation === 270) {
-                            return {
-                                x: pageWidth - y - h,
-                                y: pageHeight - x - w,
-                                width: h,
-                                height: w
-                            };
-                        }
-                        return { x, y: pageHeight - y - h, width: w, height: h };
+                    const extraRot = pageRotations[origP] || 0;
+                    if (extraRot !== 0) {
+                        const curRot = page.getRotation().angle || 0;
+                        page.setRotation(degrees((curRot + extraRot) % 360));
                     }
 
-                    // 1) WHITEOUT & REDACT (Draw first so they sit under new text/drawings)
-                    for (const a of annotations) {
-                        if (a.type === 'whiteout' || a.type === 'redact') {
-                            const c = mapCoord(a);
-                            const fill = a.type === 'whiteout' ? rgb(1, 1, 1) : rgb(0, 0, 0);
-                            page.drawRectangle({
-                                x: c.x,
-                                y: c.y,
-                                width: c.width,
-                                height: c.height,
-                                color: fill,
-                                opacity: 1
-                            });
-                        }
+                    await exportLayersForPage(pdfLibDoc, page, origP, fonts);
+                }
+
+                // 2. Process added blank pages
+                for (const blank of addedBlankPages) {
+                    if (deletedPages.has(blank.pageNum)) continue;
+
+                    const page = pdfLibDoc.addPage([blank.width || 595, blank.height || 842]);
+                    const extraRot = pageRotations[blank.pageNum] || 0;
+                    if (extraRot !== 0) {
+                        page.setRotation(degrees(extraRot % 360));
                     }
 
-                    // 2) SHAPES (Rectangles, Circles, Lines)
-                    for (const a of annotations) {
-                        if (a.type === 'rect' || a.type === 'circle' || a.type === 'line') {
-                            const c = mapCoord(a);
-                            const strk = hexToRgb(a.strokeColor);
-                            const hasFill = a.fillColor && a.fillColor !== 'transparent';
-                            const fColor = hasFill ? hexToRgb(a.fillColor) : undefined;
-
-                            if (a.type === 'rect') {
-                                page.drawRectangle({
-                                    x: c.x,
-                                    y: c.y,
-                                    width: c.width,
-                                    height: c.height,
-                                    borderColor: rgb(strk.r, strk.g, strk.b),
-                                    borderWidth: a.strokeWidth || 2,
-                                    color: hasFill ? rgb(fColor.r, fColor.g, fColor.b) : undefined
-                                });
-                            } else if (a.type === 'circle') {
-                                page.drawEllipse({
-                                    x: c.x + c.width / 2,
-                                    y: c.y + c.height / 2,
-                                    xScale: c.width / 2,
-                                    yScale: c.height / 2,
-                                    borderColor: rgb(strk.r, strk.g, strk.b),
-                                    borderWidth: a.strokeWidth || 2,
-                                    color: hasFill ? rgb(fColor.r, fColor.g, fColor.b) : undefined
-                                });
-                            } else if (a.type === 'line') {
-                                page.drawLine({
-                                    start: { x: c.x, y: c.y + c.height },
-                                    end: { x: c.x + c.width, y: c.y },
-                                    color: rgb(strk.r, strk.g, strk.b),
-                                    thickness: a.strokeWidth || 2
-                                });
-                            }
-                        }
-                    }
-
-                    // 3) HIGHLIGHTS
-                    for (const a of annotations) {
-                        if (a.type === 'highlight') {
-                            const c = mapCoord(a);
-                            const hl = hexToRgb(a.color);
-                            page.drawRectangle({
-                                x: c.x,
-                                y: c.y,
-                                width: c.width,
-                                height: c.height,
-                                color: rgb(hl.r, hl.g, hl.b),
-                                opacity: a.opacity || 0.35
-                            });
-                        }
-                    }
-
-                    // 4) FREEHAND DRAWINGS (Render vector strokes to high-res PNG canvas)
-                    if (drawings.length > 0) {
-                        const drawExportCanvas = document.createElement('canvas');
-                        const resMult = 2; // High-res 144 DPI
-                        drawExportCanvas.width = Math.floor(pageWidth * resMult);
-                        drawExportCanvas.height = Math.floor(pageHeight * resMult);
-                        const dCtx = drawExportCanvas.getContext('2d');
-                        dCtx.scale(resMult, resMult);
-
-                        drawings.forEach(s => {
-                            if (!s.points || s.points.length === 0) return;
-                            dCtx.save();
-                            dCtx.lineCap = 'round';
-                            dCtx.lineJoin = 'round';
-                            if (s.tool === 'eraser') {
-                                dCtx.globalCompositeOperation = 'destination-out';
-                                dCtx.lineWidth = (s.size || 15);
-                            } else {
-                                dCtx.globalCompositeOperation = 'source-over';
-                                dCtx.strokeStyle = s.color || '#ef4444';
-                                dCtx.lineWidth = (s.size || 3);
-                            }
-                            dCtx.beginPath();
-                            dCtx.moveTo(s.points[0].x, s.points[0].y);
-                            for (let i = 1; i < s.points.length; i++) {
-                                dCtx.lineTo(s.points[i].x, s.points[i].y);
-                            }
-                            dCtx.stroke();
-                            dCtx.restore();
-                        });
-
-                        const pngDataUrl = drawExportCanvas.toDataURL('image/png');
-                        const pngBytes = await fetch(pngDataUrl).then(r => r.arrayBuffer());
-                        const embeddedPng = await pdfLibDoc.embedPng(pngBytes);
-                        page.drawImage(embeddedPng, {
-                            x: 0,
-                            y: 0,
-                            width: pageWidth,
-                            height: pageHeight
-                        });
-                    }
-
-                    // 5) IMAGES AND SIGNATURES
-                    for (const a of annotations) {
-                        if (a.type === 'image' && a.dataUrl) {
-                            try {
-                                const c = mapCoord(a);
-                                const imgBytes = await fetch(a.dataUrl).then(r => r.arrayBuffer());
-                                const isJpeg = a.dataUrl.startsWith('data:image/jpeg') || a.dataUrl.startsWith('data:image/jpg');
-                                const embedded = isJpeg ? await pdfLibDoc.embedJpg(imgBytes) : await pdfLibDoc.embedPng(imgBytes);
-
-                                page.drawImage(embedded, {
-                                    x: c.x,
-                                    y: c.y,
-                                    width: c.width,
-                                    height: c.height
-                                });
-                            } catch (e) {
-                                console.warn('Failed to embed image annotation:', e);
-                            }
-                        }
-                    }
-
-                    // 6) TEXT ANNOTATIONS
-                    for (const a of annotations) {
-                        if (a.type === 'text' && a.text) {
-                            const c = mapCoord(a);
-                            const col = hexToRgb(a.color);
-                            const fs = a.fontSize || 16;
-
-                            // Select font
-                            let fontKey = 'Helvetica';
-                            if (a.fontFamily === 'Times') {
-                                fontKey = a.bold && a.italic ? 'TimesBoldItalic' : (a.bold ? 'TimesBold' : (a.italic ? 'TimesItalic' : 'Times'));
-                            } else if (a.fontFamily === 'Courier') {
-                                fontKey = a.bold && a.italic ? 'CourierBoldOblique' : (a.bold ? 'CourierBold' : (a.italic ? 'CourierOblique' : 'Courier'));
-                            } else {
-                                fontKey = a.bold && a.italic ? 'HelveticaBoldOblique' : (a.bold ? 'HelveticaBold' : (a.italic ? 'HelveticaOblique' : 'Helvetica'));
-                            }
-                            const font = fonts[fontKey] || fonts.Helvetica;
-
-                            const lines = a.text.split('\n');
-                            const lineHeight = fs * 1.25;
-
-                            lines.forEach((rawLine, idx) => {
-                                const sanitized = sanitizeWinAnsi(rawLine);
-                                if (!sanitized) return;
-
-                                let lineX = c.x;
-                                if (a.align === 'center' || a.align === 'right') {
-                                    const textW = font.widthOfTextAtSize(sanitized, fs);
-                                    if (a.align === 'center') {
-                                        lineX = c.x + (c.width - textW) / 2;
-                                    } else if (a.align === 'right') {
-                                        lineX = c.x + (c.width - textW);
-                                    }
-                                }
-
-                                const baselineY = c.y + c.height - (fs * 0.85) - (idx * lineHeight);
-
-                                page.drawText(sanitized, {
-                                    x: lineX,
-                                    y: baselineY,
-                                    size: fs,
-                                    font: font,
-                                    color: rgb(col.r, col.g, col.b)
-                                });
-                            });
-                        }
-                    }
+                    await exportLayersForPage(pdfLibDoc, page, blank.pageNum, fonts);
                 }
 
                 // Save PDF and trigger download
@@ -2611,6 +3712,214 @@
                 lucide.createIcons();
             }
         });
+
+        async function exportLayersForPage(pdfLibDoc, page, pageNum, fonts) {
+            const { rgb } = PDFLib;
+            const { width: pageWidth, height: pageHeight } = page.getSize();
+            const rotation = page.getRotation().angle || 0;
+
+            const annotations = pageAnnotations[pageNum] || [];
+            const drawings = pageDrawings[pageNum] || [];
+
+            function mapCoord(item) {
+                let x = item.x;
+                let y = item.y;
+                let w = item.width;
+                let h = item.height;
+
+                if (rotation === 0) {
+                    return { x: x, y: pageHeight - y - h, width: w, height: h };
+                } else if (rotation === 90) {
+                    return { x: y, y: x, width: h, height: w };
+                } else if (rotation === 180) {
+                    return { x: pageWidth - x - w, y: y, width: w, height: h };
+                } else if (rotation === 270) {
+                    return { x: pageWidth - y - h, y: pageHeight - x - w, width: h, height: w };
+                }
+                return { x, y: pageHeight - y - h, width: w, height: h };
+            }
+
+            // 1) WHITEOUT & REDACT
+            for (const a of annotations) {
+                if (a.type === 'whiteout' || a.type === 'redact') {
+                    const c = mapCoord(a);
+                    const fill = a.type === 'whiteout' ? rgb(1, 1, 1) : rgb(0, 0, 0);
+                    page.drawRectangle({
+                        x: c.x,
+                        y: c.y,
+                        width: c.width,
+                        height: c.height,
+                        color: fill,
+                        opacity: 1
+                    });
+                }
+            }
+
+            // 2) SHAPES
+            for (const a of annotations) {
+                if (a.type === 'rect' || a.type === 'circle' || a.type === 'line') {
+                    const c = mapCoord(a);
+                    const strk = hexToRgb(a.strokeColor);
+                    const hasFill = a.fillColor && a.fillColor !== 'transparent';
+                    const fColor = hasFill ? hexToRgb(a.fillColor) : undefined;
+
+                    if (a.type === 'rect') {
+                        page.drawRectangle({
+                            x: c.x,
+                            y: c.y,
+                            width: c.width,
+                            height: c.height,
+                            borderColor: rgb(strk.r, strk.g, strk.b),
+                            borderWidth: a.strokeWidth || 2,
+                            color: hasFill ? rgb(fColor.r, fColor.g, fColor.b) : undefined
+                        });
+                    } else if (a.type === 'circle') {
+                        page.drawEllipse({
+                            x: c.x + c.width / 2,
+                            y: c.y + c.height / 2,
+                            xScale: c.width / 2,
+                            yScale: c.height / 2,
+                            borderColor: rgb(strk.r, strk.g, strk.b),
+                            borderWidth: a.strokeWidth || 2,
+                            color: hasFill ? rgb(fColor.r, fColor.g, fColor.b) : undefined
+                        });
+                    } else if (a.type === 'line') {
+                        page.drawLine({
+                            start: { x: c.x, y: c.y + c.height },
+                            end: { x: c.x + c.width, y: c.y },
+                            color: rgb(strk.r, strk.g, strk.b),
+                            thickness: a.strokeWidth || 2
+                        });
+                    }
+                }
+            }
+
+            // 3) HIGHLIGHTS
+            for (const a of annotations) {
+                if (a.type === 'highlight') {
+                    const c = mapCoord(a);
+                    const hl = hexToRgb(a.color);
+                    page.drawRectangle({
+                        x: c.x,
+                        y: c.y,
+                        width: c.width,
+                        height: c.height,
+                        color: rgb(hl.r, hl.g, hl.b),
+                        opacity: a.opacity || 0.35
+                    });
+                }
+            }
+
+            // 4) FREEHAND DRAWINGS
+            if (drawings.length > 0) {
+                const drawExportCanvas = document.createElement('canvas');
+                const resMult = 2;
+                drawExportCanvas.width = Math.floor(pageWidth * resMult);
+                drawExportCanvas.height = Math.floor(pageHeight * resMult);
+                const dCtx = drawExportCanvas.getContext('2d');
+                dCtx.scale(resMult, resMult);
+
+                drawings.forEach(s => {
+                    if (!s.points || s.points.length === 0) return;
+                    dCtx.save();
+                    dCtx.lineCap = 'round';
+                    dCtx.lineJoin = 'round';
+                    if (s.tool === 'eraser') {
+                        dCtx.globalCompositeOperation = 'destination-out';
+                        dCtx.lineWidth = (s.size || 15);
+                    } else {
+                        dCtx.globalCompositeOperation = 'source-over';
+                        dCtx.strokeStyle = s.color || '#ef4444';
+                        dCtx.lineWidth = (s.size || 3);
+                    }
+                    dCtx.beginPath();
+                    dCtx.moveTo(s.points[0].x, s.points[0].y);
+                    for (let i = 1; i < s.points.length; i++) {
+                        dCtx.lineTo(s.points[i].x, s.points[i].y);
+                    }
+                    dCtx.stroke();
+                    dCtx.restore();
+                });
+
+                const pngDataUrl = drawExportCanvas.toDataURL('image/png');
+                const pngBytes = await fetch(pngDataUrl).then(r => r.arrayBuffer());
+                const embeddedPng = await pdfLibDoc.embedPng(pngBytes);
+                page.drawImage(embeddedPng, {
+                    x: 0,
+                    y: 0,
+                    width: pageWidth,
+                    height: pageHeight
+                });
+            }
+
+            // 5) IMAGES AND SIGNATURES
+            for (const a of annotations) {
+                if (a.type === 'image' && a.dataUrl) {
+                    try {
+                        const c = mapCoord(a);
+                        const imgBytes = await fetch(a.dataUrl).then(r => r.arrayBuffer());
+                        const isJpeg = a.dataUrl.startsWith('data:image/jpeg') || a.dataUrl.startsWith('data:image/jpg');
+                        const embedded = isJpeg ? await pdfLibDoc.embedJpg(imgBytes) : await pdfLibDoc.embedPng(imgBytes);
+
+                        page.drawImage(embedded, {
+                            x: c.x,
+                            y: c.y,
+                            width: c.width,
+                            height: c.height
+                        });
+                    } catch (e) {
+                        console.warn('Failed to embed image annotation:', e);
+                    }
+                }
+            }
+
+            // 6) TEXT ANNOTATIONS
+            for (const a of annotations) {
+                if (a.type === 'text' && a.text) {
+                    const c = mapCoord(a);
+                    const col = hexToRgb(a.color);
+                    const fs = a.fontSize || 16;
+
+                    let fontKey = 'Helvetica';
+                    if (a.fontFamily === 'Times') {
+                        fontKey = a.bold && a.italic ? 'TimesBoldItalic' : (a.bold ? 'TimesBold' : (a.italic ? 'TimesItalic' : 'Times'));
+                    } else if (a.fontFamily === 'Courier') {
+                        fontKey = a.bold && a.italic ? 'CourierBoldOblique' : (a.bold ? 'CourierBold' : (a.italic ? 'CourierOblique' : 'Courier'));
+                    } else {
+                        fontKey = a.bold && a.italic ? 'HelveticaBoldOblique' : (a.bold ? 'HelveticaBold' : (a.italic ? 'HelveticaOblique' : 'Helvetica'));
+                    }
+                    const font = fonts[fontKey] || fonts.Helvetica;
+
+                    const lines = a.text.split('\n');
+                    const lineHeight = fs * 1.25;
+
+                    lines.forEach((rawLine, idx) => {
+                        const sanitized = sanitizeWinAnsi(rawLine);
+                        if (!sanitized) return;
+
+                        let lineX = c.x;
+                        if (a.align === 'center' || a.align === 'right') {
+                            const textW = font.widthOfTextAtSize(sanitized, fs);
+                            if (a.align === 'center') {
+                                lineX = c.x + (c.width - textW) / 2;
+                            } else if (a.align === 'right') {
+                                lineX = c.x + (c.width - textW);
+                            }
+                        }
+
+                        const baselineY = c.y + c.height - (fs * 0.85) - (idx * lineHeight);
+
+                        page.drawText(sanitized, {
+                            x: lineX,
+                            y: baselineY,
+                            size: fs,
+                            font: font,
+                            color: rgb(col.r, col.g, col.b)
+                        });
+                    });
+                }
+            }
+        }
     </script>
     <script src="../src/js/tools-menu.js"></script>
     <script src="../src/js/protect.js"></script>
