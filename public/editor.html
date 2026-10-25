@@ -616,6 +616,10 @@
             display: flex;
         }
 
+        .editor-body.sidebar-collapsed .thumb-sidebar {
+            display: none !important;
+        }
+
         .thumb-item {
             position: relative;
             border: 2px solid transparent;
@@ -626,6 +630,23 @@
             transition: all 0.15s;
             background: var(--bg);
             overflow: hidden;
+            user-select: none;
+        }
+
+        .thumb-item[draggable="true"] {
+            cursor: grab;
+        }
+
+        .thumb-item.dragging {
+            opacity: 0.4;
+            cursor: grabbing;
+            border-color: #3b82f6;
+            transform: scale(0.97);
+        }
+
+        .thumb-item.drag-over {
+            border-top: 3px solid #2563eb;
+            background: rgba(37, 99, 235, 0.08);
         }
 
         .thumb-item.active {
