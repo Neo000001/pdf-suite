@@ -1,80 +1,110 @@
-ï»¿<!DOCTYPE html>
-<html lang="en" data-theme="dark">
-
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
 <head>
 <!--
     PDFSuite - Copyright (c) 2025 Eebii. All Rights Reserved.
     Unauthorized copying or distribution prohibited.
     Contact: support@eebii.com
--->
+-->
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OCR - PDFSuite</title>
-    <link rel="stylesheet" href="../src/css/base.css" />
-    <link rel="stylesheet" href="../src/css/dashboard.css" />
-    <style>
-        .workspace {
-            max-width: 800px;
-            margin: 3rem auto;
-            padding: 2rem;
-            background: var(--bg-soft);
-            border-radius: 16px;
-            border: 1px solid var(--border-subtle);
-            text-align: center;
-        }
-
-        .upload-box {
-            border: 2px dashed #f59e0b;
-            padding: 3rem;
-            cursor: pointer;
-            border-radius: 8px;
-            margin-bottom: 2rem;
-            background: rgba(245, 158, 11, 0.05);
-        }
-
-        .btn-large {
-            padding: 1rem 2rem;
-            font-size: 1.1rem;
-            width: 100%;
-            font-weight: 600;
-            margin-top: 1rem;
-        }
-
-        #output-text {
-            width: 100%;
-            height: 300px;
-            background: var(--bg);
-            color: var(--fg);
-            border: 1px solid var(--border-subtle);
-            border-radius: 8px;
-            padding: 1rem;
-            font-family: monospace;
-            font-size: 0.9rem;
-            resize: vertical;
-            margin-top: 1rem;
-        }
-
-        #progress-bar {
-            width: 100%;
-            height: 8px;
-            background: var(--bg);
-            border: 1px solid var(--border-subtle);
-            border-radius: 4px;
-            overflow: hidden;
-            display: none;
-            margin-top: 1rem;
-        }
-
-        #progress-fill {
-            width: 0%;
-            height: 100%;
-            background: #f59e0b;
-            transition: width 0.1s;
-        }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR Text Recognition - PDFSuite</title>
+    <link rel="stylesheet" href="../src/css/base.css" />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <style>
+        .workspace {
+            max-width: 800px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background: var(--bg-soft);
+            border-radius: 16px;
+            border: 1px solid var(--border-subtle);
+            text-align: center;
+        }
 
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211" crossorigin="anonymous"></script>
+        .upload-box {
+            border: 2px dashed #f59e0b;
+            padding: 3rem;
+            cursor: pointer;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            background: rgba(245, 158, 11, 0.05);
+            transition: all 0.2s;
+        }
+
+        .upload-box:hover {
+            border-color: #d97706;
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        .btn-large {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            width: 100%;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+
+        #output-text {
+            width: 100%;
+            height: 300px;
+            background: var(--bg);
+            color: var(--fg);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            margin-top: 1rem;
+            box-sizing: border-box;
+        }
+
+        #progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--bg);
+            border: 1px solid var(--border-subtle);
+            border-radius: 4px;
+            overflow: hidden;
+            display: none;
+            margin-top: 1rem;
+        }
+
+        #progress-fill {
+            width: 0%;
+            height: 100%;
+            background: #f59e0b;
+            transition: width 0.1s;
+        }
+
+        .ocr-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .btn-copy {
+            background: var(--bg);
+            border: 1px solid var(--border-subtle);
+            color: var(--fg);
+            padding: 0.6rem 1.25rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-copy:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211" crossorigin="anonymous"></script>
 
     <!-- Auto Theme Detector -->
     <script>
@@ -89,122 +119,167 @@
             }
         })();
     </script>
-</head>
-
-<body>
-    <header class="site-header">
-        <div class="header-inner">
-            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
-            <div class="header-actions"><a href="../index.html" class="btn-ghost btn-small">Back to Tools</a></div>
-        </div>
-    </header>
-    <div class="ad-banner-section">
-        
-    <div class="ad-container" style="text-align: center; margin: 1rem 0;">
-      <ins class="adsbygoogle"
-           style="display:inline-block;width:728px;height:90px"
-           data-ad-client="ca-pub-7048088905906211"></ins>
-      <script>
-           (adsbygoogle = window.adsbygoogle || []).push({});
-      </script>
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">PDF<span>Suite</span></a>
+            <div class="header-actions"><a href="../index.html" class="btn-ghost btn-small">Back to Tools</a></div>
+        </div>
+    </header>
+    <div class="ad-banner-section">
+        <div class="ad-container" style="text-align: center; margin: 1rem 0;">
+            <ins class="adsbygoogle" style="display:inline-block;width:728px;height:90px" data-ad-client="ca-pub-7048088905906211"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
     </div>
-
-    </div>
-
-    <div class="workspace">
-        <h1>OCR Text Extraction</h1>
-        <p>Use Tesseract.js AI inside your browser to extract text from images and scanned documents.</p>
-        <div class="upload-box" id="uploadBox">
-            <h2>Select Scanned Image (JPG/PNG)</h2>
-            <input type="file" id="fileInput" accept="image/jpeg, image/png" hidden>
-        </div>
-        <div id="actionArea" style="display: none;">
-            <p id="fileInfo" style="margin-bottom: 1.5rem; font-weight: 600; text-align: left;"></p>
-
-            <div id="progress-bar">
-                <div id="progress-fill"></div>
-            </div>
-            <p id="statusMsg" style="margin-top: 1rem; color: #f59e0b; font-size: 0.8rem;"></p>
-
-            <textarea id="output-text" placeholder="Extracted text will appear here..."></textarea>
-            <button class="btn-primary btn-large" id="processBtn">Start OCR Extraction</button>
-        </div>
-    </div>
-
-    <div class="ad-banner-section bottom-ad">
-        
-    <div class="ad-container" style="text-align: center; margin: 1rem 0;">
-      <ins class="adsbygoogle"
-           style="display:inline-block;width:300px;height:250px"
-           data-ad-client="ca-pub-7048088905906211"></ins>
-      <script>
-           (adsbygoogle = window.adsbygoogle || []).push({});
-      </script>
+
+    <div class="workspace">
+        <h1>OCR Text Extraction</h1>
+        <p>Use local AI inside your browser to extract editable text from scanned PDFs and images. 100% private.</p>
+        <div class="upload-box" id="uploadBox">
+            <h2>Select PDF or Scanned Image (PDF, JPG, PNG, WebP)</h2>
+            <p style="color:var(--fg-muted); font-size:0.9rem; margin-top:0.5rem;">Click or drag & drop file here</p>
+            <input type="file" id="fileInput" accept="application/pdf, image/jpeg, image/png, image/webp" hidden>
+        </div>
+        <div id="actionArea" style="display: none;">
+            <p id="fileInfo" style="margin-bottom: 1.5rem; font-weight: 600; text-align: left;"></p>
+
+            <div id="progress-bar">
+                <div id="progress-fill"></div>
+            </div>
+            <p id="statusMsg" style="margin-top: 1rem; color: #f59e0b; font-size: 0.9rem; font-weight: 500;"></p>
+
+            <textarea id="output-text" placeholder="Extracted text will appear here..."></textarea>
+            <div class="ocr-actions">
+                <button class="btn-primary btn-large" id="processBtn" style="flex: 2; margin-top:0;">Start OCR Extraction</button>
+                <button class="btn-copy" id="copyBtn" style="flex: 1;" title="Copy to clipboard">Copy Text</button>
+            </div>
+        </div>
     </div>
-
-    </div>
-
-    <script>
-        const fileInput = document.getElementById('fileInput');
-        const uploadBox = document.getElementById('uploadBox');
-        const actionArea = document.getElementById('actionArea');
-        const processBtn = document.getElementById('processBtn');
-        const statusMsg = document.getElementById('statusMsg');
-        const outputText = document.getElementById('output-text');
-        const fileInfo = document.getElementById('fileInfo');
-        const progressBar = document.getElementById('progress-bar');
-        const progressFill = document.getElementById('progress-fill');
-
-        let objectUrl = null;
-
-        uploadBox.addEventListener('click', () => fileInput.click());
-
-        fileInput.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                objectUrl = URL.createObjectURL(file);
-                uploadBox.style.display = 'none';
-                actionArea.style.display = 'block';
-                fileInfo.innerText = `Source: ${file.name}`;
-            }
-        });
-
-        processBtn.addEventListener('click', async () => {
-            if (!objectUrl) return;
-            processBtn.disabled = true;
-            progressBar.style.display = 'block';
-            outputText.value = '';
-
-            try {
-                const worker = await Tesseract.createWorker("eng", 1, {
-                    logger: m => {
-                        if (m.status === 'recognizing text') {
-                            progressFill.style.width = Math.max(0, parseInt(m.progress * 100)) + '%';
-                            statusMsg.innerText = `Recognizing text... ${Math.max(0, parseInt(m.progress * 100))}%`;
-                        } else {
-                            statusMsg.innerText = m.status;
-                        }
-                    }
-                });
-
-                const { data: { text } } = await worker.recognize(objectUrl);
-                outputText.value = text;
-                statusMsg.innerText = "Text successfully extracted from image!";
-                statusMsg.style.color = '#22c55e';
-
-                await worker.terminate();
-            } catch (err) {
-                console.error(err);
-                statusMsg.innerText = "OCR Failed.";
-                statusMsg.style.color = "#ef4444";
-            } finally {
-                processBtn.disabled = false;
-                processBtn.innerText = "Run Again";
-            }
-        });
-    </script>
+
+    <div class="ad-banner-section bottom-ad">
+        <div class="ad-container" style="text-align: center; margin: 1rem 0;">
+            <ins class="adsbygoogle" style="display:inline-block;width:300px;height:250px" data-ad-client="ca-pub-7048088905906211"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </div>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        const fileInput = document.getElementById('fileInput');
+        const uploadBox = document.getElementById('uploadBox');
+        const actionArea = document.getElementById('actionArea');
+        const processBtn = document.getElementById('processBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const statusMsg = document.getElementById('statusMsg');
+        const outputText = document.getElementById('output-text');
+        const fileInfo = document.getElementById('fileInfo');
+        const progressBar = document.getElementById('progress-bar');
+        const progressFill = document.getElementById('progress-fill');
+
+        let selectedFile = null;
+
+        uploadBox.addEventListener('click', () => fileInput.click());
+        uploadBox.addEventListener('dragover', (e) => { e.preventDefault(); uploadBox.style.borderColor = '#d97706'; });
+        uploadBox.addEventListener('dragleave', () => { uploadBox.style.borderColor = '#f59e0b'; });
+        uploadBox.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadBox.style.borderColor = '#f59e0b';
+            if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) handleFile(e.target.files[0]);
+        });
+
+        function handleFile(file) {
+            selectedFile = file;
+            uploadBox.style.display = 'none';
+            actionArea.style.display = 'block';
+            fileInfo.innerText = `Source: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+            statusMsg.innerText = 'Ready to extract text. Click below to begin.';
+            statusMsg.style.color = '#f59e0b';
+        }
+
+        copyBtn.addEventListener('click', () => {
+            if (!outputText.value.trim()) return;
+            navigator.clipboard.writeText(outputText.value).then(() => {
+                const prev = copyBtn.innerText;
+                copyBtn.innerText = 'Copied!';
+                setTimeout(() => copyBtn.innerText = prev, 2000);
+            });
+        });
+
+        processBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+            processBtn.disabled = true;
+            progressBar.style.display = 'block';
+            outputText.value = '';
+            statusMsg.style.color = '#f59e0b';
+
+            try {
+                const worker = await Tesseract.createWorker("eng", 1, {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            const pct = Math.max(0, parseInt(m.progress * 100));
+                            progressFill.style.width = pct + '%';
+                            statusMsg.innerText = `Recognizing text... ${pct}%`;
+                        } else {
+                            statusMsg.innerText = m.status;
+                        }
+                    }
+                });
+
+                if (selectedFile.type === 'application/pdf' || selectedFile.name.toLowerCase().endsWith('.pdf')) {
+                    statusMsg.innerText = 'Rendering PDF pages for OCR...';
+                    const arrayBuffer = await selectedFile.arrayBuffer();
+                    const pdfDoc = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
+                    let fullText = '';
+
+                    for (let p = 1; p <= pdfDoc.numPages; p++) {
+                        statusMsg.innerText = `Processing page ${p} of ${pdfDoc.numPages}...`;
+                        const page = await pdfDoc.getPage(p);
+                        const vp = page.getViewport({ scale: 2.0 }); // Higher scale for high OCR accuracy
+                        const canvas = document.createElement('canvas');
+                        canvas.width = vp.width;
+                        canvas.height = vp.height;
+                        const ctx = canvas.getContext('2d');
+                        await page.render({ canvasContext: ctx, viewport: vp }).promise;
+
+                        const { data: { text } } = await worker.recognize(canvas);
+                        if (pdfDoc.numPages > 1) {
+                            fullText += `--- Page ${p} ---\n` + text + '\n\n';
+                        } else {
+                            fullText += text;
+                        }
+                        outputText.value = fullText;
+                    }
+                    statusMsg.innerText = "Text successfully extracted from PDF!";
+                } else {
+                    const objectUrl = URL.createObjectURL(selectedFile);
+                    const { data: { text } } = await worker.recognize(objectUrl);
+                    outputText.value = text;
+                    statusMsg.innerText = "Text successfully extracted from image!";
+                    URL.revokeObjectURL(objectUrl);
+                }
+
+                statusMsg.style.color = '#22c55e';
+                await worker.terminate();
+            } catch (err) {
+                console.error(err);
+                statusMsg.innerText = "OCR Failed: " + (err.message || 'Unknown error');
+                statusMsg.style.color = "#ef4444";
+            } finally {
+                processBtn.disabled = false;
+                processBtn.innerText = "Run Again";
+            }
+        });
+    </script>
     <script src="../src/js/protect.js"></script>
     <script src="../src/js/adblock-detect.js" defer></script>
-</body>
-
-</html>
+</body>
+
+</html>

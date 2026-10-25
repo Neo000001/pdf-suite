@@ -8,8 +8,11 @@
 (function () {
     'use strict';
 
-    // ── 1. Disable right-click context menu ──
+    // ── 1. Disable right-click context menu (allow in editor and inputs) ──
     document.addEventListener('contextmenu', function (e) {
+        if (e.target.isContentEditable || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || (e.target.closest && (e.target.closest('#annotationLayer') || e.target.closest('.canvas-area') || e.target.closest('.modal')))) {
+            return true;
+        }
         e.preventDefault();
         return false;
     });
@@ -33,11 +36,17 @@
         // Ctrl+Shift+C — Inspect mode
         if (e.ctrlKey && e.shiftKey && (e.keyCode === 67 || key === 'c' || key === 'C')) { e.preventDefault(); return false; }
 
-        // Ctrl+S — Save page
-        if (e.ctrlKey && (e.keyCode === 83 || key === 's' || key === 'S')) { e.preventDefault(); return false; }
+        // Ctrl+S — Save page (redirect to export if in editor)
+        if (e.ctrlKey && (e.keyCode === 83 || key === 's' || key === 'S')) {
+            e.preventDefault();
+            const exportBtn = document.getElementById('exportBtn') || document.getElementById('saveBtn');
+            if (exportBtn && !exportBtn.disabled) {
+                exportBtn.click();
+            }
+            return false;
+        }
 
-        // Ctrl+A — Select All (prevent mass copying)
-        // Note: Disabled only on body, not in inputs/textareas
+        // Ctrl+A — Select All (allow in text inputs and content editable)
         if (e.ctrlKey && (e.keyCode === 65 || key === 'a' || key === 'A')) {
             if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && !e.target.isContentEditable) {
                 e.preventDefault();
@@ -48,7 +57,7 @@
 
     // ── 3. Disable drag-select on page body ──
     document.addEventListener('selectstart', function (e) {
-        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && !e.target.isContentEditable) {
+        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA' && !e.target.isContentEditable && !(e.target.closest && (e.target.closest('#annotationLayer') || e.target.closest('.canvas-area') || e.target.closest('.modal')))) {
             e.preventDefault();
         }
     });

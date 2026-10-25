@@ -35,6 +35,10 @@ html[data-theme="light"] {
 
 /* ========= GLOBAL ========= */
 
+html {
+  scroll-behavior: smooth;
+}
+
 *,
 *::before,
 *::after {
