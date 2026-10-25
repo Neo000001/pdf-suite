@@ -573,10 +573,10 @@
           <a href="./public/compress.html">Compress PDF</a>
         </div>
         <div class="link-group">
-          <h4>Legal & Company</h4>
-          <a href="./public/privacy.html" onclick="openPrivacyModal(event)">Privacy Policy</a>
-          <a href="./public/terms.html" onclick="openTermsModal(event)">Terms & Conditions</a>
-          <a href="./public/about.html" onclick="openAboutModal(event)">About Us</a>
+          <h4>Legal</h4>
+          <a href="./public/privacy.html">Privacy Policy</a>
+          <a href="./public/terms.html">Terms & Conditions</a>
+          <a href="./public/about.html">About Us</a>
           <a href="./public/contact.html" onclick="openContactModal(event)">Contact Us</a>
         </div>
       </div>
@@ -606,19 +606,13 @@
       border-radius: 16px;
       padding: 2rem;
       width: 90%;
-      max-width: 500px;
+      max-width: 480px;
       position: relative;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
       border: 1px solid var(--border-subtle);
       color: var(--fg);
       box-sizing: border-box;
       animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .modal-content.modal-large {
-      max-width: 660px;
-      max-height: 85vh;
-      overflow-y: auto;
     }
 
     @keyframes modalFadeIn {
@@ -652,34 +646,6 @@
       background: rgba(37, 99, 235, 0.12);
       color: var(--accent);
       margin-bottom: 0.75rem;
-    }
-
-    .modal-stats-row {
-      display: flex;
-      gap: 0.75rem;
-      margin: 1.25rem 0;
-      flex-wrap: wrap;
-    }
-
-    .modal-stat-pill {
-      flex: 1;
-      min-width: 140px;
-      background: var(--bg);
-      border: 1px solid var(--border-subtle);
-      padding: 0.75rem 1rem;
-      border-radius: 10px;
-      text-align: center;
-    }
-
-    .modal-stat-pill strong {
-      display: block;
-      font-size: 1.25rem;
-      color: var(--accent);
-    }
-
-    .modal-stat-pill span {
-      font-size: 0.75rem;
-      color: var(--fg-muted);
     }
 
     .modal-footer-action {
@@ -753,51 +719,6 @@
     }
   </style>
 
-  <!-- ================= ABOUT MODAL ================= -->
-  <div id="aboutModal" class="modal-overlay">
-    <div class="modal-content modal-large">
-      <span class="modal-close" onclick="closeAboutModal()">&times;</span>
-      <div class="modal-badge"><i data-lucide="info" style="width:14px;height:14px;"></i> Company & Mission</div>
-      <h2 style="margin:0 0 0.5rem 0; font-size:1.75rem;">About PDFSuite</h2>
-      <p style="color:var(--fg-muted); font-size:0.95rem; margin-bottom:1rem; font-style:italic;">
-        "Democratizing powerful document tools while respecting your absolute privacy."
-      </p>
-
-      <div class="modal-stats-row">
-        <div class="modal-stat-pill">
-          <strong>0</strong>
-          <span>Server Uploads</span>
-        </div>
-        <div class="modal-stat-pill">
-          <strong>30+</strong>
-          <span>Native Tools</span>
-        </div>
-        <div class="modal-stat-pill">
-          <strong>100%</strong>
-          <span>Private & Free</span>
-        </div>
-      </div>
-
-      <div style="font-size:0.92rem; line-height:1.7; color:var(--fg); margin:1.25rem 0;">
-        <h4 style="margin:0 0 0.35rem 0;">How It Works</h4>
-        <p style="color:var(--fg-muted); margin:0 0 1rem 0;">
-          Most online PDF websites require uploading your files to remote cloud servers. PDFSuite runs completely in your browser. Using modern WebAssembly and HTML5 APIs, your documents are processed locally on your device's CPU.
-        </p>
-        <h4 style="margin:0 0 0.35rem 0;">Unbreakable Privacy Standard</h4>
-        <p style="color:var(--fg-muted); margin:0;">
-          Your sensitive contracts, medical reports, and tax forms never touch a server database because we operate with zero cloud file storage.
-        </p>
-      </div>
-
-      <div class="modal-footer-action">
-        <a href="./public/about.html" style="color:var(--accent); font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
-          Open Full About Page ↗
-        </a>
-        <button type="button" class="btn-ghost" onclick="closeAboutModal()" style="padding:6px 16px;">Close</button>
-      </div>
-    </div>
-  </div>
-
   <!-- ================= CONTACT MODAL ================= -->
   <div id="contactModal" class="modal-overlay">
     <div class="modal-content">
@@ -833,74 +754,6 @@
         <a href="./public/contact.html" style="color:var(--accent); font-weight:600; text-decoration:none;">
           Open Full Contact Page ↗
         </a>
-      </div>
-    </div>
-  </div>
-
-  <!-- ================= PRIVACY POLICY MODAL ================= -->
-  <div id="privacyModal" class="modal-overlay">
-    <div class="modal-content modal-large">
-      <span class="modal-close" onclick="closePrivacyModal()">&times;</span>
-      <div class="modal-badge"><i data-lucide="shield-check" style="width:14px;height:14px;"></i> Privacy First</div>
-      <h2 style="margin:0 0 0.5rem 0; font-size:1.75rem;">Privacy Policy</h2>
-      <p style="color:var(--fg-muted); font-size:0.9rem; margin-bottom:1rem;">Last updated: October 2025</p>
-
-      <div style="font-size:0.92rem; line-height:1.7; color:var(--fg); max-height:380px; overflow-y:auto; padding-right:6px;">
-        <h4 style="margin:0 0 0.35rem 0;">1. Absolute Local Processing</h4>
-        <p style="color:var(--fg-muted); margin:0 0 1rem 0;">
-          PDFSuite does NOT collect, store, view, or transmit your files. When you compress, merge, convert, split, redact, or edit a PDF document, all calculations happen entirely inside your browser sandbox on your device.
-        </p>
-
-        <h4 style="margin:0 0 0.35rem 0;">2. Zero Cloud Storage</h4>
-        <p style="color:var(--fg-muted); margin:0 0 1rem 0;">
-          There is no remote server database holding your documents. The moment you close the tab, all memory buffers used during the session are immediately freed by your browser.
-        </p>
-
-        <h4 style="margin:0 0 0.35rem 0;">3. Cookies and Local Storage</h4>
-        <p style="color:var(--fg-muted); margin:0 0 1rem 0;">
-          We use browser local storage exclusively to remember your dark/light theme preference. No tracking cookies are used to build personal user profiles.
-        </p>
-      </div>
-
-      <div class="modal-footer-action">
-        <a href="./public/privacy.html" style="color:var(--accent); font-weight:600; text-decoration:none;">
-          Open Full Privacy Policy ↗
-        </a>
-        <button type="button" class="btn-ghost" onclick="closePrivacyModal()" style="padding:6px 16px;">Close</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ================= TERMS MODAL ================= -->
-  <div id="termsModal" class="modal-overlay">
-    <div class="modal-content modal-large">
-      <span class="modal-close" onclick="closeTermsModal()">&times;</span>
-      <div class="modal-badge"><i data-lucide="file-text" style="width:14px;height:14px;"></i> Legal Terms</div>
-      <h2 style="margin:0 0 0.5rem 0; font-size:1.75rem;">Terms & Conditions</h2>
-      <p style="color:var(--fg-muted); font-size:0.9rem; margin-bottom:1rem;">Effective: October 2025</p>
-
-      <div style="font-size:0.92rem; line-height:1.7; color:var(--fg); max-height:380px; overflow-y:auto; padding-right:6px;">
-        <h4 style="margin:0 0 0.35rem 0;">1. Permitted Use</h4>
-        <p style="color:var(--fg-muted); margin:0 0 1rem 0;">
-          PDFSuite is provided completely free of charge for personal, educational, and commercial document editing and conversion tasks.
-        </p>
-
-        <h4 style="margin:0 0 0.35rem 0;">2. Fair Use & Abuse Prevention</h4>
-        <p style="color:var(--fg-muted); margin:0 0 1rem 0;">
-          You agree not to use automated bots to reverse-engineer client code, scrape assets, or overload network hosting. The service is provided "as is" with maximum commitment to privacy and quality.
-        </p>
-
-        <h4 style="margin:0 0 0.35rem 0;">3. Ownership</h4>
-        <p style="color:var(--fg-muted); margin:0;">
-          You retain 100% intellectual property ownership of any files, images, or documents you process through PDFSuite.
-        </p>
-      </div>
-
-      <div class="modal-footer-action">
-        <a href="./public/terms.html" style="color:var(--accent); font-weight:600; text-decoration:none;">
-          Open Full Terms & Conditions ↗
-        </a>
-        <button type="button" class="btn-ghost" onclick="closeTermsModal()" style="padding:6px 16px;">Close</button>
       </div>
     </div>
   </div>
@@ -996,23 +849,14 @@
     }
 
     // Modal Helpers
-    function openAboutModal(e) { openModalById('aboutModal', e); }
-    function closeAboutModal() { closeModalById('aboutModal'); }
-
     function openContactModal(e) { openModalById('contactModal', e); }
     function closeContactModal() { closeModalById('contactModal'); }
-
-    function openPrivacyModal(e) { openModalById('privacyModal', e); }
-    function closePrivacyModal() { closeModalById('privacyModal'); }
-
-    function openTermsModal(e) { openModalById('termsModal', e); }
-    function closeTermsModal() { closeModalById('termsModal'); }
 
     function openFeedbackModal(e) { openModalById('feedbackModal', e); }
     function closeFeedbackModal() { closeModalById('feedbackModal'); }
 
-    // Close on backdrop click for all modals
-    ['aboutModal', 'contactModal', 'privacyModal', 'termsModal', 'feedbackModal'].forEach(id => {
+    // Close on backdrop click
+    ['contactModal', 'feedbackModal'].forEach(id => {
       const m = document.getElementById(id);
       if (m) {
         m.addEventListener('click', function(e) {
@@ -1024,7 +868,7 @@
     // Close on Escape key
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
-        ['aboutModal', 'contactModal', 'privacyModal', 'termsModal', 'feedbackModal'].forEach(id => {
+        ['contactModal', 'feedbackModal'].forEach(id => {
           closeModalById(id);
         });
       }
@@ -1099,13 +943,10 @@
       }
     });
 
-    // Check URL Hash on page load (e.g. index.html#about or #contact)
+    // Check URL Hash on page load (e.g. index.html#contact or #feedback)
     window.addEventListener('DOMContentLoaded', () => {
       const hash = window.location.hash.toLowerCase();
-      if (hash === '#about') openAboutModal();
-      else if (hash === '#contact') openContactModal();
-      else if (hash === '#privacy') openPrivacyModal();
-      else if (hash === '#terms') openTermsModal();
+      if (hash === '#contact') openContactModal();
       else if (hash === '#feedback') openFeedbackModal();
     });
 
