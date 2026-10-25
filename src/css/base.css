@@ -1,3 +1,5 @@
+@import url('./tools-menu.css');
+
 /* ========= THEME TOKENS ========= */
 
 :root {
@@ -511,6 +513,15 @@ html[data-theme="light"] .site-footer {
 
   .mobile-nav-btn {
     display: inline-flex !important;
+  }
+
+  .mobile-tools-nav-btn {
+    display: inline-flex !important;
+    font-size: 0.8rem;
+    padding: 5px 10px;
+    background: rgba(37, 99, 235, 0.1);
+    border: 1px solid rgba(37, 99, 235, 0.3);
+    color: var(--accent);
   }
 
   .header-actions {

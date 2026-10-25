@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" data-theme="dark">
 
 <head>
@@ -178,35 +178,65 @@
   <section id="quick-tools" class="section workspace-section">
     <div class="section-inner">
 
+      <!-- ================= UNIVERSAL TOOL FINDER ================= -->
+      <div class="home-tool-finder-wrapper">
+        <div class="home-search-bar">
+          <span class="home-search-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </span>
+          <input type="text" id="homeToolQuickSearch" class="home-search-input" placeholder="Search 30+ tools... (e.g. merge, compress, sign, ocr, word, rotate, crop)" autocomplete="off" spellcheck="false" />
+          <button type="button" id="homeToolSearchClear" class="home-search-clear" title="Clear search">&times;</button>
+          <span class="home-search-kbd">Ctrl + K</span>
+        </div>
+
+        <div class="home-filter-pills">
+          <button type="button" class="filter-pill active" data-category="all">⚡ All Tools</button>
+          <button type="button" class="filter-pill" data-category="essentials">⭐ Essentials</button>
+          <button type="button" class="filter-pill" data-category="organize">📑 Organize Pages</button>
+          <button type="button" class="filter-pill" data-category="convert">🔄 Convert Files</button>
+          <button type="button" class="filter-pill" data-category="security-ai">🔒 Security & AI</button>
+          <button type="button" class="filter-pill" data-category="images">🖼️ Image Tools</button>
+        </div>
+      </div>
+
+      <!-- No Results State on Search -->
+      <div id="homeSearchNoResults" class="home-search-no-results">
+        <h3>No matching tools found</h3>
+        <p>Try searching for keywords like <em>merge</em>, <em>compress</em>, <em>signature</em>, <em>word</em>, or <em>ocr</em>.</p>
+      </div>
+
       <!-- Category 1: Most Popular / Essential -->
-      <div class="category-group">
+      <div class="category-group" data-group="essentials">
         <div class="category-header">
           <h2>Essentials</h2>
           <p>The core tools you need every day</p>
         </div>
         <div class="tools-grid">
-          <a href="./public/editor.html" class="tool-card premium-card">
+          <a href="./public/editor.html" class="tool-card premium-card" data-category="essentials">
             <div class="tool-icon gradient-bg-1"><i data-lucide="edit"></i></div>
             <div class="tool-content">
               <h3>Edit PDF</h3>
-              <p>Add text, highlight, images, and shapes directly.</p>
+              <p>Add text, highlight, images, shapes, and whiteout directly.</p>
             </div>
           </a>
-          <a href="./public/merge.html" class="tool-card">
+          <a href="./public/merge.html" class="tool-card" data-category="essentials">
             <div class="tool-icon"><i data-lucide="link"></i></div>
             <div class="tool-content">
               <h3>Merge PDF</h3>
               <p>Combine multiple PDFs into one document.</p>
             </div>
           </a>
-          <a href="./public/compress.html" class="tool-card">
+          <a href="./public/compress.html" class="tool-card" data-category="essentials">
             <div class="tool-icon"><i data-lucide="minimize"></i></div>
             <div class="tool-content">
               <h3>Compress PDF</h3>
               <p>Reduce file size instantly without losing quality.</p>
             </div>
           </a>
-          <a href="./public/editor.html" class="tool-card">
+          <a href="./public/editor.html" class="tool-card" data-category="essentials">
             <div class="tool-icon gradient-bg-2"><i data-lucide="pen-tool"></i></div>
             <div class="tool-content">
               <h3>Fill & Sign</h3>
@@ -217,29 +247,29 @@
       </div>
 
       <!-- Category 2: Convert FROM PDF -->
-      <div class="category-group">
+      <div class="category-group" data-group="convert">
         <div class="category-header">
           <h2>Convert from PDF</h2>
           <p>Extract your data back to editable formats</p>
         </div>
         <div class="tools-grid small-grid">
-          <a href="./public/pdf-to-word.html" class="tool-card small">
+          <a href="./public/pdf-to-word.html" class="tool-card small" data-category="convert">
             <div class="tool-icon"><i data-lucide="file-text"></i></div>
             <h3>PDF to Word</h3>
           </a>
-          <a href="./public/pdf-to-excel.html" class="tool-card small">
+          <a href="./public/pdf-to-excel.html" class="tool-card small" data-category="convert">
             <div class="tool-icon"><i data-lucide="table"></i></div>
             <h3>PDF to Excel</h3>
           </a>
-          <a href="./public/pdf-to-ppt.html" class="tool-card small">
+          <a href="./public/pdf-to-ppt.html" class="tool-card small" data-category="convert">
             <div class="tool-icon"><i data-lucide="monitor-play"></i></div>
             <h3>PDF to PPT</h3>
           </a>
-          <a href="./public/pdf-to-jpg.html" class="tool-card small">
+          <a href="./public/pdf-to-jpg.html" class="tool-card small" data-category="convert">
             <div class="tool-icon"><i data-lucide="image"></i></div>
             <h3>PDF to JPG</h3>
           </a>
-          <a href="./public/pdf-to-text.html" class="tool-card small">
+          <a href="./public/pdf-to-text.html" class="tool-card small" data-category="convert">
             <div class="tool-icon"><i data-lucide="align-left"></i></div>
             <h3>PDF to Text</h3>
           </a>
@@ -247,25 +277,25 @@
       </div>
 
       <!-- Category 3: Convert TO PDF -->
-      <div class="category-group">
+      <div class="category-group" data-group="convert">
         <div class="category-header">
           <h2>Convert to PDF</h2>
           <p>Turn any file into a standard PDF</p>
         </div>
         <div class="tools-grid small-grid">
-          <a href="./public/word-to-pdf.html" class="tool-card small">
+          <a href="./public/word-to-pdf.html" class="tool-card small" data-category="convert">
             <div class="tool-icon"><i data-lucide="file-input"></i></div>
             <h3>Word to PDF</h3>
           </a>
-          <a href="./public/excel-to-pdf.html" class="tool-card small">
+          <a href="./public/excel-to-pdf.html" class="tool-card small" data-category="convert">
             <div class="tool-icon"><i data-lucide="file-input"></i></div>
             <h3>Excel to PDF</h3>
           </a>
-          <a href="./public/jpg-to-pdf.html" class="tool-card small">
+          <a href="./public/jpg-to-pdf.html" class="tool-card small" data-category="convert">
             <div class="tool-icon"><i data-lucide="file-input"></i></div>
             <h3>JPG to PDF</h3>
           </a>
-          <a href="./public/scan-to-pdf.html" class="tool-card small">
+          <a href="./public/scan-to-pdf.html" class="tool-card small" data-category="convert">
             <div class="tool-icon"><i data-lucide="scan"></i></div>
             <h3>Scan to PDF</h3>
           </a>
@@ -273,27 +303,27 @@
       </div>
 
       <!-- Category 4: Organize Pages -->
-      <div class="category-group">
+      <div class="category-group" data-group="organize">
         <div class="category-header">
           <h2>Organize Pages</h2>
           <p>Manage the structure of your document</p>
         </div>
         <div class="tools-grid">
-          <a href="./public/split.html" class="tool-card">
+          <a href="./public/split.html" class="tool-card" data-category="organize">
             <div class="tool-icon"><i data-lucide="scissors"></i></div>
             <div class="tool-content">
               <h3>Split PDF</h3>
               <p>Extract pages or split into multiple files.</p>
             </div>
           </a>
-          <a href="./public/remove-pages.html" class="tool-card">
+          <a href="./public/remove-pages.html" class="tool-card" data-category="organize">
             <div class="tool-icon"><i data-lucide="trash"></i></div>
             <div class="tool-content">
               <h3>Remove Pages</h3>
               <p>Delete unwanted pages from your document.</p>
             </div>
           </a>
-          <a href="./public/reorder.html" class="tool-card">
+          <a href="./public/reorder.html" class="tool-card" data-category="organize">
             <div class="tool-icon"><i data-lucide="rotate-cw"></i></div>
             <div class="tool-content">
               <h3>Rotate/Reorder</h3>
@@ -304,42 +334,42 @@
       </div>
 
       <!-- Category 5: Security & Advanced -->
-      <div class="category-group" id="ai-tools">
+      <div class="category-group" id="ai-tools" data-group="security-ai">
         <div class="category-header">
           <h2>Advanced & AI Tools</h2>
           <p>All tools are 100% Free. <a href="./public/premium.html"
               style="color: #f59e0b; text-decoration: underline;">Upgrade to PRO to remove ads.</a></p>
         </div>
         <div class="tools-grid">
-          <a href="./public/ocr.html" class="tool-card ai-card-style">
+          <a href="./public/ocr.html" class="tool-card ai-card-style" data-category="security-ai">
             <div class="tool-icon"><i data-lucide="search"></i></div>
             <div class="tool-content">
               <h3>OCR Text Recognition</h3>
               <p>Extract editable text from scanned documents & images.</p>
             </div>
           </a>
-          <a href="./public/ai-summarizer.html" class="tool-card ai-card-style">
+          <a href="./public/ai-summarizer.html" class="tool-card ai-card-style" data-category="security-ai">
             <div class="tool-icon"><i data-lucide="bot"></i></div>
             <div class="tool-content">
               <h3>AI Summarizer</h3>
               <p>Chat with your PDF and get instant summaries.</p>
             </div>
           </a>
-          <a href="./public/protect.html" class="tool-card">
+          <a href="./public/protect.html" class="tool-card" data-category="security-ai">
             <div class="tool-icon"><i data-lucide="lock"></i></div>
             <div class="tool-content">
               <h3>Protect PDF</h3>
               <p>Add passwords and restrict permissions.</p>
             </div>
           </a>
-          <a href="./public/redact.html" class="tool-card">
+          <a href="./public/redact.html" class="tool-card" data-category="security-ai">
             <div class="tool-icon"><i data-lucide="eye-off"></i></div>
             <div class="tool-content">
               <h3>Redact PDF</h3>
               <p>Permanently black out sensitive information.</p>
             </div>
           </a>
-          <a href="./public/watermark.html" class="tool-card">
+          <a href="./public/watermark.html" class="tool-card" data-category="security-ai">
             <div class="tool-icon"><i data-lucide="droplet"></i></div>
             <div class="tool-content">
               <h3>Watermark PDF</h3>
@@ -691,6 +721,8 @@
   </div>
 
     <!-- ================= SCRIPTS ================= -->
+  <script src="src/js/tools-menu.js"></script>
+  <script src="src/js/protect.js"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
     lucide.createIcons();
@@ -783,8 +815,6 @@
     });
 
   </script>
-
-  <script src="src/js/protect.js"></script>
 </body>
 
 </html>
