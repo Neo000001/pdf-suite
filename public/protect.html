@@ -189,11 +189,11 @@
                 style="background: var(--bg); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-subtle); margin-bottom: 1.5rem;">
                 <h3
                     style="margin-top:0; font-size:1.1rem; color:var(--accent); display:flex; align-items:center; gap:0.5rem;">
-                    <i data-lucide="stamp"></i> 1. Confidential Watermark
+                    <i data-lucide="stamp"></i> 1. Security & Watermark Stamp
                 </h3>
                 <div style="display:flex; gap:1rem; margin-top:1rem; align-items:flex-end; flex-wrap:wrap;">
                     <div style="flex:1; min-width:200px;">
-                        <label style="color:var(--fg-muted)">Watermark Text (Leave blank to skip):</label>
+                        <label style="color:var(--fg-muted)">Watermark Text:</label>
                         <input type="text" id="watermarkText" value="CONFIDENTIAL"
                             style="width:100%; padding:0.75rem; border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg-soft); color:var(--fg); margin-top:0.5rem; font-size:1.1rem; font-weight:bold;">
                     </div>
@@ -203,21 +203,32 @@
                             style="width:100%; height: 48px; padding:0.25rem; border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg-soft); cursor:pointer; margin-top:0.5rem;">
                     </div>
                 </div>
+                <div style="display:flex; gap:0.5rem; margin-top:0.75rem; flex-wrap:wrap;">
+                    <button type="button" class="btn-ghost btn-small preset-btn" data-preset="CONFIDENTIAL" style="padding:0.3rem 0.75rem; font-size:0.8rem; border-radius:6px; cursor:pointer;">CONFIDENTIAL</button>
+                    <button type="button" class="btn-ghost btn-small preset-btn" data-preset="DO NOT COPY" style="padding:0.3rem 0.75rem; font-size:0.8rem; border-radius:6px; cursor:pointer;">DO NOT COPY</button>
+                    <button type="button" class="btn-ghost btn-small preset-btn" data-preset="DRAFT" style="padding:0.3rem 0.75rem; font-size:0.8rem; border-radius:6px; cursor:pointer;">DRAFT</button>
+                    <button type="button" class="btn-ghost btn-small preset-btn" data-preset="INTERNAL ONLY" style="padding:0.3rem 0.75rem; font-size:0.8rem; border-radius:6px; cursor:pointer;">INTERNAL ONLY</button>
+                    <button type="button" class="btn-ghost btn-small preset-btn" data-preset="ORIGINAL" style="padding:0.3rem 0.75rem; font-size:0.8rem; border-radius:6px; cursor:pointer;">ORIGINAL</button>
+                </div>
             </div>
 
             <div
-                style="background: var(--bg); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-subtle);">
+                style="background: var(--bg); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-subtle); margin-bottom: 1.5rem;">
                 <h3
                     style="margin-top:0; font-size:1.1rem; color:#10b981; display:flex; align-items:center; gap:0.5rem;">
-                    <i data-lucide="lock"></i> 2. Password Protection
+                    <i data-lucide="sliders"></i> 2. Stamp Layout & Opacity
                 </h3>
-                <p style="font-size:0.85rem; color:var(--fg-muted); margin-bottom:1rem;">Lock this PDF so it requires a
-                    password to open. (Optional)</p>
-                <div style="display:flex; gap:1rem; flex-wrap:wrap;">
-                    <div style="flex:1; min-width:200px;">
-                        <label style="color:var(--fg-muted)">Set Document Password:</label>
-                        <input type="password" id="pdfPassword" placeholder="Enter highly secure password..."
-                            style="width:100%; padding:0.75rem; border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg-soft); color:var(--fg); margin-top:0.5rem; font-size:1rem;">
+                <div style="display:flex; gap:1.5rem; margin-top:1rem; flex-wrap:wrap; align-items:center;">
+                    <div style="flex:1; min-width:180px;">
+                        <label style="color:var(--fg-muted)">Opacity: <strong id="opacityVal" style="color:var(--fg);">30%</strong></label>
+                        <input type="range" id="watermarkOpacity" min="10" max="80" value="30" step="5" style="width:100%; margin-top:0.5rem; cursor:pointer;">
+                    </div>
+                    <div style="flex:1; min-width:180px;">
+                        <label style="color:var(--fg-muted)">Angle:</label>
+                        <select id="watermarkAngle" style="width:100%; padding:0.65rem; border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg-soft); color:var(--fg); margin-top:0.5rem;">
+                            <option value="45" selected>Diagonal (45°)</option>
+                            <option value="0">Horizontal (0°)</option>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -335,21 +346,23 @@
 
 
 
+        const watermarkOpacityInput = document.getElementById('watermarkOpacity');
+        const opacityVal = document.getElementById('opacityVal');
+        const watermarkAngleInput = document.getElementById('watermarkAngle');
+
+        if (watermarkOpacityInput && opacityVal) {
+            watermarkOpacityInput.addEventListener('input', () => {
+                opacityVal.innerText = watermarkOpacityInput.value + '%';
+            });
+        }
+
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                watermarkTextInput.value = btn.dataset.preset;
+            });
+        });
+
         processBtn.addEventListener('click', async () => {
-            const passwordValue = document.getElementById('pdfPassword').value;
-
-            // Upsell for Password Protection
-            if (passwordValue.length > 0) {
-                const isPro = localStorage.getItem('pdfsuite_pro') === 'true';
-                if (!isPro) {
-                    alert('Advanced AES-128 Password Encryption requires PDFSuite Server Processing. Unlock this feature with PRO!');
-                    window.location.href = './premium.html';
-                    return;
-                } else {
-                    alert('PRO SERVER ERROR: Local dev environment does not have the encryption server running. Passing without password for now.');
-                }
-            }
-
             try {
                 processBtn.disabled = true;
                 processBtn.innerText = "Processing Document...";
@@ -368,24 +381,32 @@
                     const r = parseInt(hexColor.substr(1, 2), 16) / 255;
                     const g = parseInt(hexColor.substr(3, 2), 16) / 255;
                     const b = parseInt(hexColor.substr(5, 2), 16) / 255;
+                    const opacity = (parseInt(watermarkOpacityInput ? watermarkOpacityInput.value : 30, 10)) / 100;
+                    const angleDeg = parseInt(watermarkAngleInput ? watermarkAngleInput.value : 45, 10);
 
                     for (let page of pages) {
                         const { width, height } = page.getSize();
-                        const fontSize = 60;
+                        const fontSize = 56;
                         const textWidth = helveticaFont.widthOfTextAtSize(text, fontSize);
 
-                        const angleInRad = 45 * Math.PI / 180;
-                        const x = width / 2 - (textWidth / 2) * Math.cos(angleInRad) + (fontSize / 2) * Math.sin(angleInRad);
-                        const y = height / 2 - (textWidth / 2) * Math.sin(angleInRad) - (fontSize / 2) * Math.cos(angleInRad);
+                        let x, y;
+                        if (angleDeg === 0) {
+                            x = (width - textWidth) / 2;
+                            y = (height - fontSize) / 2;
+                        } else {
+                            const angleInRad = angleDeg * Math.PI / 180;
+                            x = width / 2 - (textWidth / 2) * Math.cos(angleInRad) + (fontSize / 2) * Math.sin(angleInRad);
+                            y = height / 2 - (textWidth / 2) * Math.sin(angleInRad) - (fontSize / 2) * Math.cos(angleInRad);
+                        }
 
                         page.drawText(text, {
-                            x: x,
-                            y: y,
+                            x: Math.max(10, x),
+                            y: Math.max(10, y),
                             size: fontSize,
                             font: helveticaFont,
                             color: rgb(r, g, b),
-                            opacity: 0.3,
-                            rotate: degrees(45),
+                            opacity: opacity,
+                            rotate: degrees(angleDeg),
                         });
                     }
                 }
@@ -397,7 +418,7 @@
                 link.download = `Protected_${fileName}`;
                 link.click();
 
-                statusMsg.innerText = "Success! Document processed.";
+                statusMsg.innerText = "Success! Document protected & downloaded.";
                 processBtn.innerText = "Protect & Download Document";
                 processBtn.disabled = false;
 
