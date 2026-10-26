@@ -20,6 +20,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7048088905906211"
         crossorigin="anonymous"></script>
 
@@ -924,8 +925,8 @@
         /* === FIND & REPLACE DIALOG (SEJDA PRO STYLE) === */
         .find-replace-dialog {
             position: fixed;
-            top: 60px;
-            right: 20px;
+            top: 72px;
+            left: 210px;
             width: 350px;
             background: var(--bg-soft);
             border: 1px solid var(--border-subtle);
@@ -1269,6 +1270,134 @@
             to { box-shadow: 0 0 16px rgba(37, 99, 235, 0.8); }
         }
 
+        /* === SCANNED DOCUMENT AUTO-OCR (ADOBE STYLE) === */
+        .scanned-page-banner {
+            position: sticky;
+            top: 8px;
+            z-index: 60;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 8px;
+            pointer-events: none;
+            animation: fadeInQuick 0.25s ease-out;
+        }
+
+        .scanned-banner-content {
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(245, 158, 11, 0.5);
+            color: #f8fafc;
+            padding: 6px 14px;
+            border-radius: 30px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+            font-size: 0.8rem;
+            pointer-events: auto;
+        }
+
+        [data-theme="light"] .scanned-banner-content {
+            background: rgba(255, 255, 255, 0.96);
+            border-color: #f59e0b;
+            color: #0f172a;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .btn-ocr-banner {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #ffffff !important;
+            border: none;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.15s;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35);
+        }
+
+        .btn-ocr-banner:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.1);
+        }
+
+        .scanned-banner-close {
+            background: transparent;
+            border: none;
+            color: var(--fg-muted);
+            font-size: 1.15rem;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0 2px;
+            transition: color 0.15s;
+        }
+
+        .scanned-banner-close:hover {
+            color: #ef4444;
+        }
+
+        .ocr-progress-toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-soft);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 10px 18px;
+            box-shadow: 0 14px 35px rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 290px;
+            animation: fadeInQuick 0.15s ease-out;
+        }
+
+        .ocr-spin-icon {
+            width: 16px;
+            height: 16px;
+            color: #f59e0b;
+            animation: spin 1s linear infinite;
+        }
+
+        .ocr-progress-track {
+            width: 100%;
+            height: 5px;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        [data-theme="dark"] .ocr-progress-track {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .ocr-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f59e0b, #10b981);
+            transition: width 0.15s ease;
+        }
+
+        .ocr-text-word {
+            position: absolute;
+            color: transparent;
+            cursor: text;
+            user-select: text;
+            white-space: pre;
+            line-height: 1;
+            z-index: 2;
+        }
+
+        .ocr-text-word::selection {
+            background: rgba(37, 99, 235, 0.35);
+            color: transparent;
+        }
+
         @keyframes fadeInQuick {
             from { opacity: 0; transform: translateY(-4px); }
             to { opacity: 1; transform: translateY(0); }
@@ -1448,6 +1577,12 @@
             <button class="tool-btn" data-tool="text" title="Add or Edit Text">
                 <i data-lucide="type"></i> Text
             </button>
+            <button class="tool-btn" id="findBtn" title="Find & Replace text (Ctrl+F)">
+                <i data-lucide="search"></i> Find
+            </button>
+            <button class="tool-btn" id="ocrBtn" title="Adobe-style OCR: Convert scanned page to editable text">
+                <i data-lucide="sparkles" style="color:#f59e0b;"></i> OCR Page
+            </button>
             <button class="tool-btn" data-tool="whiteout" title="Whiteout / Erase existing content">
                 <i data-lucide="eraser"></i> Whiteout
             </button>
@@ -1546,13 +1681,6 @@
             <button class="tool-btn" id="fitWidthBtn" title="Fit to Width"><i data-lucide="maximize-2"></i></button>
         </div>
 
-        <div class="toolbar-sep"></div>
-
-        <!-- FIND & REPLACE -->
-        <div class="toolbar-group">
-            <button class="tool-btn" id="findBtn" title="Find & Replace text (Ctrl+F)"><i data-lucide="search"></i> Find</button>
-        </div>
-
     </div>
 
     <!-- HIDDEN IMAGE INPUT -->
@@ -1566,6 +1694,29 @@
 
         <!-- CANVAS AREA -->
         <div class="canvas-area" id="canvasArea">
+            <!-- SCANNED PAGE ADOBE OCR BANNER -->
+            <div id="scannedPageBanner" class="scanned-page-banner" style="display:none;">
+                <div class="scanned-banner-content">
+                    <i data-lucide="scan-line" style="width:16px;height:16px;color:#f59e0b;flex-shrink:0;"></i>
+                    <span><strong>Scanned Page:</strong> Text is inside image pixels.</span>
+                    <button type="button" id="btnRunOcrBanner" class="btn-ocr-banner">
+                        <i data-lucide="sparkles" style="width:13px;height:13px;"></i> Make Text Editable (OCR)
+                    </button>
+                    <button type="button" class="scanned-banner-close" id="btnCloseScannedBanner" title="Dismiss">&times;</button>
+                </div>
+            </div>
+
+            <!-- OCR RUNNING PROGRESS OVERLAY -->
+            <div id="ocrProgressToast" class="ocr-progress-toast" style="display:none;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <i data-lucide="loader" class="ocr-spin-icon"></i>
+                    <span id="ocrProgressLabel" style="font-weight:600; font-size:0.82rem;">Recognizing scanned text... (0%)</span>
+                </div>
+                <div class="ocr-progress-track">
+                    <div id="ocrProgressFill" class="ocr-progress-fill" style="width: 0%;"></div>
+                </div>
+            </div>
+
             <div id="uploadState">
                 <input type="file" id="fileInput" accept="application/pdf" hidden>
                 <i data-lucide="file-up"></i>
@@ -2105,11 +2256,19 @@
             }
         }
 
+        // OCR state cache
+        const pageOcrWords = {}; // pageNum -> array of { text, x, y, width, height, fontSize, confidence }
+        const pageOcrDone = {};
+        const dismissedScannedBanner = {};
+        let isOcrRunning = false;
+
         // Render PDF.js Text Layer so existing text in the PDF is interactive, selectable, and editable
         async function renderTextLayerForPage(page, vp) {
             textLayer.innerHTML = '';
             try {
                 const textContent = await page.getTextContent();
+                const hasDigitalText = textContent && textContent.items && textContent.items.length > 2;
+
                 if (pdfjsLib.renderTextLayer) {
                     const task = pdfjsLib.renderTextLayer({
                         textContent: textContent,
@@ -2121,9 +2280,201 @@
                         await task.promise.catch(() => { });
                     }
                 }
+
+                // If OCR has already recognized text for this page, overlay the interactive OCR layer
+                if (pageOcrWords[currentPage] && pageOcrWords[currentPage].length > 0) {
+                    renderOcrTextLayer(pageOcrWords[currentPage]);
+                    hideScannedPageBanner();
+                } else if (!hasDigitalText && !isBlank && !dismissedScannedBanner[currentPage]) {
+                    showScannedPageBanner();
+                } else {
+                    hideScannedPageBanner();
+                }
             } catch (err) {
                 console.warn('Text layer render:', err);
             }
+        }
+
+        function showScannedPageBanner() {
+            const b = document.getElementById('scannedPageBanner');
+            if (b) {
+                b.style.display = 'flex';
+                lucide.createIcons({ root: b });
+            }
+        }
+
+        function hideScannedPageBanner() {
+            const b = document.getElementById('scannedPageBanner');
+            if (b) b.style.display = 'none';
+        }
+
+        function showOcrProgressToast(msg, pct) {
+            const t = document.getElementById('ocrProgressToast');
+            const lbl = document.getElementById('ocrProgressLabel');
+            const fill = document.getElementById('ocrProgressFill');
+            if (t) t.style.display = 'flex';
+            if (lbl) lbl.textContent = msg;
+            if (fill) fill.style.width = Math.min(100, Math.max(0, pct)) + '%';
+            lucide.createIcons({ root: t });
+        }
+
+        function hideOcrProgressToast() {
+            const t = document.getElementById('ocrProgressToast');
+            if (t) t.style.display = 'none';
+        }
+
+        async function runOcrOnCurrentPage() {
+            if (isOcrRunning || !pdfDoc) return;
+            const p = currentPage;
+            if (p > pdfDoc.numPages) return;
+
+            isOcrRunning = true;
+            showOcrProgressToast('Initializing OCR Engine (Tesseract AI)...', 8);
+
+            try {
+                const page = await pdfDoc.getPage(p);
+                const ocrScale = 2.0;
+                const vp = page.getViewport({ scale: ocrScale });
+                const ocrCanvas = document.createElement('canvas');
+                ocrCanvas.width = Math.floor(vp.width);
+                ocrCanvas.height = Math.floor(vp.height);
+                const ctx = ocrCanvas.getContext('2d');
+
+                showOcrProgressToast('Rendering high-res page image (200% DPI)...', 20);
+                await page.render({ canvasContext: ctx, viewport: vp }).promise;
+
+                showOcrProgressToast('Analyzing scanned text & words...', 35);
+
+                if (typeof Tesseract === 'undefined') {
+                    throw new Error('OCR library is still loading. Please check internet connection.');
+                }
+
+                const worker = await Tesseract.createWorker('eng', 1, {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            const pct = Math.round(35 + (m.progress || 0) * 60);
+                            showOcrProgressToast(`Recognizing text (${pct}%)...`, pct);
+                        }
+                    }
+                });
+
+                const ret = await worker.recognize(ocrCanvas);
+                await worker.terminate();
+
+                const rawWords = (ret.data && ret.data.words) ? ret.data.words : [];
+                const words = [];
+
+                rawWords.forEach(w => {
+                    const txt = (w.text || '').trim();
+                    if (!txt || txt.length === 0) return;
+                    const x = w.bbox.x0 / ocrScale;
+                    const y = w.bbox.y0 / ocrScale;
+                    const width = (w.bbox.x1 - w.bbox.x0) / ocrScale;
+                    const height = (w.bbox.y1 - w.bbox.y0) / ocrScale;
+                    const fontSize = Math.max(8, Math.round(height * 0.85));
+
+                    words.push({
+                        text: txt,
+                        x: Math.max(0, x),
+                        y: Math.max(0, y),
+                        width: Math.max(8, width),
+                        height: Math.max(8, height),
+                        fontSize: fontSize,
+                        confidence: w.confidence || 80
+                    });
+                });
+
+                pageOcrWords[p] = words;
+                pageOcrDone[p] = true;
+                hideScannedPageBanner();
+                hideOcrProgressToast();
+
+                renderOcrTextLayer(words);
+
+                if (findMatches.length > 0 && frFindInput.value.trim()) {
+                    executeFind(frFindInput.value.trim());
+                }
+
+                showToast(`OCR Complete: ${words.length} words recognized! Text is now selectable & editable like Adobe.`);
+            } catch (err) {
+                console.error('OCR Error:', err);
+                hideOcrProgressToast();
+                alert('OCR failed: ' + (err.message || 'Error recognizing scanned text'));
+            } finally {
+                isOcrRunning = false;
+            }
+        }
+
+        function renderOcrTextLayer(words) {
+            textLayer.querySelectorAll('.ocr-text-word').forEach(el => el.remove());
+
+            words.forEach(w => {
+                const span = document.createElement('span');
+                span.className = 'ocr-text-word';
+                span.textContent = w.text + ' ';
+                span.style.left = (w.x * scale) + 'px';
+                span.style.top = (w.y * scale) + 'px';
+                span.style.fontSize = (w.fontSize * scale) + 'px';
+                span.style.width = (w.width * scale) + 'px';
+                span.style.height = (w.height * scale) + 'px';
+                span.title = 'Double-click to edit text';
+
+                span.addEventListener('dblclick', (e) => {
+                    e.stopPropagation();
+                    editOcrWordInPlace(w);
+                });
+
+                textLayer.appendChild(span);
+            });
+        }
+
+        function editOcrWordInPlace(w) {
+            const whiteoutAnno = {
+                id: 'anno_wo_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                type: 'whiteout',
+                x: Math.max(0, w.x - 0.5),
+                y: Math.max(0, w.y),
+                width: w.width + 1,
+                height: w.height,
+                color: '#ffffff'
+            };
+
+            const textId = 'anno_txt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+            const textAnno = {
+                id: textId,
+                type: 'text',
+                x: w.x,
+                y: w.y,
+                width: Math.max(w.width + 16, 40),
+                height: w.height,
+                text: w.text,
+                fontSize: w.fontSize || 12,
+                fontFamily: document.getElementById('fontFamily').value || 'Times',
+                color: document.getElementById('textColor').value || '#000000',
+                bold: document.getElementById('btnBold').classList.contains('active'),
+                italic: document.getElementById('btnItalic').classList.contains('active'),
+                align: 'left'
+            };
+
+            recordAction({ type: 'composite_edit', page: currentPage, items: [whiteoutAnno, textAnno] });
+            if (!pageAnnotations[currentPage]) pageAnnotations[currentPage] = [];
+            pageAnnotations[currentPage].push(whiteoutAnno);
+            pageAnnotations[currentPage].push(textAnno);
+
+            renderAnnotations(currentPage);
+            setTool('select');
+            selectAnno(textId);
+
+            setTimeout(() => {
+                const el = document.getElementById(textId);
+                if (el) {
+                    const inner = el.querySelector('.anno-text-inner');
+                    if (inner) {
+                        inner.focus();
+                        selectAllText(inner);
+                    }
+                }
+            }, 40);
         }
 
         async function pageTo(n) {
@@ -4354,6 +4705,7 @@
             frHeader.addEventListener('mousedown', (e) => {
                 if (e.target.closest('#frCloseBtn')) return;
                 isDraggingFr = true;
+                findReplaceDialog.dataset.userPositioned = 'true';
                 frDragStartX = e.clientX;
                 frDragStartY = e.clientY;
                 const rect = findReplaceDialog.getBoundingClientRect();
@@ -4383,6 +4735,27 @@
 
         function openFindDialog(focusReplace = false) {
             findReplaceDialog.classList.add('open');
+
+            // Position directly underneath the Find toolbar button if not yet custom positioned
+            if (!findReplaceDialog.dataset.userPositioned) {
+                const btn = document.getElementById('findBtn');
+                const btnRect = btn ? btn.getBoundingClientRect() : null;
+                const dialogW = 350;
+                if (btnRect && btnRect.width > 0) {
+                    let targetLeft = Math.max(16, btnRect.left - 20);
+                    if (targetLeft + dialogW > window.innerWidth - 16) {
+                        targetLeft = window.innerWidth - dialogW - 16;
+                    }
+                    findReplaceDialog.style.left = targetLeft + 'px';
+                    findReplaceDialog.style.top = (btnRect.bottom + 8) + 'px';
+                    findReplaceDialog.style.right = 'auto';
+                } else {
+                    findReplaceDialog.style.left = 'calc(50% - 175px)';
+                    findReplaceDialog.style.top = '72px';
+                    findReplaceDialog.style.right = 'auto';
+                }
+            }
+
             if (focusReplace) {
                 frReplaceInput.focus();
                 frReplaceInput.select();
@@ -4402,6 +4775,18 @@
         }
 
         // Toggle options
+        const ocrBtn = document.getElementById('ocrBtn');
+        if (ocrBtn) ocrBtn.addEventListener('click', runOcrOnCurrentPage);
+        const btnRunOcrBanner = document.getElementById('btnRunOcrBanner');
+        if (btnRunOcrBanner) btnRunOcrBanner.addEventListener('click', runOcrOnCurrentPage);
+        const btnCloseScannedBanner = document.getElementById('btnCloseScannedBanner');
+        if (btnCloseScannedBanner) {
+            btnCloseScannedBanner.addEventListener('click', () => {
+                dismissedScannedBanner[currentPage] = true;
+                hideScannedPageBanner();
+            });
+        }
+
         frMatchCaseBtn.addEventListener('click', () => {
             frMatchCaseBtn.classList.toggle('active');
             if (frFindInput.value.trim()) executeFind(frFindInput.value.trim());
@@ -4564,6 +4949,31 @@
                         if (regex.lastIndex === startIdx) regex.lastIndex++;
                     }
                 });
+
+                // Search OCR recognized words on scanned pages
+                if (pageOcrWords[p] && pageOcrWords[p].length > 0) {
+                    pageOcrWords[p].forEach(w => {
+                        regex.lastIndex = 0;
+                        let match;
+                        while ((match = regex.exec(w.text)) !== null) {
+                            const fontProps = { fontFamily: 'Times', bold: false, italic: false };
+                            findMatches.push({
+                                pageNum: p,
+                                matchedText: match[0],
+                                fontProps: fontProps,
+                                bounds: {
+                                    x: Math.max(0, w.x),
+                                    y: Math.max(0, w.y),
+                                    width: Math.max(12, w.width),
+                                    height: Math.max(10, w.height),
+                                    fontSize: w.fontSize || 12,
+                                    ty: (vp.height - w.y - (w.fontSize || 12))
+                                }
+                            });
+                            if (regex.lastIndex === match.index) regex.lastIndex++;
+                        }
+                    });
+                }
             }
 
             if (findMatches.length > 0) {
