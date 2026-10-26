@@ -493,14 +493,21 @@
         /* Specific item styles */
         .anno-text-box {
             background: transparent;
-            min-width: 40px;
-            min-height: 20px;
-            border: 1px dashed rgba(37, 99, 235, 0.5);
-            padding: 2px 4px;
+            min-width: 20px;
+            min-height: 14px;
+            border: 1px dashed transparent;
+            padding: 0 1px;
+            box-sizing: border-box;
+            transition: border-color 0.15s;
+        }
+
+        .anno-text-box:hover {
+            border-color: rgba(37, 99, 235, 0.35);
         }
 
         .anno-text-box.selected {
             border: 1px solid #2563eb;
+            background: rgba(37, 99, 235, 0.03);
         }
 
         .anno-text-inner {
@@ -511,7 +518,9 @@
             user-select: text;
             white-space: pre-wrap;
             word-break: break-word;
-            line-height: 1.25;
+            line-height: 1.15;
+            margin: 0;
+            padding: 0;
         }
 
         .anno-whiteout {
@@ -1066,6 +1075,120 @@
             outline: none;
         }
 
+        /* Find & Replace Format Row (Auto-match & styling) */
+        .fr-format-row {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            background: rgba(0, 0, 0, 0.025);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 6px 8px;
+        }
+
+        [data-theme="dark"] .fr-format-row {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .fr-format-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--fg-muted);
+        }
+
+        .fr-format-controls {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .fr-fmt-select {
+            background: var(--bg);
+            border: 1px solid var(--border-subtle);
+            color: var(--fg);
+            border-radius: 6px;
+            padding: 3px 6px;
+            font-size: 0.73rem;
+            outline: none;
+            cursor: pointer;
+            flex: 1;
+            min-width: 95px;
+        }
+
+        .fr-fmt-num-group {
+            display: inline-flex;
+            align-items: center;
+            background: var(--bg);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .fr-fmt-btn {
+            background: transparent;
+            border: none;
+            color: var(--fg);
+            font-size: 0.75rem;
+            font-weight: 700;
+            width: 20px;
+            height: 22px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .fr-fmt-btn:hover {
+            background: rgba(37, 99, 235, 0.12);
+            color: var(--accent);
+        }
+
+        .fr-fmt-size-val {
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 0 4px;
+            min-width: 22px;
+            text-align: center;
+            color: var(--fg);
+            user-select: none;
+        }
+
+        .fr-fmt-toggle {
+            background: var(--bg);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            width: 22px;
+            height: 22px;
+            font-size: 0.75rem;
+            padding: 0;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+
+        .fr-fmt-toggle.active {
+            background: var(--accent-soft);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .fr-color-pick {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 1.5px solid var(--border-subtle);
+            cursor: pointer;
+            padding: 0;
+            background: transparent;
+        }
+
         .fr-actions-row {
             display: flex;
             gap: 6px;
@@ -1537,6 +1660,32 @@
             <!-- Replace Row -->
             <div class="fr-input-row">
                 <input type="text" id="frReplaceInput" placeholder="Replace with..." autocomplete="off">
+            </div>
+            <!-- Replacement Formatting (Auto-matches document font/style or customize) -->
+            <div class="fr-format-row" id="frFormatRow" title="Formatting for replacement text">
+                <div class="fr-format-label">
+                    <span style="display:flex; align-items:center; gap:4px;">
+                        <i data-lucide="sparkles" style="width:12px;height:12px;color:var(--accent);"></i>
+                        <span id="frFormatHint">Auto-match format</span>
+                    </span>
+                    <button type="button" id="frResetFormatBtn" style="background:none;border:none;color:var(--accent);font-size:0.7rem;cursor:pointer;padding:0;text-decoration:underline;">Reset</button>
+                </div>
+                <div class="fr-format-controls">
+                    <select id="frFontFamily" class="fr-fmt-select" title="Font family">
+                        <option value="auto">Auto-detect font</option>
+                        <option value="Times">Times (Serif)</option>
+                        <option value="Helvetica">Helvetica (Sans)</option>
+                        <option value="Courier">Courier (Mono)</option>
+                    </select>
+                    <div class="fr-fmt-num-group" title="Font size">
+                        <button type="button" class="fr-fmt-btn" id="frFontSizeMinus" title="Decrease font size">-</button>
+                        <span id="frFontSizeVal" class="fr-fmt-size-val">Auto</span>
+                        <button type="button" class="fr-fmt-btn" id="frFontSizePlus" title="Increase font size">+</button>
+                    </div>
+                    <button type="button" class="fr-fmt-btn fr-fmt-toggle" id="frBoldBtn" title="Toggle Bold"><b>B</b></button>
+                    <button type="button" class="fr-fmt-btn fr-fmt-toggle" id="frItalicBtn" title="Toggle Italic"><i>I</i></button>
+                    <input type="color" id="frColorPick" value="#000000" class="fr-color-pick" title="Text Color">
+                </div>
             </div>
             <!-- Actions Row -->
             <div class="fr-actions-row">
@@ -2472,6 +2621,21 @@
             };
 
             const textId = 'anno_txt_' + Date.now();
+            let selFamily = document.getElementById('fontFamily').value || 'Helvetica';
+            let selBold = document.getElementById('btnBold').classList.contains('active');
+            let selItalic = document.getElementById('btnItalic').classList.contains('active');
+
+            const spanParent = activeSelectionRange.startContainer.parentElement;
+            if (spanParent && spanParent.closest('.textLayer')) {
+                const cs = window.getComputedStyle(spanParent);
+                const ff = (cs.fontFamily || '').toLowerCase();
+                const fw = cs.fontWeight;
+                if (/times|serif|roman|cambria|georgia/i.test(ff)) selFamily = 'Times';
+                else if (/courier|mono|consolas/i.test(ff)) selFamily = 'Courier';
+                if (fw === 'bold' || parseInt(fw, 10) >= 600 || /bold/i.test(ff)) selBold = true;
+                if (cs.fontStyle === 'italic' || /italic|oblique/i.test(ff)) selItalic = true;
+            }
+
             const textAnno = {
                 id: textId,
                 type: 'text',
@@ -2481,10 +2645,10 @@
                 height: height,
                 text: activeSelectedText,
                 fontSize: Math.max(8, Math.round(height * 0.85)) || 14,
-                fontFamily: 'Helvetica',
-                color: '#000000',
-                bold: false,
-                italic: false,
+                fontFamily: selFamily,
+                color: document.getElementById('textColor').value || '#000000',
+                bold: selBold,
+                italic: selItalic,
                 align: 'left'
             };
 
@@ -3086,7 +3250,7 @@
                     inner.spellcheck = false;
                     inner.innerText = item.text || '';
                     inner.style.fontSize = ((item.fontSize || 16) * scale) + 'px';
-                    inner.style.fontFamily = item.fontFamily === 'Courier' ? 'Courier, monospace' : (item.fontFamily === 'Times' ? 'Times New Roman, serif' : 'Helvetica, Arial, sans-serif');
+                    inner.style.fontFamily = item.fontFamily === 'Courier' ? 'Courier, monospace' : (item.fontFamily === 'Times' ? '"Times New Roman", Times, Georgia, serif' : 'Helvetica, Arial, sans-serif');
                     inner.style.color = item.color || '#000000';
                     inner.style.fontWeight = item.bold ? 'bold' : 'normal';
                     inner.style.fontStyle = item.italic ? 'italic' : 'normal';
@@ -4032,8 +4196,153 @@
         const frScopeSelect = document.getElementById('frScopeSelect');
         const frMatchCountBadge = document.getElementById('frMatchCount');
 
+        // Replacement formatting controls
+        const frFontFamily = document.getElementById('frFontFamily');
+        const frFontSizeMinus = document.getElementById('frFontSizeMinus');
+        const frFontSizeVal = document.getElementById('frFontSizeVal');
+        const frFontSizePlus = document.getElementById('frFontSizePlus');
+        const frBoldBtn = document.getElementById('frBoldBtn');
+        const frItalicBtn = document.getElementById('frItalicBtn');
+        const frColorPick = document.getElementById('frColorPick');
+        const frFormatHint = document.getElementById('frFormatHint');
+        const frResetFormatBtn = document.getElementById('frResetFormatBtn');
+
         findBtn.addEventListener('click', () => openFindDialog(false));
         document.getElementById('frCloseBtn').addEventListener('click', closeFindDialog);
+
+        // Format controls event wiring
+        if (frFontFamily) {
+            frFontFamily.addEventListener('change', () => {
+                if (frFontFamily.value !== 'auto') {
+                    if (frFormatHint) frFormatHint.textContent = `Font: ${frFontFamily.value}`;
+                } else {
+                    resetFindFormatToAuto();
+                    if (findMatches.length > 0 && currentMatchIdx >= 0) {
+                        updateFindFormatUIForMatch(findMatches[currentMatchIdx]);
+                    }
+                }
+            });
+        }
+
+        if (frBoldBtn) {
+            frBoldBtn.addEventListener('click', () => {
+                frBoldBtn.classList.toggle('active');
+                frBoldBtn.dataset.userSet = 'true';
+                if (frFormatHint) frFormatHint.textContent = 'Custom styling applied';
+            });
+        }
+
+        if (frItalicBtn) {
+            frItalicBtn.addEventListener('click', () => {
+                frItalicBtn.classList.toggle('active');
+                frItalicBtn.dataset.userSet = 'true';
+                if (frFormatHint) frFormatHint.textContent = 'Custom styling applied';
+            });
+        }
+
+        if (frFontSizeMinus) {
+            frFontSizeMinus.addEventListener('click', () => {
+                let cur = parseInt(frFontSizeVal.textContent, 10);
+                if (isNaN(cur)) {
+                    const match = findMatches[currentMatchIdx];
+                    cur = (match && match.bounds && match.bounds.fontSize) ? match.bounds.fontSize : 12;
+                }
+                const next = Math.max(6, cur - 1);
+                frFontSizeVal.textContent = next;
+                frFontSizeVal.dataset.userSet = 'true';
+                if (frFormatHint) frFormatHint.textContent = `Size: ${next}pt`;
+            });
+        }
+
+        if (frFontSizePlus) {
+            frFontSizePlus.addEventListener('click', () => {
+                let cur = parseInt(frFontSizeVal.textContent, 10);
+                if (isNaN(cur)) {
+                    const match = findMatches[currentMatchIdx];
+                    cur = (match && match.bounds && match.bounds.fontSize) ? match.bounds.fontSize : 12;
+                }
+                const next = Math.min(96, cur + 1);
+                frFontSizeVal.textContent = next;
+                frFontSizeVal.dataset.userSet = 'true';
+                if (frFormatHint) frFormatHint.textContent = `Size: ${next}pt`;
+            });
+        }
+
+        if (frColorPick) {
+            frColorPick.addEventListener('input', () => {
+                frColorPick.dataset.userSet = 'true';
+                if (frFormatHint) frFormatHint.textContent = 'Custom color applied';
+            });
+        }
+
+        if (frResetFormatBtn) {
+            frResetFormatBtn.addEventListener('click', () => {
+                resetFindFormatToAuto();
+                if (findMatches.length > 0 && currentMatchIdx >= 0) {
+                    updateFindFormatUIForMatch(findMatches[currentMatchIdx]);
+                }
+            });
+        }
+
+        function resetFindFormatToAuto() {
+            if (frFontFamily) frFontFamily.value = 'auto';
+            if (frFontSizeVal) {
+                frFontSizeVal.textContent = 'Auto';
+                delete frFontSizeVal.dataset.userSet;
+            }
+            if (frBoldBtn) {
+                frBoldBtn.classList.remove('active');
+                delete frBoldBtn.dataset.userSet;
+            }
+            if (frItalicBtn) {
+                frItalicBtn.classList.remove('active');
+                delete frItalicBtn.dataset.userSet;
+            }
+            if (frColorPick) {
+                frColorPick.value = '#000000';
+                delete frColorPick.dataset.userSet;
+            }
+            if (frFormatHint) frFormatHint.textContent = 'Auto-match format';
+        }
+
+        function updateFindFormatUIForMatch(match) {
+            if (!match) return;
+            const fp = match.fontProps || { fontFamily: 'Times', bold: false, italic: false };
+            const fs = (match.bounds && match.bounds.fontSize) ? match.bounds.fontSize : 12;
+
+            if (frFontFamily && frFontFamily.value === 'auto') {
+                if (frFormatHint) {
+                    frFormatHint.textContent = `Auto: ${fp.fontFamily}, ${fs}pt${fp.bold ? ', Bold' : ''}${fp.italic ? ', Italic' : ''}`;
+                }
+                if (frFontSizeVal && frFontSizeVal.dataset.userSet !== 'true') {
+                    frFontSizeVal.textContent = fs;
+                }
+                if (frBoldBtn && frBoldBtn.dataset.userSet !== 'true') {
+                    frBoldBtn.classList.toggle('active', !!fp.bold);
+                }
+                if (frItalicBtn && frItalicBtn.dataset.userSet !== 'true') {
+                    frItalicBtn.classList.toggle('active', !!fp.italic);
+                }
+            }
+        }
+
+        function getEffectiveFormatForMatch(match) {
+            const isAutoFamily = !frFontFamily || frFontFamily.value === 'auto';
+            const userSetSize = frFontSizeVal && frFontSizeVal.dataset.userSet === 'true';
+            const userSetBold = frBoldBtn && frBoldBtn.dataset.userSet === 'true';
+            const userSetItalic = frItalicBtn && frItalicBtn.dataset.userSet === 'true';
+
+            const detected = (match && match.fontProps) ? match.fontProps : { fontFamily: 'Times', bold: false, italic: false };
+            const detectedSize = (match && match.bounds && match.bounds.fontSize) ? match.bounds.fontSize : 12;
+
+            const fontFamily = isAutoFamily ? detected.fontFamily : frFontFamily.value;
+            const bold = userSetBold ? frBoldBtn.classList.contains('active') : detected.bold;
+            const italic = userSetItalic ? frItalicBtn.classList.contains('active') : detected.italic;
+            const fontSize = userSetSize ? (parseInt(frFontSizeVal.textContent, 10) || detectedSize) : detectedSize;
+            const color = (frColorPick && frColorPick.value) ? frColorPick.value : '#000000';
+
+            return { fontFamily, bold, italic, fontSize, color };
+        }
 
         // Draggable Find & Replace dialog by header
         let isDraggingFr = false;
@@ -4145,6 +4454,44 @@
             return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         }
 
+        // Detect font family, weight, style from PDF.js item and textContent styles
+        function detectItemFont(item, textContent) {
+            let fontFamily = 'Helvetica';
+            let bold = false;
+            let italic = false;
+
+            const fontName = (item.fontName || '').trim();
+            const style = (textContent && textContent.styles && textContent.styles[fontName]) ? textContent.styles[fontName] : null;
+            const styleFamily = (style && style.fontFamily ? style.fontFamily : '').trim();
+
+            const cleanFontName = fontName.replace(/^[A-Z]{6}\+/, '');
+            const combined = (cleanFontName + ' ' + styleFamily).toLowerCase();
+
+            // 1. Font Family Detection
+            if (/times|serif|cambria|garamond|georgia|roman|minion|baskerville|palatino|bookman|century|charter|nimbusrom|liberationserif/i.test(combined)) {
+                fontFamily = 'Times';
+            } else if (/courier|mono|consolas|menlo|typewriter|source\s*code|fixed|monospace|liberationmono/i.test(combined)) {
+                fontFamily = 'Courier';
+            } else {
+                fontFamily = 'Helvetica';
+            }
+
+            // 2. Bold Detection
+            if (/bold|black|heavy|semibold|demi|medi|\bbd\b/i.test(combined) ||
+                /-(b|bd|bold)$/i.test(cleanFontName) ||
+                /\b(700|800|900)\b/.test(combined)) {
+                bold = true;
+            }
+
+            // 3. Italic Detection
+            if (/italic|oblique|slanted|slant|\b(it)\b/i.test(combined) ||
+                /-(i|it|italic|oblique)$/i.test(cleanFontName)) {
+                italic = true;
+            }
+
+            return { fontFamily, bold, italic, fontName: cleanFontName, styleFamily };
+        }
+
         async function executeFind(query) {
             findMatches = [];
             currentMatchIdx = -1;
@@ -4195,18 +4542,22 @@
                         const approxCharWidth = item.width > 0 ? (item.width / str.length) : (fontSize * 0.55);
                         const matchX = tx + (startIdx * approxCharWidth);
                         const matchW = approxCharWidth * matchedLen;
-                        const matchH = fontSize * 1.2;
-                        const matchY = vp.height - ty - fontSize;
+                        const matchH = fontSize * 1.18;
+                        const matchY = (vp.height - ty) - (fontSize * 0.85);
+
+                        const fontProps = detectItemFont(item, textContent);
 
                         findMatches.push({
                             pageNum: p,
                             matchedText: match[0],
+                            fontProps: fontProps,
                             bounds: {
                                 x: Math.max(0, matchX),
                                 y: Math.max(0, matchY),
                                 width: Math.max(12, matchW),
                                 height: Math.max(10, matchH),
-                                fontSize: Math.round(fontSize)
+                                fontSize: Math.round(fontSize),
+                                ty: ty
                             }
                         });
 
@@ -4235,6 +4586,8 @@
 
             frMatchCountBadge.textContent = `${currentMatchIdx + 1} / ${findMatches.length}`;
             const match = findMatches[currentMatchIdx];
+
+            updateFindFormatUIForMatch(match);
 
             if (match.pageNum !== currentPage) {
                 pageTo(match.pageNum).then(() => {
@@ -4340,30 +4693,36 @@
         function applyMatchReplacement(match, newText, isBatch = false) {
             const b = match.bounds;
             const p = match.pageNum;
+            const fmt = getEffectiveFormatForMatch(match);
 
+            // Whiteout to cover the original word cleanly without eating into dots or neighboring characters
             const whiteoutAnno = {
                 id: 'anno_wo_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
                 type: 'whiteout',
-                x: Math.max(0, b.x - 1),
-                y: Math.max(0, b.y - 1),
-                width: b.width + 4,
-                height: b.height + 2,
+                x: Math.max(0, b.x - 0.5),
+                y: Math.max(0, b.y),
+                width: b.width + 1,
+                height: b.height,
                 color: '#ffffff'
             };
+
+            // Estimate character width so container doesn't force premature line wrapping
+            const charW = (fmt.fontFamily === 'Courier') ? (fmt.fontSize * 0.6) : (fmt.fontFamily === 'Times' ? (fmt.fontSize * 0.5) : (fmt.fontSize * 0.54));
+            const estNewWidth = Math.max(b.width, Math.round(newText.length * charW) + 10, 24);
 
             const textAnno = {
                 id: 'anno_txt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
                 type: 'text',
                 x: b.x,
                 y: b.y,
-                width: Math.max(b.width + 10, 40),
+                width: estNewWidth,
                 height: b.height,
                 text: newText,
-                fontSize: b.fontSize || 14,
-                fontFamily: 'Helvetica',
-                color: '#000000',
-                bold: false,
-                italic: false,
+                fontSize: fmt.fontSize || b.fontSize || 12,
+                fontFamily: fmt.fontFamily || 'Times',
+                color: fmt.color || '#000000',
+                bold: !!fmt.bold,
+                italic: !!fmt.italic,
                 align: 'left'
             };
 
