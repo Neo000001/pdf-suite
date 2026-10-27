@@ -390,6 +390,20 @@ html[data-theme="light"] .floating-card {
   height: 250px;
 }
 
+.ad-desktop {
+  display: block;
+  text-align: center;
+}
+
+.ad-mobile {
+  display: none;
+  text-align: center;
+}
+
+.ad-container iframe {
+  max-width: 100%;
+}
+
 
 /* ========= DASHBOARD MOBILE FIX ========= */
 @media (max-width: 768px) {
@@ -422,6 +436,14 @@ html[data-theme="light"] .floating-card {
 
   .ad-banner-section {
     padding: 1rem;
+  }
+
+  .ad-desktop {
+    display: none !important;
+  }
+
+  .ad-mobile {
+    display: block !important;
   }
 
   .ad-container ins {
